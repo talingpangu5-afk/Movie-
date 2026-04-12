@@ -45,9 +45,9 @@ async function MovieRow({ title, fetcher }: { title: string, fetcher: () => Prom
 
 export default async function HomePage() {
   const trendingData = await tmdb.getTrending();
-  const heroMovieBasic = trendingData.results?.[0];
+  const trendingMovies = trendingData.results?.slice(0, 10) || [];
 
-  if (!heroMovieBasic) {
+  if (trendingMovies.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
         <h1 className="text-2xl font-bold mb-4">Welcome to Movie World</h1>
@@ -56,14 +56,14 @@ export default async function HomePage() {
     );
   }
 
-  // Fetch full details for hero movie to get trailer
-  const heroMovie: MovieDetails = await tmdb.getMovieDetails(heroMovieBasic.id.toString());
+  // Fetch full details for hero movies to get trailers
+  const heroMovies: MovieDetails[] = await tmdb.getMultipleMovieDetails(trendingMovies.map((m: Movie) => m.id));
 
   return (
     <div className="flex flex-col gap-8">
       <AutoRefresh />
       
-      <Hero movie={heroMovie} />
+      <Hero movies={heroMovies} />
 
       {/* Ad Placement */}
       <div className="container mx-auto px-4 py-4">

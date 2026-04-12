@@ -74,6 +74,10 @@ export const tmdb = {
   getUpcoming: () => fetchTMDB('/movie/upcoming'),
   search: (query: string) => fetchTMDB('/search/multi', { query }),
   getMovieDetails: (id: string) => fetchTMDB(`/movie/${id}`, { append_to_response: 'credits,videos' }),
+  getMultipleMovieDetails: async (ids: number[]) => {
+    const promises = ids.map(id => fetchTMDB(`/movie/${id}`, { append_to_response: 'credits,videos' }));
+    return Promise.all(promises);
+  },
   getImageUrl: (path: string, size: string = 'original') => 
     path ? `https://image.tmdb.org/t/p/${size}${path}` : '/placeholder-movie.jpg',
 };

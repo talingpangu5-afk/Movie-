@@ -1,15 +1,16 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { Play, Pause, Info, Star, Volume2, VolumeX } from 'lucide-react';
+import { Play, Pause, Info, Star, Volume2, VolumeX, ChevronRight } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Button } from '@/components/ui/button';
 import { MovieDetails, tmdb } from '@/lib/tmdb';
 import { TrailerModal } from './TrailerModal';
 
 interface HeroProps {
-  movie: MovieDetails;
+  movies: MovieDetails[];
 }
 
 declare global {
@@ -19,7 +20,8 @@ declare global {
   }
 }
 
-export function Hero({ movie }: HeroProps) {
+export function Hero({ movies }: HeroProps) {
+  const [currentIndex, setCurrentIndex] = useState(0);
   const [isPlaying, setIsPlaying] = useState(true);
   const isPlayingRef = useRef(true);
   const [isMuted, setIsMuted] = useState(true);
@@ -27,9 +29,15 @@ export function Hero({ movie }: HeroProps) {
   const playerRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
-  const trailer = movie.videos.results.find(
+  const currentMovie = movies[currentIndex];
+  const trailer = currentMovie?.videos?.results?.find(
     (v) => v.type === 'Trailer' && v.site === 'YouTube'
   );
+
+  const handleNext = useCallback(() => {
+    setIsVideoReady(false);
+    setCurrentIndex((prev) => (prev + 1) % movies.length);
+  }, [movies.length]);
 
   useEffect(() => {
     isPlayingRef.current = isPlaying;
@@ -39,33 +47,55 @@ export function Hero({ movie }: HeroProps) {
     // Load YouTube IFrame API
     if (!trailer) return;
 
-    const tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    const firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+    if (!window.YT) {
+      const tag = document.createElement('script');
+      tag.src = "https://www.youtube.com/iframe_api";
+      const firstScriptTag = document.getElementsByTagName('script')[0];
+      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
+    }
 
-    window.onYouTubeIframeAPIReady = () => {
-      playerRef.current = new window.YT.Player(`hero-video-${movie.id}`, {
+    const initPlayer = () => {
+      if (playerRef.current) {
+        playerRef.current.loadVideoById({
+          videoId: trailer.key,
+          startSeconds: 0,
+        });
+        return;
+      }
+
+      playerRef.current = new window.YT.Player(`hero-video`, {
+        videoId: trailer.key,
+        playerVars: {
+          autoplay: 1,
+          mute: 1,
+          controls: 0,
+          loop: 0,
+          rel: 0,
+          modestbranding: 1,
+          iv_load_policy: 3,
+          showinfo: 0,
+        },
         events: {
           onReady: (event: any) => {
             setIsVideoReady(true);
-            // Use current state values at time of ready
-            if (event.target.playVideo) {
-              event.target.playVideo();
-              event.target.mute();
-            }
+            event.target.playVideo();
+            event.target.mute();
           },
           onStateChange: (event: any) => {
-            // Loop video
             if (event.data === window.YT.PlayerState.ENDED) {
-              event.target.playVideo();
+              handleNext();
             }
           }
         }
       });
     };
 
-    // Intersection Observer to pause when out of view
+    if (window.YT && window.YT.Player) {
+      initPlayer();
+    } else {
+      window.onYouTubeIframeAPIReady = initPlayer;
+    }
+
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!playerRef.current) return;
@@ -85,7 +115,7 @@ export function Hero({ movie }: HeroProps) {
     return () => {
       observer.disconnect();
     };
-  }, [movie.id, trailer]);
+  }, [currentIndex, trailer, handleNext]);
 
   const togglePlay = () => {
     if (!playerRef.current) return;
@@ -107,64 +137,79 @@ export function Hero({ movie }: HeroProps) {
     setIsMuted(!isMuted);
   };
 
+  if (!currentMovie) return null;
+
   return (
     <section 
       ref={containerRef}
       className="relative h-[90vh] w-full overflow-hidden bg-black"
     >
       {/* Fallback / Loading Poster */}
-      <div className={`absolute inset-0 transition-opacity duration-1000 ${isVideoReady ? 'opacity-0' : 'opacity-100'}`}>
-        <Image
-          src={tmdb.getImageUrl(movie.backdrop_path)}
-          alt={movie.title}
-          fill
-          priority
-          className="object-cover"
-          referrerPolicy="no-referrer"
-        />
-      </div>
+      <AnimatePresence mode="wait">
+        <motion.div 
+          key={`poster-${currentMovie.id}`}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: isVideoReady ? 0 : 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 1 }}
+          className="absolute inset-0 z-0"
+        >
+          <Image
+            src={tmdb.getImageUrl(currentMovie.backdrop_path)}
+            alt={currentMovie.title}
+            fill
+            priority
+            className="object-cover"
+            referrerPolicy="no-referrer"
+          />
+        </motion.div>
+      </AnimatePresence>
 
       {/* Video Background */}
       {trailer && (
         <div className={`absolute inset-0 transition-opacity duration-1000 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}>
           <div className="absolute inset-0 scale-150 pointer-events-none">
-            <iframe
-              id={`hero-video-${movie.id}`}
-              src={`https://www.youtube.com/embed/${trailer.key}?enablejsapi=1&autoplay=1&mute=1&controls=0&loop=1&playlist=${trailer.key}&rel=0&modestbranding=1&iv_load_policy=3&showinfo=0`}
-              title={movie.title}
-              className="w-full h-full"
-              allow="autoplay; encrypted-media"
-              loading="lazy"
-            />
+            <div id="hero-video" className="w-full h-full" />
           </div>
         </div>
       )}
 
       {/* Overlays */}
-      <div className="absolute inset-0 hero-gradient" />
-      <div className="absolute inset-0 bg-black/20" />
+      <div className="absolute inset-0 hero-gradient z-10" />
+      <div className="absolute inset-0 bg-black/30 z-10" />
 
       {/* Content */}
-      <div className="absolute inset-0 flex flex-col justify-end pb-24">
+      <div className="absolute inset-0 flex flex-col justify-end pb-24 z-20">
         <div className="container mx-auto px-4 space-y-6">
-          <div className="flex items-center gap-2 text-primary font-bold animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <Star className="w-5 h-5 fill-primary" />
-            <span>Trending Today</span>
-          </div>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`content-${currentMovie.id}`}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              transition={{ duration: 0.8 }}
+              className="space-y-6"
+            >
+              <div className="flex items-center gap-2 text-primary font-bold">
+                <Star className="w-5 h-5 fill-primary" />
+                <span>Trending Playlist • {currentIndex + 1}/{movies.length}</span>
+              </div>
+              
+              <h1 className="text-5xl md:text-8xl font-black tracking-tighter max-w-4xl text-shadow">
+                {currentMovie.title}
+              </h1>
+              
+              <p className="text-lg md:text-xl text-gray-200 max-w-2xl line-clamp-3 text-shadow">
+                {currentMovie.overview}
+              </p>
+            </motion.div>
+          </AnimatePresence>
           
-          <h1 className="text-5xl md:text-8xl font-black tracking-tighter max-w-4xl text-shadow animate-in fade-in slide-in-from-bottom-6 duration-1000">
-            {movie.title}
-          </h1>
-          
-          <p className="text-lg md:text-xl text-gray-200 max-w-2xl line-clamp-3 text-shadow animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-200">
-            {movie.overview}
-          </p>
-          
-          <div className="flex flex-wrap items-center gap-4 pt-4 animate-in fade-in slide-in-from-bottom-10 duration-1000 delay-300">
+          <div className="flex flex-wrap items-center gap-4 pt-4">
             {trailer ? (
               <TrailerModal 
                 trailerKey={trailer.key} 
-                title={movie.title}
+                title={currentMovie.title}
               >
                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-white font-bold px-10 h-14 rounded-full text-lg shadow-xl shadow-primary/20">
                   <Play className="w-6 h-6 mr-2 fill-white" />
@@ -172,7 +217,7 @@ export function Hero({ movie }: HeroProps) {
                 </Button>
               </TrailerModal>
             ) : (
-              <Link href={`/movie/${movie.id}`}>
+              <Link href={`/movie/${currentMovie.id}`}>
                 <Button size="lg" className="bg-primary hover:bg-primary/90 text-white font-bold px-10 h-14 rounded-full text-lg shadow-xl shadow-primary/20">
                   <Play className="w-6 h-6 mr-2 fill-white" />
                   Watch Now
@@ -180,12 +225,22 @@ export function Hero({ movie }: HeroProps) {
               </Link>
             )}
             
-            <Link href={`/movie/${movie.id}`}>
+            <Link href={`/movie/${currentMovie.id}`}>
               <Button size="lg" variant="secondary" className="bg-white/10 hover:bg-white/20 backdrop-blur-xl text-white border border-white/20 font-bold px-10 h-14 rounded-full text-lg">
                 <Info className="w-6 h-6 mr-2" />
                 More Info
               </Button>
             </Link>
+
+            <Button 
+              size="lg" 
+              variant="secondary" 
+              onClick={handleNext}
+              className="bg-white/10 hover:bg-white/20 backdrop-blur-xl text-white border border-white/20 font-bold px-6 h-14 rounded-full text-lg"
+            >
+              Next Trailer
+              <ChevronRight className="w-6 h-6 ml-2" />
+            </Button>
 
             {/* Controls */}
             {trailer && (
@@ -210,6 +265,17 @@ export function Hero({ movie }: HeroProps) {
             )}
           </div>
         </div>
+      </div>
+
+      {/* Progress Bar */}
+      <div className="absolute bottom-0 left-0 h-1 bg-primary/30 w-full z-30">
+        <motion.div 
+          key={`progress-${currentMovie.id}`}
+          initial={{ width: "0%" }}
+          animate={{ width: isVideoReady ? "100%" : "0%" }}
+          transition={{ duration: 30, ease: "linear" }} // Approximate trailer length or just visual
+          className="h-full bg-primary"
+        />
       </div>
     </section>
   );
