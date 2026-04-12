@@ -1,6 +1,8 @@
 import { tmdb, Movie } from '@/lib/tmdb';
 import { MovieCard } from '@/components/MovieCard';
 import { Award } from 'lucide-react';
+import { AdBanner } from '@/components/AdBanner';
+import { AdNative } from '@/components/AdNative';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,8 +20,18 @@ export default async function TopRatedPage() {
           <p className="text-muted-foreground">Highest rated movies of all time according to TMDb users.</p>
         </div>
 
+        <AdBanner />
+
         <div className="grid grid-cols-6 gap-6">
-          {results.map((movie: Movie) => (
+          {results.slice(0, 12).map((movie: Movie) => (
+            <MovieCard key={movie.id} movie={movie} />
+          ))}
+        </div>
+
+        <AdNative />
+
+        <div className="grid grid-cols-6 gap-6">
+          {results.slice(12).map((movie: Movie) => (
             <MovieCard key={movie.id} movie={movie} />
           ))}
         </div>
