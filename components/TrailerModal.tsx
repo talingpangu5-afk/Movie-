@@ -17,7 +17,7 @@ interface TrailerModalProps {
   variant?: 'default' | 'outline' | 'secondary' | 'ghost' | 'link' | 'destructive';
   size?: 'default' | 'sm' | 'lg' | 'icon';
   className?: string;
-  children?: React.ReactNode;
+  children?: React.ReactElement;
 }
 
 export function TrailerModal({ 
