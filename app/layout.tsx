@@ -23,9 +23,9 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="en" className="dark">
       <body className={inter.className} suppressHydrationWarning>
-        {/* Adsterra Popunder Placeholder */}
+        {/* Ad Network Scripts */}
         <Script 
-          src="//pl26000000.highperformanceformat.com/aa/bb/cc/aabbcc11223344556677889900.js" 
+          src="https://pl29130382.profitablecpmratenetwork.com/0e/a6/ec/0ea6ecd798b47b004c6c8d3cf469ddc0.js" 
           strategy="afterInteractive"
         />
         
