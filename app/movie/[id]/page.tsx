@@ -186,6 +186,9 @@ export default async function MovieDetailsPage({ params }: { params: Promise<{ i
                   </div>
                 ))}
               </div>
+              
+              {/* Final Banner Ad */}
+              <AdBanner className="mt-12" />
             </div>
 
             {/* Trailer Embed */}

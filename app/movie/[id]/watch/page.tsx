@@ -157,6 +157,11 @@ export default function WatchPage() {
               </div>
             </div>
           </div>
+
+          {/* Final Bottom Banner */}
+          <div className="ad-container mt-12">
+            <AdBanner />
+          </div>
         </div>
       </div>
     </div>

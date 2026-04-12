@@ -23,7 +23,7 @@ export function AdNative({ className }: AdNativeProps) {
   }, []);
 
   return (
-    <div className={`ad-container min-h-[250px] p-4 ${className}`}>
+    <div className={`ad-container ${className}`}>
       <div ref={adRef} id="container-97229860b04e823be4afd7fd18f7c502" className="w-full" />
     </div>
   );

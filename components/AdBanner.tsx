@@ -38,8 +38,8 @@ export function AdBanner({ className }: AdBannerProps) {
   }, []);
 
   return (
-    <div className={`ad-container min-h-[100px] ${className}`}>
-      <div ref={adRef} className="w-full h-full flex justify-center" />
+    <div className={`ad-container ${className}`}>
+      <div ref={adRef} className="w-full flex justify-center" />
     </div>
   );
 }

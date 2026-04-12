@@ -42,6 +42,8 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
                 <MovieCard key={movie.id} movie={movie} />
               ))}
             </div>
+
+            <AdBanner className="mt-12" />
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-40 text-center space-y-4">

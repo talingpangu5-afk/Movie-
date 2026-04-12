@@ -142,6 +142,11 @@ export default async function HomePage() {
         <div className="container mx-auto px-4">
           <AdNative className="my-6" />
         </div>
+
+        {/* Final Banner Ad at the bottom */}
+        <div className="container mx-auto px-4 pb-10">
+          <AdBanner className="my-6" />
+        </div>
       </div>
     </div>
   );

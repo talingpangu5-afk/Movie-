@@ -35,6 +35,8 @@ export default async function UpcomingPage() {
             <MovieCard key={movie.id} movie={movie} />
           ))}
         </div>
+
+        <AdBanner className="mt-12" />
       </div>
     </div>
   );
