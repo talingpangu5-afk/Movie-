@@ -5,8 +5,6 @@ import { tmdb, Movie, MovieDetails } from '@/lib/tmdb';
 import { MovieCard } from '@/components/MovieCard';
 import { Button } from '@/components/ui/button';
 import { TrailerModal } from '@/components/TrailerModal';
-import { AdBanner } from '@/components/AdBanner';
-import { AdNative } from '@/components/AdNative';
 
 async function MovieRow({ title, fetcher }: { title: string, fetcher: () => Promise<{ results: Movie[] }> }) {
   const { results } = await fetcher();
@@ -20,21 +18,17 @@ async function MovieRow({ title, fetcher }: { title: string, fetcher: () => Prom
   const href = routeMap[title] || '/';
   
   return (
-    <section className="py-4 group/row">
+    <section className="py-8">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-black uppercase tracking-tighter group-hover/row:text-primary transition-colors">{title}</h2>
-          <Link href={href} className="text-muted-foreground text-xs font-bold hover:text-primary transition-colors uppercase tracking-widest">
-            Explore All
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-2xl font-bold tracking-tight">{title}</h2>
+          <Link href={href} className="text-primary text-sm font-medium hover:underline">
+            View All
           </Link>
         </div>
-        
-        {/* Horizontal Scroll Row */}
-        <div className="flex gap-4 overflow-x-auto pb-6 scrollbar-hide snap-x snap-mandatory">
-          {results.map((movie) => (
-            <div key={movie.id} className="min-w-[180px] w-[180px] snap-start">
-              <MovieCard movie={movie} />
-            </div>
+        <div className="grid grid-cols-6 gap-6">
+          {results.slice(0, 6).map((movie) => (
+            <MovieCard key={movie.id} movie={movie} />
           ))}
         </div>
       </div>
@@ -60,7 +54,7 @@ export default async function HomePage() {
   const trailer = heroMovie.videos.results.find(v => v.type === 'Trailer' && v.site === 'YouTube');
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col gap-8">
       {/* Hero Banner */}
       <section className="relative h-[85vh] w-full overflow-hidden">
         <Image
@@ -76,12 +70,12 @@ export default async function HomePage() {
           <div className="container mx-auto px-4 space-y-6">
             <div className="flex items-center gap-2 text-primary font-bold">
               <Star className="w-5 h-5 fill-primary" />
-              <span className="uppercase tracking-widest text-xs">Trending Today</span>
+              <span>Trending Today</span>
             </div>
-            <h1 className="text-5xl md:text-7xl font-black tracking-tighter max-w-3xl text-shadow uppercase">
+            <h1 className="text-5xl md:text-7xl font-black tracking-tighter max-w-3xl text-shadow">
               {heroMovie.title}
             </h1>
-            <p className="text-lg text-gray-300 max-w-2xl line-clamp-3 text-shadow font-medium">
+            <p className="text-lg text-gray-300 max-w-2xl line-clamp-3 text-shadow">
               {heroMovie.overview}
             </p>
             <div className="flex items-center gap-4 pt-4">
@@ -89,25 +83,25 @@ export default async function HomePage() {
                 <TrailerModal 
                   trailerKey={trailer.key} 
                   title={heroMovie.title}
-                  className="bg-primary hover:bg-primary/90 text-white font-black px-10 h-14 rounded-xl shadow-[0_0_20px_rgba(229,9,20,0.4)]"
+                  className="bg-primary hover:bg-primary/90 text-white font-bold px-8 h-12"
                 >
-                  <Button size="lg" className="bg-primary hover:bg-primary/90 text-white font-black px-10 h-14 rounded-xl">
-                    <Play className="w-6 h-6 mr-2 fill-white" />
-                    WATCH NOW
+                  <Button size="lg" className="bg-primary hover:bg-primary/90 text-white font-bold px-8">
+                    <Play className="w-5 h-5 mr-2 fill-white" />
+                    Watch Now
                   </Button>
                 </TrailerModal>
               ) : (
                 <Link href={`/movie/${heroMovie.id}`}>
-                  <Button size="lg" className="bg-primary hover:bg-primary/90 text-white font-black px-10 h-14 rounded-xl">
-                    <Play className="w-6 h-6 mr-2 fill-white" />
-                    WATCH NOW
+                  <Button size="lg" className="bg-primary hover:bg-primary/90 text-white font-bold px-8">
+                    <Play className="w-5 h-5 mr-2 fill-white" />
+                    Watch Now
                   </Button>
                 </Link>
               )}
               <Link href={`/movie/${heroMovie.id}`}>
-                <Button size="lg" variant="secondary" className="bg-white/10 hover:bg-white/20 backdrop-blur-md text-white font-black px-10 h-14 rounded-xl border border-white/10">
-                  <Info className="w-6 h-6 mr-2" />
-                  DETAILS
+                <Button size="lg" variant="secondary" className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white font-bold px-8">
+                  <Info className="w-5 h-5 mr-2" />
+                  More Info
                 </Button>
               </Link>
             </div>
@@ -115,38 +109,26 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Strategic Ad Placement 1: Below Hero */}
-      <div className="container mx-auto px-4 -mt-10 relative z-20">
-        <AdBanner className="bg-black/40 backdrop-blur-md rounded-2xl border border-white/5" />
+      {/* Ad Placement Placeholder */}
+      <div className="container mx-auto px-4 py-4">
+        <div className="w-full h-24 bg-secondary/20 rounded-lg flex items-center justify-center border border-dashed border-muted-foreground/30">
+          <span className="text-muted-foreground text-sm uppercase tracking-widest">Advertisement</span>
+        </div>
       </div>
 
-      {/* Movie Rows with Integrated Ads */}
-      <div className="space-y-4 py-10">
+      {/* Movie Rows */}
+      <div className="space-y-8 pb-20">
         <MovieRow title="Popular Movies" fetcher={tmdb.getPopular} />
         
-        {/* Strategic Ad Placement 2: Native Ad between rows */}
-        <div className="container mx-auto px-4">
-          <AdNative className="my-6" />
+        {/* In-content Ad */}
+        <div className="container mx-auto px-4 py-4">
+          <div className="w-full h-32 bg-secondary/20 rounded-lg flex items-center justify-center border border-dashed border-muted-foreground/30">
+            <span className="text-muted-foreground text-sm uppercase tracking-widest">Sponsored Content</span>
+          </div>
         </div>
 
         <MovieRow title="Top Rated" fetcher={tmdb.getTopRated} />
-        
-        {/* Strategic Ad Placement 3: Banner Ad between rows */}
-        <div className="container mx-auto px-4">
-          <AdBanner className="my-6" />
-        </div>
-
         <MovieRow title="Upcoming" fetcher={tmdb.getUpcoming} />
-        
-        {/* Strategic Ad Placement 4: Native Ad at bottom */}
-        <div className="container mx-auto px-4">
-          <AdNative className="my-6" />
-        </div>
-
-        {/* Final Banner Ad at the bottom */}
-        <div className="container mx-auto px-4 pb-10">
-          <AdBanner className="my-6" />
-        </div>
       </div>
     </div>
   );

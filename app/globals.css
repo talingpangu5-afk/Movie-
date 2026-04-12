@@ -39,51 +39,14 @@
   }
 }
 
-/* Netflix-style UI & Glassmorphism */
-.glass-card {
-  @apply bg-black/40 backdrop-blur-md border border-white/10 rounded-xl overflow-hidden;
-}
-
 .movie-card-hover {
-  @apply transition-all duration-500 hover:scale-110 hover:z-20 hover:shadow-2xl;
+  @apply transition-all duration-300 hover:scale-105 hover:z-10;
 }
 
 .hero-gradient {
-  background: linear-gradient(to top, #0a0a0a 0%, rgba(10,10,10,0.8) 20%, transparent 100%);
+  background: linear-gradient(to top, #0a0a0a 0%, transparent 100%);
 }
 
 .text-shadow {
-  text-shadow: 0 2px 10px rgba(0,0,0,0.8);
-}
-
-/* Simple Ad Containers */
-.ad-container {
-  @apply flex justify-center items-center w-full overflow-hidden bg-secondary/10 rounded-lg border border-white/5 my-4;
-}
-
-/* Hide scrollbar utility */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
-}
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
-}
-
-/* Premium OTT Scrollbar */
-::-webkit-scrollbar {
-  width: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #0a0a0a;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #e50914;
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
 }

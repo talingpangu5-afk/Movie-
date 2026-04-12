@@ -1,8 +1,6 @@
 import { tmdb, Movie } from '@/lib/tmdb';
 import { MovieCard } from '@/components/MovieCard';
 import { Search as SearchIcon } from 'lucide-react';
-import { AdBanner } from '@/components/AdBanner';
-import { AdNative } from '@/components/AdNative';
 
 export const dynamic = 'force-dynamic';
 
@@ -25,25 +23,11 @@ export default async function SearchPage({ searchParams }: { searchParams: Promi
           </p>
         </div>
 
-        <AdBanner />
-
         {movies.length > 0 ? (
-          <div className="space-y-12">
-            <div className="grid grid-cols-6 gap-6">
-              {movies.slice(0, 12).map((movie: Movie) => (
-                <MovieCard key={movie.id} movie={movie} />
-              ))}
-            </div>
-            
-            <AdNative />
-
-            <div className="grid grid-cols-6 gap-6">
-              {movies.slice(12).map((movie: Movie) => (
-                <MovieCard key={movie.id} movie={movie} />
-              ))}
-            </div>
-
-            <AdBanner className="mt-12" />
+          <div className="grid grid-cols-6 gap-6">
+            {movies.map((movie: Movie) => (
+              <MovieCard key={movie.id} movie={movie} />
+            ))}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-40 text-center space-y-4">

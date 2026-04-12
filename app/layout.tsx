@@ -5,8 +5,6 @@ import './globals.css';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { Toaster } from '@/components/ui/sonner';
-import { AdScripts } from '@/components/AdScripts';
-import { AdBanner } from '@/components/AdBanner';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -25,19 +23,17 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="en" className="dark">
       <body className={inter.className} suppressHydrationWarning>
-        <AdScripts />
+        {/* Adsterra Popunder Placeholder */}
+        <Script 
+          src="//pl26000000.highperformanceformat.com/aa/bb/cc/aabbcc11223344556677889900.js" 
+          strategy="afterInteractive"
+        />
         
         <Navbar />
         <main className="min-h-screen">
           {children}
         </main>
         <Footer />
-        
-        {/* Sticky Bottom Banner */}
-        <div className="fixed bottom-0 left-0 w-full z-[100] bg-black/80 backdrop-blur-md border-t border-primary/20 flex justify-center py-2 hidden md:flex">
-          <AdBanner className="py-0" />
-        </div>
-
         <Toaster position="top-center" />
       </body>
     </html>

@@ -1,8 +1,6 @@
 import { tmdb, Movie } from '@/lib/tmdb';
 import { MovieCard } from '@/components/MovieCard';
 import { Flame } from 'lucide-react';
-import { AdBanner } from '@/components/AdBanner';
-import { AdNative } from '@/components/AdNative';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,23 +18,11 @@ export default async function PopularPage() {
           <p className="text-muted-foreground">Current fan favorites and trending hits.</p>
         </div>
 
-        <AdBanner />
-
         <div className="grid grid-cols-6 gap-6">
-          {results.slice(0, 12).map((movie: Movie) => (
+          {results.map((movie: Movie) => (
             <MovieCard key={movie.id} movie={movie} />
           ))}
         </div>
-
-        <AdNative />
-
-        <div className="grid grid-cols-6 gap-6">
-          {results.slice(12).map((movie: Movie) => (
-            <MovieCard key={movie.id} movie={movie} />
-          ))}
-        </div>
-
-        <AdBanner className="mt-12" />
       </div>
     </div>
   );
