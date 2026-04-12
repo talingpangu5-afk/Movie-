@@ -7,6 +7,7 @@ import { MovieCard } from '@/components/MovieCard';
 import { Button } from '@/components/ui/button';
 import { TrailerModal } from '@/components/TrailerModal';
 import { AutoRefresh } from '@/components/AutoRefresh';
+import { Hero } from '@/components/Hero';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 300; // Refresh every 5 minutes
@@ -57,64 +58,12 @@ export default async function HomePage() {
 
   // Fetch full details for hero movie to get trailer
   const heroMovie: MovieDetails = await tmdb.getMovieDetails(heroMovieBasic.id.toString());
-  const trailer = heroMovie.videos.results.find(v => v.type === 'Trailer' && v.site === 'YouTube');
 
   return (
     <div className="flex flex-col gap-8">
       <AutoRefresh />
-      {/* Hero Banner */}
-      <section className="relative h-[85vh] w-full overflow-hidden">
-        <Image
-          src={tmdb.getImageUrl(heroMovie.backdrop_path)}
-          alt={heroMovie.title}
-          fill
-          priority
-          className="object-cover"
-          referrerPolicy="no-referrer"
-        />
-        <div className="absolute inset-0 hero-gradient" />
-        <div className="absolute inset-0 flex flex-col justify-end pb-20">
-          <div className="container mx-auto px-4 space-y-6">
-            <div className="flex items-center gap-2 text-primary font-bold">
-              <Star className="w-5 h-5 fill-primary" />
-              <span>Trending Today</span>
-            </div>
-            <h1 className="text-5xl md:text-7xl font-black tracking-tighter max-w-3xl text-shadow">
-              {heroMovie.title}
-            </h1>
-            <p className="text-lg text-gray-300 max-w-2xl line-clamp-3 text-shadow">
-              {heroMovie.overview}
-            </p>
-            <div className="flex items-center gap-4 pt-4">
-              {trailer ? (
-                <TrailerModal 
-                  trailerKey={trailer.key} 
-                  title={heroMovie.title}
-                  className="bg-primary hover:bg-primary/90 text-white font-bold px-8 h-12"
-                >
-                  <Button size="lg" className="bg-primary hover:bg-primary/90 text-white font-bold px-8">
-                    <Play className="w-5 h-5 mr-2 fill-white" />
-                    Watch Now
-                  </Button>
-                </TrailerModal>
-              ) : (
-                <Link href={`/movie/${heroMovie.id}`}>
-                  <Button size="lg" className="bg-primary hover:bg-primary/90 text-white font-bold px-8">
-                    <Play className="w-5 h-5 mr-2 fill-white" />
-                    Watch Now
-                  </Button>
-                </Link>
-              )}
-              <Link href={`/movie/${heroMovie.id}`}>
-                <Button size="lg" variant="secondary" className="bg-white/20 hover:bg-white/30 backdrop-blur-md text-white font-bold px-8">
-                  <Info className="w-5 h-5 mr-2" />
-                  More Info
-                </Button>
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      
+      <Hero movie={heroMovie} />
 
       {/* Ad Placement */}
       <div className="container mx-auto px-4 py-4">
