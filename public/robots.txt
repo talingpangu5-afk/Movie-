@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://movie-world.example.com/sitemap.xml
