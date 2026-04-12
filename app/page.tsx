@@ -1,6 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { Play, Info, Star } from 'lucide-react';
+import { AdBanner } from '@/components/AdBanner';
 import { tmdb, Movie, MovieDetails } from '@/lib/tmdb';
 import { MovieCard } from '@/components/MovieCard';
 import { Button } from '@/components/ui/button';
@@ -109,11 +110,9 @@ export default async function HomePage() {
         </div>
       </section>
 
-      {/* Ad Placement Placeholder */}
+      {/* Ad Placement */}
       <div className="container mx-auto px-4 py-4">
-        <div className="w-full h-24 bg-secondary/20 rounded-lg flex items-center justify-center border border-dashed border-muted-foreground/30">
-          <span className="text-muted-foreground text-sm uppercase tracking-widest">Advertisement</span>
-        </div>
+        <AdBanner id="1026be2f67d070ed95d941d9840c7084" />
       </div>
 
       {/* Movie Rows */}
@@ -122,9 +121,7 @@ export default async function HomePage() {
         
         {/* In-content Ad */}
         <div className="container mx-auto px-4 py-4">
-          <div className="w-full h-32 bg-secondary/20 rounded-lg flex items-center justify-center border border-dashed border-muted-foreground/30">
-            <span className="text-muted-foreground text-sm uppercase tracking-widest">Sponsored Content</span>
-          </div>
+          <AdBanner id="1026be2f67d070ed95d941d9840c7084" />
         </div>
 
         <MovieRow title="Top Rated" fetcher={tmdb.getTopRated} />

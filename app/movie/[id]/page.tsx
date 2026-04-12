@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { TrailerModal } from '@/components/TrailerModal';
 import { WatchlistButton } from '@/components/WatchlistButton';
+import { AdBanner } from '@/components/AdBanner';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,8 +50,8 @@ export default async function MovieDetailsPage({ params }: { params: Promise<{ i
             </div>
             
             {/* Sidebar Ad */}
-            <div className="mt-8 w-full h-64 bg-secondary/20 rounded-xl flex items-center justify-center border border-dashed border-muted-foreground/30">
-              <span className="text-muted-foreground text-xs uppercase tracking-widest">Sidebar Ad</span>
+            <div className="mt-8 w-full">
+              <AdBanner id="1026be2f67d070ed95d941d9840c7084" />
             </div>
           </div>
 
