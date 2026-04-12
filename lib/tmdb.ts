@@ -40,6 +40,7 @@ export interface MovieDetails extends Movie {
 async function fetchTMDB(endpoint: string, params: Record<string, string> = {}) {
   const url = new URL(`${TMDB_API_BASE_URL}${endpoint}`);
   url.searchParams.append('api_key', API_KEY);
+  
   Object.entries(params).forEach(([key, value]) => {
     url.searchParams.append(key, value);
   });
@@ -51,7 +52,7 @@ async function fetchTMDB(endpoint: string, params: Record<string, string> = {}) 
       Authorization: `Bearer ${token}`,
       'Content-Type': 'application/json',
     },
-    next: { revalidate: 3600 },
+    cache: 'no-store', // Disable caching for real-time data
   });
 
   if (!response.ok) {
@@ -67,6 +68,7 @@ async function fetchTMDB(endpoint: string, params: Record<string, string> = {}) 
 
 export const tmdb = {
   getTrending: () => fetchTMDB('/trending/movie/day'),
+  getNowPlaying: () => fetchTMDB('/movie/now_playing'),
   getPopular: () => fetchTMDB('/movie/popular'),
   getTopRated: () => fetchTMDB('/movie/top_rated'),
   getUpcoming: () => fetchTMDB('/movie/upcoming'),

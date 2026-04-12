@@ -6,6 +6,10 @@ import { tmdb, Movie, MovieDetails } from '@/lib/tmdb';
 import { MovieCard } from '@/components/MovieCard';
 import { Button } from '@/components/ui/button';
 import { TrailerModal } from '@/components/TrailerModal';
+import { AutoRefresh } from '@/components/AutoRefresh';
+
+export const dynamic = 'force-dynamic';
+export const revalidate = 300; // Refresh every 5 minutes
 
 async function MovieRow({ title, fetcher }: { title: string, fetcher: () => Promise<{ results: Movie[] }> }) {
   const { results } = await fetcher();
@@ -13,7 +17,8 @@ async function MovieRow({ title, fetcher }: { title: string, fetcher: () => Prom
   const routeMap: Record<string, string> = {
     'Popular Movies': '/popular',
     'Top Rated': '/top-rated',
-    'Upcoming': '/upcoming'
+    'Upcoming': '/upcoming',
+    'Now Playing': '/trending' // Fallback to trending for now or a specific route
   };
 
   const href = routeMap[title] || '/';
@@ -56,6 +61,7 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col gap-8">
+      <AutoRefresh />
       {/* Hero Banner */}
       <section className="relative h-[85vh] w-full overflow-hidden">
         <Image
@@ -117,6 +123,7 @@ export default async function HomePage() {
 
       {/* Movie Rows */}
       <div className="space-y-8 pb-20">
+        <MovieRow title="Now Playing" fetcher={tmdb.getNowPlaying} />
         <MovieRow title="Popular Movies" fetcher={tmdb.getPopular} />
         
         {/* In-content Ad */}
