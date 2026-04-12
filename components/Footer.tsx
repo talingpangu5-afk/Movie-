@@ -9,7 +9,7 @@ export function Footer() {
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-2 text-primary font-bold text-xl tracking-tighter">
               <Film className="w-6 h-6 fill-primary" />
-              <span>MOVIE WORLD</span>
+              <span>TALING PANGU</span>
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed">
               Your ultimate destination for discovering the latest movies, trending shows, and cinematic masterpieces. Powered by TMDb.
@@ -54,7 +54,7 @@ export function Footer() {
         </div>
         
         <div className="border-t mt-12 pt-8 text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} Movie World. All rights reserved. Built with Next.js and Tailwind CSS.</p>
+          <p>© {new Date().getFullYear()} Taling Pangu. All rights reserved. Built with Next.js and Tailwind CSS.</p>
         </div>
       </div>
     </footer>

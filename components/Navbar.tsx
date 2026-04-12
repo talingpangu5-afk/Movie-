@@ -34,7 +34,7 @@ export function Navbar() {
         <div className="flex items-center gap-8">
           <Link href="/" className="flex items-center gap-2 text-primary font-bold text-2xl tracking-tighter">
             <Film className="w-8 h-8 fill-primary" />
-            <span>MOVIE WORLD</span>
+            <span>TALING PANGU</span>
           </Link>
           
           <div className="flex items-center gap-6 text-sm font-medium">

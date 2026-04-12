@@ -11,7 +11,7 @@ export default function PrivacyPage() {
           <section className="space-y-4">
             <h2 className="text-2xl font-bold text-foreground">1. Information We Collect</h2>
             <p>
-              Movie World is designed to be a privacy-first platform. We do not require user registration or personal information to browse our content. We may collect non-personally identifiable information such as browser type, device information, and usage patterns to improve our service.
+              Taling Pangu is designed to be a privacy-first platform. We do not require user registration or personal information to browse our content. We may collect non-personally identifiable information such as browser type, device information, and usage patterns to improve our service.
             </p>
           </section>
 

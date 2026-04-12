@@ -3,7 +3,7 @@ export default function AboutPage() {
     <div className="container mx-auto px-4 pt-32 pb-20 max-w-4xl">
       <div className="space-y-12">
         <div className="space-y-4 text-center">
-          <h1 className="text-4xl md:text-6xl font-black tracking-tighter">About Movie World</h1>
+          <h1 className="text-4xl md:text-6xl font-black tracking-tighter">About Taling Pangu</h1>
           <p className="text-xl text-muted-foreground leading-relaxed">
             Your premier destination for everything cinema.
           </p>
@@ -13,7 +13,7 @@ export default function AboutPage() {
           <section className="space-y-4">
             <h2 className="text-3xl font-bold">Our Mission</h2>
             <p className="text-lg text-muted-foreground leading-relaxed">
-              Movie World was founded with a simple goal: to provide movie enthusiasts with a clean, modern, and highly responsive platform to discover and explore the world of cinema. Whether you&apos;re looking for the latest blockbusters, hidden indie gems, or all-time classics, we&apos;ve got you covered.
+              Taling Pangu was founded with a simple goal: to provide movie enthusiasts with a clean, modern, and highly responsive platform to discover and explore the world of cinema. Whether you&apos;re looking for the latest blockbusters, hidden indie gems, or all-time classics, we&apos;ve got you covered.
             </p>
           </section>
 

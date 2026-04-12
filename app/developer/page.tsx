@@ -158,7 +158,7 @@ export default function DeveloperPage() {
         <div className="text-center space-y-4">
           <h1 className="text-4xl md:text-6xl font-black tracking-tighter">Developer Hub</h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Connect your GitHub account to access your repositories and integrate your development workflow with Movie World.
+            Connect your GitHub account to access your repositories and integrate your development workflow with Taling Pangu.
           </p>
         </div>
 

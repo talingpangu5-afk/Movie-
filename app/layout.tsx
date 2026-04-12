@@ -14,9 +14,9 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'Movie World | Discover Your Next Favorite Movie',
+  title: 'Taling Pangu | Discover Your Next Favorite Movie',
   description: 'Explore trending, popular, and top-rated movies. Watch trailers, check ratings, and find your next cinematic experience.',
-  keywords: 'movies, cinema, trailers, tmdb, movie world, trending movies',
+  keywords: 'movies, cinema, trailers, tmdb, taling pangu, trending movies',
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
