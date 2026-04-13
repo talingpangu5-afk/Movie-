@@ -2,20 +2,23 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { Search, Menu, X, Film } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { motion, AnimatePresence } from 'motion/react';
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchExpanded, setIsSearchExpanded] = useState(false);
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
+      setIsScrolled(window.scrollY > 20);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -25,70 +28,124 @@ export function Navbar() {
     e.preventDefault();
     if (searchQuery.trim()) {
       router.push(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+      setIsSearchExpanded(false);
     }
   };
 
+  const navLinks = [
+    { name: 'Home', href: '/' },
+    { name: 'Trending', href: '/trending', hasNotification: true },
+    { name: 'Popular', href: '/popular' },
+    { name: 'Top Rated', href: '/top-rated' },
+    { name: 'Developer', href: '/developer' },
+  ];
+
   return (
-    <nav className={`fixed top-0 w-full z-50 transition-colors duration-300 ${isScrolled ? 'bg-background/95 backdrop-blur-md border-b' : 'bg-transparent'}`}>
-      <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-2 text-primary font-bold text-2xl tracking-tighter">
-            <Film className="w-8 h-8 fill-primary" />
-            <span>TALING PANGU</span>
+    <motion.nav 
+      initial={{ y: -100 }}
+      animate={{ y: 0 }}
+      transition={{ duration: 0.5, ease: 'easeOut' }}
+      className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+        isScrolled 
+          ? 'h-16 glass-nav flowing-border shadow-2xl' 
+          : 'h-20 bg-transparent'
+      }`}
+    >
+      <div className="container mx-auto px-4 h-full flex items-center justify-between">
+        <div className="flex items-center gap-10">
+          <Link href="/" className="flex items-center gap-2 group">
+            <div className="relative">
+              <Film className="w-8 h-8 text-primary group-hover:scale-110 transition-transform duration-300" />
+              <div className="absolute -top-1 -right-1 neon-dot glow-pulse" />
+            </div>
+            <span className="text-white font-black text-2xl tracking-tighter group-hover:neon-red transition-all duration-300">
+              TALING PANGU
+            </span>
           </Link>
           
-          <div className="flex items-center gap-6 text-sm font-medium">
-            <Link href="/" className="hover:text-primary transition-colors">Home</Link>
-            <Link href="/trending" className="hover:text-primary transition-colors">Trending</Link>
-            <Link href="/popular" className="hover:text-primary transition-colors">Popular</Link>
-            <Link href="/top-rated" className="hover:text-primary transition-colors">Top Rated</Link>
-            <Link href="/developer" className="hover:text-primary transition-colors">Developer</Link>
+          <div className="hidden lg:flex items-center gap-8 text-sm font-bold uppercase tracking-widest">
+            {navLinks.map((link) => (
+              <Link 
+                key={link.name}
+                href={link.href} 
+                className={`nav-link-hover transition-all duration-300 hover:text-primary relative ${
+                  pathname === link.href ? 'active-link' : 'text-white/70'
+                }`}
+              >
+                {link.name}
+                {link.hasNotification && (
+                  <span className="absolute -top-1 -right-2 w-1.5 h-1.5 bg-primary rounded-full glow-pulse" />
+                )}
+              </Link>
+            ))}
           </div>
         </div>
 
         <div className="flex items-center gap-4">
-          <form onSubmit={handleSearch} className="flex items-center relative">
-            <Search className="absolute left-3 w-4 h-4 text-muted-foreground" />
+          <form 
+            onSubmit={handleSearch} 
+            className={`relative flex items-center transition-all duration-500 ease-in-out ${
+              isSearchExpanded ? 'w-64' : 'w-10 md:w-48'
+            }`}
+          >
+            <Search 
+              className="absolute left-3 w-4 h-4 text-muted-foreground z-10 cursor-pointer" 
+              onClick={() => setIsSearchExpanded(!isSearchExpanded)}
+            />
             <Input 
               type="text" 
               placeholder="Search movies..." 
-              className="pl-10 w-64 bg-secondary/50 border-none focus-visible:ring-primary"
+              className={`pl-10 h-10 bg-secondary/40 border border-white/10 rounded-full focus-visible:ring-primary focus-visible:border-primary transition-all duration-300 ${
+                isSearchExpanded ? 'opacity-100' : 'opacity-0 md:opacity-100'
+              }`}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onFocus={() => setIsSearchExpanded(true)}
+              onBlur={() => !searchQuery && setIsSearchExpanded(false)}
             />
           </form>
 
-          <div className="hidden">
-            <Sheet>
+          <Sheet>
             <SheetTrigger render={
-              <Button variant="ghost" size="icon" className="md:hidden">
+              <Button variant="ghost" size="icon" className="lg:hidden text-white hover:bg-white/10">
                 <Menu className="w-6 h-6" />
               </Button>
             } />
-            <SheetContent side="right" className="bg-background border-l">
-              <div className="flex flex-col gap-6 mt-8">
-                <form onSubmit={handleSearch} className="flex items-center relative">
-                  <Search className="absolute left-3 w-4 h-4 text-muted-foreground" />
-                  <Input 
-                    type="text" 
-                    placeholder="Search..." 
-                    className="pl-10 w-full bg-secondary"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                  />
-                </form>
-                <Link href="/" className="text-lg font-medium hover:text-primary">Home</Link>
-                <Link href="/trending" className="text-lg font-medium hover:text-primary">Trending</Link>
-                <Link href="/popular" className="text-lg font-medium hover:text-primary">Popular</Link>
-                <Link href="/top-rated" className="text-lg font-medium hover:text-primary">Top Rated</Link>
-                <Link href="/developer" className="text-lg font-medium hover:text-primary">Developer</Link>
-                <Link href="/about" className="text-lg font-medium hover:text-primary">About</Link>
+            <SheetContent side="right" className="bg-[#0b0b0b]/95 backdrop-blur-xl border-l border-white/10 w-[300px]">
+              <div className="flex flex-col gap-8 mt-12">
+                <div className="flex items-center gap-2 mb-4">
+                  <Film className="w-6 h-6 text-primary" />
+                  <span className="text-white font-black text-xl tracking-tighter">TALING PANGU</span>
+                </div>
+                
+                <div className="flex flex-col gap-6">
+                  {navLinks.map((link) => (
+                    <Link 
+                      key={link.name}
+                      href={link.href} 
+                      className={`text-lg font-bold uppercase tracking-widest transition-all duration-300 ${
+                        pathname === link.href ? 'text-primary neon-red' : 'text-white/70 hover:text-white'
+                      }`}
+                    >
+                      {link.name}
+                    </Link>
+                  ))}
+                  <Link href="/about" className="text-lg font-bold uppercase tracking-widest text-white/70 hover:text-white">About</Link>
+                </div>
+
+                <div className="pt-8 border-t border-white/10">
+                  <p className="text-xs text-muted-foreground uppercase tracking-widest mb-4">Follow Us</p>
+                  <div className="flex gap-4">
+                    <div className="w-10 h-10 rounded-full bg-secondary/50 flex items-center justify-center hover:bg-primary transition-colors cursor-pointer">
+                      <Film className="w-5 h-5" />
+                    </div>
+                  </div>
+                </div>
               </div>
             </SheetContent>
           </Sheet>
         </div>
       </div>
-    </div>
-  </nav>
-);
+    </motion.nav>
+  );
 }

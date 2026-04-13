@@ -34,9 +34,86 @@
 @layer base {
   body {
     @apply bg-background text-foreground font-sans antialiased;
-    background-color: #0a0a0a;
+    background-color: #0b0b0b;
     min-width: 1200px;
   }
+}
+
+/* Neon & Premium Styles */
+.neon-red {
+  color: #ff0000;
+  text-shadow: 0 0 5px rgba(255, 0, 0, 0.5), 0 0 10px rgba(255, 0, 0, 0.3);
+}
+
+.neon-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #ff0000;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #ff0000, 0 0 20px #ff0000;
+  display: inline-block;
+}
+
+.glass-nav {
+  background: rgba(11, 11, 11, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.nav-link-hover {
+  position: relative;
+}
+
+.nav-link-hover::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: #ff0000;
+  box-shadow: 0 0 8px #ff0000;
+  transition: width 0.3s ease;
+}
+
+.nav-link-hover:hover::after {
+  width: 100%;
+}
+
+.active-link {
+  color: #ff0000 !important;
+  text-shadow: 0 0 8px rgba(255, 0, 0, 0.4);
+}
+
+.active-link::after {
+  width: 100% !important;
+}
+
+/* Flowing Light Border Animation */
+@keyframes borderFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.flowing-border {
+  position: relative;
+  border-bottom: 1px solid transparent;
+  background-image: linear-gradient(#0b0b0b, #0b0b0b), 
+                    linear-gradient(90deg, transparent, #ff0000, transparent);
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+  background-size: 100% 100%, 200% 100%;
+  animation: borderFlow 4s linear infinite;
+}
+
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.glow-pulse {
+  animation: pulse-glow 2s infinite ease-in-out;
 }
 
 .movie-card-hover {
