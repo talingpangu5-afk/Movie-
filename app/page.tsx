@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { TrailerModal } from '@/components/TrailerModal';
 import { AutoRefresh } from '@/components/AutoRefresh';
 import { Hero } from '@/components/Hero';
+import { AdManager } from '@/components/AdManager';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 300; // Refresh every 5 minutes
@@ -62,6 +63,7 @@ export default async function HomePage() {
   return (
     <div className="flex flex-col gap-8">
       <AutoRefresh />
+      <AdManager />
       
       <Hero movies={heroMovies} />
 
@@ -73,14 +75,26 @@ export default async function HomePage() {
       {/* Movie Rows */}
       <div className="space-y-8 pb-20">
         <MovieRow title="Now Playing" fetcher={tmdb.getNowPlaying} />
+        
+        {/* Ad Between Sections */}
+        <div className="container mx-auto px-4">
+          <AdBanner id="1026be2f67d070ed95d941d9840c7084" />
+        </div>
+
         <MovieRow title="Popular Movies" fetcher={tmdb.getPopular} />
         
-        {/* In-content Ad */}
-        <div className="container mx-auto px-4 py-4">
+        {/* Ad Between Sections */}
+        <div className="container mx-auto px-4">
           <AdBanner id="1026be2f67d070ed95d941d9840c7084" />
         </div>
 
         <MovieRow title="Top Rated" fetcher={tmdb.getTopRated} />
+        
+        {/* Ad Between Sections */}
+        <div className="container mx-auto px-4">
+          <AdBanner id="1026be2f67d070ed95d941d9840c7084" />
+        </div>
+
         <MovieRow title="Upcoming" fetcher={tmdb.getUpcoming} />
       </div>
     </div>

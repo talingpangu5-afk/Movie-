@@ -44,8 +44,11 @@ export function AdBanner({ id }: AdBannerProps) {
   }, [id]);
 
   return (
-    <div className="w-full flex justify-center overflow-hidden">
-      <div ref={bannerRef} />
+    <div className="w-full flex flex-col items-center gap-2 py-4">
+      <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Sponsored</span>
+      <div className="w-full flex justify-center overflow-hidden min-h-[90px] bg-secondary/10 rounded-lg border border-white/5">
+        <div ref={bannerRef} />
+      </div>
     </div>
   );
 }
