@@ -12,7 +12,7 @@ export function Footer() {
               <span>TALING PANGU</span>
             </Link>
             <p className="text-muted-foreground text-sm leading-relaxed">
-              Your ultimate destination for discovering the latest movies, trending shows, and cinematic masterpieces. Powered by TMDb.
+              Building and deploying scalable projects with focus on repositories and database architecture.
             </p>
           </div>
 
