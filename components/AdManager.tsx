@@ -30,7 +30,7 @@ export function AdManager() {
           </div>
           <div className="w-full h-[50px] flex justify-center overflow-hidden">
             {/* Using a smaller format for mobile sticky */}
-            <AdBanner id="1026be2f67d070ed95d941d9840c7084" />
+            <AdBanner id="1026be2f67d070ed95d941d9840c7084" width="320" height="50" />
           </div>
         </div>
       )}
@@ -48,7 +48,7 @@ export function AdManager() {
             <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold">Sponsored Content</span>
             <h3 className="text-xl font-bold text-center">Exclusive Offer for You!</h3>
             <div className="w-full min-h-[250px] bg-black/20 rounded-xl flex items-center justify-center overflow-hidden">
-               <AdBanner id="1026be2f67d070ed95d941d9840c7084" />
+               <AdBanner id="1026be2f67d070ed95d941d9840c7084" width="300" height="250" />
             </div>
             <Button onClick={() => setShowPopup(false)} className="w-full font-bold h-12 rounded-xl">
               Continue to Website
