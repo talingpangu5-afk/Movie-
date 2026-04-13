@@ -142,93 +142,116 @@ export function Hero({ movies }: HeroProps) {
   return (
     <section 
       ref={containerRef}
-      className="relative h-[90vh] w-full overflow-hidden bg-black"
+      className="relative h-screen w-full overflow-hidden bg-black"
     >
-      {/* Fallback / Loading Poster */}
-      <AnimatePresence mode="wait">
-        <motion.div 
-          key={`poster-${currentMovie.id}`}
-          initial={{ opacity: 0 }}
-          animate={{ opacity: isVideoReady ? 0 : 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 1 }}
-          className="absolute inset-0 z-0"
-        >
-          <Image
-            src={tmdb.getImageUrl(currentMovie.backdrop_path)}
-            alt={currentMovie.title}
-            fill
-            priority
-            className="object-cover"
-            referrerPolicy="no-referrer"
-          />
-        </motion.div>
-      </AnimatePresence>
+      {/* Cinematic Background with Slow Zoom */}
+      <div className="absolute inset-0 z-0 animate-cinematic-zoom">
+        <AnimatePresence mode="wait">
+          <motion.div 
+            key={`poster-${currentMovie.id}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: isVideoReady ? 0 : 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 1.5 }}
+            className="absolute inset-0"
+          >
+            <Image
+              src={tmdb.getImageUrl(currentMovie.backdrop_path)}
+              alt={currentMovie.title}
+              fill
+              priority
+              className="object-cover brightness-75"
+              referrerPolicy="no-referrer"
+            />
+          </motion.div>
+        </AnimatePresence>
 
-      {/* Video Background */}
-      {trailer && (
-        <div className={`absolute inset-0 transition-opacity duration-1000 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}>
-          <div className="absolute inset-0 scale-150 pointer-events-none">
-            <div id="hero-video" className="w-full h-full" />
+        {/* Video Background */}
+        {trailer && (
+          <div className={`absolute inset-0 transition-opacity duration-1500 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}>
+            <div className="absolute inset-0 scale-[1.35] pointer-events-none">
+              <div id="hero-video" className="w-full h-full" />
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
-      {/* Overlays */}
-      <div className="absolute inset-0 hero-gradient z-10" />
-      <div className="absolute inset-0 bg-black/30 z-10" />
+      {/* Cinematic Overlays */}
+      <div className="absolute inset-0 z-10 bg-gradient-to-r from-black via-black/40 to-transparent" />
+      <div className="absolute inset-0 z-10 bg-gradient-to-t from-black via-transparent to-black/20" />
+      
+      {/* Subtle Light Effect Overlay */}
+      <div className="absolute inset-0 z-10 pointer-events-none opacity-30 bg-[radial-gradient(circle_at_50%_50%,rgba(229,9,20,0.1),transparent_70%)]" />
+
+      {/* Top Right Controls */}
+      <div className="absolute top-24 right-8 z-30 flex items-center gap-4">
+        {trailer && (
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={toggleMute}
+            className="rounded-full glass-morphism text-white border-white/20 size-12 hover:bg-white/20 transition-all"
+          >
+            {isMuted ? <VolumeX className="size-6" /> : <Volume2 className="size-6" />}
+          </Button>
+        )}
+      </div>
 
       {/* Content */}
-      <div className="absolute inset-0 flex flex-col justify-end pb-24 z-20">
-        <div className="container mx-auto px-4 space-y-6">
+      <div className="absolute inset-0 flex flex-col justify-center z-20">
+        <div className="container mx-auto px-4 md:px-12 space-y-8">
           <AnimatePresence mode="wait">
             <motion.div
               key={`content-${currentMovie.id}`}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.8 }}
-              className="space-y-6"
+              initial={{ opacity: 0, x: -50 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 50 }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              className="max-w-3xl space-y-6"
             >
-              <div className="flex items-center gap-2 text-primary font-bold">
-                <Star className="w-5 h-5 fill-primary" />
-                <span>Trending Playlist • {currentIndex + 1}/{movies.length}</span>
-              </div>
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-primary/20 border border-primary/30 text-primary font-bold text-sm uppercase tracking-widest animate-float glow-primary"
+              >
+                <Star className="w-4 h-4 fill-primary" />
+                Trending Now
+              </motion.div>
               
-              <h1 className="text-5xl md:text-8xl font-black tracking-tighter max-w-4xl text-shadow">
+              <h1 className="text-6xl md:text-9xl font-black tracking-tighter text-white uppercase leading-[0.9] text-glow">
                 {currentMovie.title}
               </h1>
               
-              <p className="text-lg md:text-xl text-gray-200 max-w-2xl line-clamp-3 text-shadow">
+              <p className="text-lg md:text-2xl text-gray-300 max-w-2xl line-clamp-3 text-shadow font-medium leading-relaxed">
                 {currentMovie.overview}
               </p>
             </motion.div>
           </AnimatePresence>
           
-          <div className="flex flex-wrap items-center gap-4 pt-4">
+          <div className="flex flex-col sm:flex-row items-center gap-4 pt-4">
             {trailer ? (
               <TrailerModal 
                 trailerKey={trailer.key} 
                 title={currentMovie.title}
               >
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-white font-bold px-10 h-14 rounded-full text-lg shadow-xl shadow-primary/20">
-                  <Play className="w-6 h-6 mr-2 fill-white" />
-                  Watch Now
+                <Button size="lg" className="w-full sm:w-auto bg-gradient-to-r from-primary to-red-700 hover:from-red-700 hover:to-primary text-white font-black px-12 h-16 rounded-full text-xl shadow-2xl shadow-primary/40 transition-all hover:scale-105 active:scale-95 glow-primary">
+                  <Play className="w-7 h-7 mr-3 fill-white" />
+                  WATCH NOW
                 </Button>
               </TrailerModal>
             ) : (
-              <Link href={`/movie/${currentMovie.id}`}>
-                <Button size="lg" className="bg-primary hover:bg-primary/90 text-white font-bold px-10 h-14 rounded-full text-lg shadow-xl shadow-primary/20">
-                  <Play className="w-6 h-6 mr-2 fill-white" />
-                  Watch Now
+              <Link href={`/movie/${currentMovie.id}`} className="w-full sm:w-auto">
+                <Button size="lg" className="w-full bg-gradient-to-r from-primary to-red-700 hover:from-red-700 hover:to-primary text-white font-black px-12 h-16 rounded-full text-xl shadow-2xl shadow-primary/40 transition-all hover:scale-105 active:scale-95 glow-primary">
+                  <Play className="w-7 h-7 mr-3 fill-white" />
+                  WATCH NOW
                 </Button>
               </Link>
             )}
             
-            <Link href={`/movie/${currentMovie.id}`}>
-              <Button size="lg" variant="secondary" className="bg-white/10 hover:bg-white/20 backdrop-blur-xl text-white border border-white/20 font-bold px-10 h-14 rounded-full text-lg">
-                <Info className="w-6 h-6 mr-2" />
-                More Info
+            <Link href={`/movie/${currentMovie.id}`} className="w-full sm:w-auto">
+              <Button size="lg" variant="secondary" className="w-full glass-morphism hover:bg-white/20 text-white border border-white/20 font-bold px-10 h-16 rounded-full text-xl transition-all hover:scale-105 active:scale-95">
+                <Info className="w-7 h-7 mr-3" />
+                MORE INFO
               </Button>
             </Link>
 
@@ -236,45 +259,26 @@ export function Hero({ movies }: HeroProps) {
               size="lg" 
               variant="secondary" 
               onClick={handleNext}
-              className="bg-white/10 hover:bg-white/20 backdrop-blur-xl text-white border border-white/20 font-bold px-6 h-14 rounded-full text-lg"
+              className="w-full sm:w-auto glass-morphism hover:bg-white/20 text-white border border-white/20 font-bold px-8 h-16 rounded-full text-xl transition-all hover:scale-105 active:scale-95"
             >
-              Next Trailer
-              <ChevronRight className="w-6 h-6 ml-2" />
+              NEXT TRAILER
+              <ChevronRight className="w-7 h-7 ml-3" />
             </Button>
-
-            {/* Controls */}
-            {trailer && (
-              <div className="flex items-center gap-3 ml-auto">
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  onClick={togglePlay}
-                  className="rounded-full bg-black/40 border-white/20 hover:bg-black/60 text-white size-12"
-                >
-                  {isPlaying ? <Pause className="size-6" /> : <Play className="size-6 fill-white" />}
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="icon" 
-                  onClick={toggleMute}
-                  className="rounded-full bg-black/40 border-white/20 hover:bg-black/60 text-white size-12"
-                >
-                  {isMuted ? <VolumeX className="size-6" /> : <Volume2 className="size-6" />}
-                </Button>
-              </div>
-            )}
           </div>
         </div>
       </div>
 
+      {/* Bottom Fade for Smooth Transition */}
+      <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-black to-transparent z-20" />
+
       {/* Progress Bar */}
-      <div className="absolute bottom-0 left-0 h-1 bg-primary/30 w-full z-30">
+      <div className="absolute bottom-0 left-0 h-1.5 bg-white/10 w-full z-30">
         <motion.div 
           key={`progress-${currentMovie.id}`}
           initial={{ width: "0%" }}
           animate={{ width: isVideoReady ? "100%" : "0%" }}
-          transition={{ duration: 30, ease: "linear" }} // Approximate trailer length or just visual
-          className="h-full bg-primary"
+          transition={{ duration: 30, ease: "linear" }}
+          className="h-full bg-primary glow-primary"
         />
       </div>
     </section>
