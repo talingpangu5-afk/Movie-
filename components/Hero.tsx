@@ -55,7 +55,7 @@ export function Hero({ movies }: HeroProps) {
     }
 
     const initPlayer = () => {
-      if (playerRef.current) {
+      if (playerRef.current && typeof playerRef.current.loadVideoById === 'function') {
         playerRef.current.loadVideoById({
           videoId: trailer.key,
           startSeconds: 0,
@@ -100,9 +100,13 @@ export function Hero({ movies }: HeroProps) {
       ([entry]) => {
         if (!playerRef.current) return;
         if (entry.isIntersecting) {
-          if (isPlayingRef.current) playerRef.current.playVideo();
+          if (isPlayingRef.current && typeof playerRef.current.playVideo === 'function') {
+            playerRef.current.playVideo();
+          }
         } else {
-          playerRef.current.pauseVideo();
+          if (typeof playerRef.current.pauseVideo === 'function') {
+            playerRef.current.pauseVideo();
+          }
         }
       },
       { threshold: 0.1 }
@@ -120,9 +124,13 @@ export function Hero({ movies }: HeroProps) {
   const togglePlay = () => {
     if (!playerRef.current) return;
     if (isPlaying) {
-      playerRef.current.pauseVideo();
+      if (typeof playerRef.current.pauseVideo === 'function') {
+        playerRef.current.pauseVideo();
+      }
     } else {
-      playerRef.current.playVideo();
+      if (typeof playerRef.current.playVideo === 'function') {
+        playerRef.current.playVideo();
+      }
     }
     setIsPlaying(!isPlaying);
   };
@@ -130,9 +138,13 @@ export function Hero({ movies }: HeroProps) {
   const toggleMute = () => {
     if (!playerRef.current) return;
     if (isMuted) {
-      playerRef.current.unMute();
+      if (typeof playerRef.current.unMute === 'function') {
+        playerRef.current.unMute();
+      }
     } else {
-      playerRef.current.mute();
+      if (typeof playerRef.current.mute === 'function') {
+        playerRef.current.mute();
+      }
     }
     setIsMuted(!isMuted);
   };

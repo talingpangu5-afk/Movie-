@@ -9,6 +9,7 @@ import { TrailerModal } from '@/components/TrailerModal';
 import { AutoRefresh } from '@/components/AutoRefresh';
 import { Hero } from '@/components/Hero';
 import { AdManager } from '@/components/AdManager';
+import { CinematicBanner } from '@/components/CinematicBanner';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 300; // Refresh every 5 minutes
@@ -94,6 +95,8 @@ export default async function HomePage() {
         <div className="container mx-auto px-4">
           <AdBanner id="1026be2f67d070ed95d941d9840c7084" />
         </div>
+
+        <CinematicBanner />
 
         <MovieRow title="Upcoming" fetcher={tmdb.getUpcoming} />
       </div>
