@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Film, Github, Twitter, Instagram } from 'lucide-react';
+import { Film, Youtube, Facebook, BookOpen } from 'lucide-react';
 
 export function Footer() {
   return (
@@ -40,15 +40,50 @@ export function Footer() {
           <div>
             <h4 className="font-bold mb-4">Follow Us</h4>
             <div className="flex gap-4">
-              <Link href="#" className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-primary transition-colors">
-                <Twitter className="w-5 h-5" />
-              </Link>
-              <Link href="#" className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-primary transition-colors">
-                <Instagram className="w-5 h-5" />
-              </Link>
-              <Link href="#" className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center hover:bg-primary transition-colors">
-                <Github className="w-5 h-5" />
-              </Link>
+              {/* YouTube */}
+              <div className="relative group">
+                <Link 
+                  href="https://youtube.com/@mysteriousstory_studioai?si=aaEGH1tVd6Tgq_W9" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-12 h-12 rounded-full bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:bg-red-600 hover:border-red-500 hover:shadow-[0_0_20px_rgba(220,38,38,0.5)] group-hover:text-white"
+                >
+                  <Youtube className="w-5 h-5" />
+                </Link>
+                <span className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-black/80 text-white text-[10px] font-bold rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-white/10">
+                  YouTube
+                </span>
+              </div>
+
+              {/* Facebook */}
+              <div className="relative group">
+                <Link 
+                  href="https://www.facebook.com/share/16pomwJTMG/" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-12 h-12 rounded-full bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:bg-blue-600 hover:border-blue-500 hover:shadow-[0_0_20px_rgba(37,99,235,0.5)] group-hover:text-white"
+                >
+                  <Facebook className="w-5 h-5" />
+                </Link>
+                <span className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-black/80 text-white text-[10px] font-bold rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-white/10">
+                  Facebook
+                </span>
+              </div>
+
+              {/* Blogger */}
+              <div className="relative group">
+                <Link 
+                  href="https://viralversepro.blogspot.com/" 
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-12 h-12 rounded-full bg-white/5 backdrop-blur-md border border-white/10 flex items-center justify-center transition-all duration-300 hover:scale-110 hover:bg-orange-600 hover:border-orange-500 hover:shadow-[0_0_20px_rgba(234,88,12,0.5)] group-hover:text-white"
+                >
+                  <BookOpen className="w-5 h-5" />
+                </Link>
+                <span className="absolute -top-10 left-1/2 -translate-x-1/2 px-2 py-1 bg-black/80 text-white text-[10px] font-bold rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap border border-white/10">
+                  Blog
+                </span>
+              </div>
             </div>
           </div>
         </div>
