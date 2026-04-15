@@ -17,33 +17,39 @@ export default function ContactPage() {
           </div>
 
           <div className="space-y-6">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+            <a 
+              href="mailto:arunpangu81125@gmail.com" 
+              className="flex items-center gap-4 group transition-transform hover:translate-x-1"
+            >
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
                 <Mail className="w-6 h-6" />
               </div>
               <div>
                 <p className="font-bold">Email Us</p>
-                <p className="text-muted-foreground">support@movieworld.example.com</p>
+                <p className="text-muted-foreground group-hover:text-primary transition-colors">arunpangu81125@gmail.com</p>
               </div>
-            </div>
+            </a>
 
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+            <a 
+              href="tel:+918731006024" 
+              className="flex items-center gap-4 group transition-transform hover:translate-x-1"
+            >
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
                 <Phone className="w-6 h-6" />
               </div>
               <div>
                 <p className="font-bold">Call Us</p>
-                <p className="text-muted-foreground">+1 (555) 123-4567</p>
+                <p className="text-muted-foreground group-hover:text-primary transition-colors">+91 8731006024</p>
               </div>
-            </div>
+            </a>
 
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+            <div className="flex items-center gap-4 group transition-transform hover:translate-x-1">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center text-primary group-hover:bg-primary group-hover:text-white transition-colors">
                 <MapPin className="w-6 h-6" />
               </div>
               <div>
                 <p className="font-bold">Visit Us</p>
-                <p className="text-muted-foreground">123 Cinema Lane, Hollywood, CA 90210</p>
+                <p className="text-muted-foreground">Kaying (HQ, Bazaar)</p>
               </div>
             </div>
           </div>
