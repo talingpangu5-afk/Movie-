@@ -51,7 +51,7 @@ export default async function MovieDetailsPage({ params }: { params: Promise<{ i
             
             {/* Sidebar Ad */}
             <div className="mt-8 w-full">
-              <AdBanner id="1026be2f67d070ed95d941d9840c7084" />
+              <AdBanner />
             </div>
           </div>
 

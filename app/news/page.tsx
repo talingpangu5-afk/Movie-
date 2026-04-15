@@ -17,6 +17,7 @@ import {
   ChevronRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { AdBanner } from '@/components/AdBanner';
 
 const NEWS_API_KEY = 'pub_a5cedc3a07254b8e8e10452a2a0d602d';
 const REFRESH_INTERVAL = 60000; // 60 seconds
@@ -244,6 +245,9 @@ export default function NewsPage() {
             )}
           </AnimatePresence>
         </div>
+
+        {/* Advertisement Banner */}
+        <AdBanner className="mt-12" />
       </div>
 
       {/* Background Decorative Elements */}

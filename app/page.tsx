@@ -71,7 +71,7 @@ export default async function HomePage() {
 
       {/* Ad Placement */}
       <div className="container mx-auto px-4 py-4">
-        <AdBanner id="1026be2f67d070ed95d941d9840c7084" />
+        <AdBanner />
       </div>
 
       {/* Movie Rows */}
@@ -80,21 +80,21 @@ export default async function HomePage() {
         
         {/* Ad Between Sections */}
         <div className="container mx-auto px-4">
-          <AdBanner id="1026be2f67d070ed95d941d9840c7084" />
+          <AdBanner />
         </div>
 
         <MovieRow title="Popular Movies" fetcher={tmdb.getPopular} />
         
         {/* Ad Between Sections */}
         <div className="container mx-auto px-4">
-          <AdBanner id="1026be2f67d070ed95d941d9840c7084" />
+          <AdBanner />
         </div>
 
         <MovieRow title="Top Rated" fetcher={tmdb.getTopRated} />
         
         {/* Ad Between Sections */}
         <div className="container mx-auto px-4">
-          <AdBanner id="1026be2f67d070ed95d941d9840c7084" />
+          <AdBanner />
         </div>
 
         <CinematicBanner />
