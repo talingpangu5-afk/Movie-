@@ -11,7 +11,6 @@ import { Hero } from '@/components/Hero';
 import { AdManager } from '@/components/AdManager';
 import { CinematicBanner } from '@/components/CinematicBanner';
 import { HologramTrailers } from '@/components/HologramTrailers';
-import { PythonEngine } from '@/components/PythonEngine';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 300; // Refresh every 5 minutes
@@ -67,8 +66,6 @@ export default async function HomePage() {
     <div className="flex flex-col gap-8">
       <AutoRefresh />
       <AdManager />
-      
-      <PythonEngine />
       
       <Hero movies={heroMovies} />
 
