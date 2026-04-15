@@ -37,7 +37,7 @@ export function Navbar() {
     { name: 'Trending', href: '/trending', hasNotification: true },
     { name: 'Popular', href: '/popular' },
     { name: 'Top Rated', href: '/top-rated' },
-    { name: 'Developer', href: '/developer' },
+    { name: 'Live News', href: '/news', isLive: true },
   ];
 
   return (
@@ -75,6 +75,12 @@ export function Navbar() {
                 {link.name}
                 {link.hasNotification && (
                   <span className="absolute -top-1 -right-2 w-1.5 h-1.5 bg-primary rounded-full glow-pulse" />
+                )}
+                {link.isLive && (
+                  <span className="absolute -top-1 -right-3 flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-600"></span>
+                  </span>
                 )}
               </Link>
             ))}
