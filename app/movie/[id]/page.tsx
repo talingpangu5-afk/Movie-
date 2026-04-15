@@ -7,6 +7,7 @@ import { Separator } from '@/components/ui/separator';
 import { TrailerModal } from '@/components/TrailerModal';
 import { WatchlistButton } from '@/components/WatchlistButton';
 import { AdBanner } from '@/components/AdBanner';
+import { PythonEngine } from '@/components/PythonEngine';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +24,7 @@ export default async function MovieDetailsPage({ params }: { params: Promise<{ i
 
   return (
     <div className="min-h-screen pb-20">
+      <PythonEngine />
       {/* Backdrop Hero */}
       <div className="relative h-[60vh] w-full">
         <Image
