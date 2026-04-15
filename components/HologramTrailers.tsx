@@ -1,48 +1,11 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Play, Plus, Volume2, VolumeX, Info, Sparkles } from 'lucide-react';
+import { Play, Plus, Volume2, VolumeX, Info, Sparkles, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
-
-const TRAILERS = [
-  {
-    id: 1,
-    title: "Cyberpunk 2077: Phantom Liberty",
-    year: "2024",
-    poster: "https://picsum.photos/seed/cyber/400/600",
-    video: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
-  },
-  {
-    id: 2,
-    title: "Interstellar: Beyond Time",
-    year: "2025",
-    poster: "https://picsum.photos/seed/space/400/600",
-    video: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
-  },
-  {
-    id: 3,
-    title: "The Matrix: Resurrections",
-    year: "2024",
-    poster: "https://picsum.photos/seed/matrix/400/600",
-    video: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-  },
-  {
-    id: 4,
-    title: "Blade Runner: 2049",
-    year: "2024",
-    poster: "https://picsum.photos/seed/blade/400/600",
-    video: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4",
-  },
-  {
-    id: 5,
-    title: "Dune: Part Two",
-    year: "2024",
-    poster: "https://picsum.photos/seed/dune/400/600",
-    video: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4",
-  }
-];
+import { tmdb, Movie } from '@/lib/tmdb';
 
 const FIXED_PARTICLES = [
   { id: 1, x: "15%", y: "10%", duration: 12 },
@@ -57,26 +20,79 @@ const FIXED_PARTICLES = [
   { id: 10, x: "80%", y: "85%", duration: 12 },
 ];
 
-function TrailerCard({ trailer }: { trailer: typeof TRAILERS[0] }) {
-  const [isHovered, setIsHovered] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
+interface TrailerCardProps {
+  movie: Movie;
+  isActive: boolean;
+  onPlay: () => void;
+  onEnded: () => void;
+}
 
-  useEffect(() => {
-    if (isHovered && videoRef.current) {
-      videoRef.current.play().catch(() => {});
-    } else if (videoRef.current) {
-      videoRef.current.pause();
-      videoRef.current.currentTime = 0;
+function TrailerCard({ movie, isActive, onPlay, onEnded }: TrailerCardProps) {
+  const [isHovered, setIsHovered] = useState(false);
+  const [trailerKey, setTrailerKey] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [isMuted, setIsMuted] = useState(true);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  const fetchTrailer = useCallback(async () => {
+    if (trailerKey) return trailerKey;
+    setIsLoading(true);
+    try {
+      const data = await tmdb.getMovieDetails(movie.id.toString());
+      const trailer = data.videos?.results?.find(
+        (v: any) => v.type === "Trailer" && v.site === "YouTube"
+      );
+      if (trailer) {
+        setTrailerKey(trailer.key);
+        return trailer.key;
+      } else {
+        setError("Trailer not available");
+        return null;
+      }
+    } catch (err) {
+      setError("Failed to load trailer");
+      return null;
+    } finally {
+      setIsLoading(false);
     }
-  }, [isHovered]);
+  }, [movie.id, trailerKey]);
+
+  const handleInteraction = async () => {
+    if (!isActive) {
+      const key = await fetchTrailer();
+      if (key) onPlay();
+    } else {
+      setIsMuted(!isMuted);
+    }
+  };
+
+  // Listen for YouTube API messages to detect end of video
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== "https://www.youtube.com") return;
+      try {
+        const data = JSON.parse(event.data);
+        if (data.event === "infoDelivery" && data.info?.playerState === 0) {
+          onEnded();
+        }
+      } catch (e) {}
+    };
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [onEnded]);
 
   return (
     <motion.div
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      whileHover={{ scale: 1.05, rotateY: 15, rotateX: 5 }}
+      onClick={handleInteraction}
+      whileHover={{ scale: 1.05, rotateY: 10, rotateX: 5 }}
       transition={{ type: "spring", stiffness: 300, damping: 20 }}
-      className="relative group min-w-[280px] md:min-w-[320px] aspect-[2/3] rounded-xl overflow-hidden cursor-pointer bg-black/40 border border-cyan-500/30 hologram-glow"
+      className={`relative group min-w-[280px] md:min-w-[320px] aspect-[2/3] rounded-xl overflow-hidden cursor-pointer bg-black/40 border transition-all duration-500 ${
+        isActive ? 'border-cyan-400 shadow-[0_0_30px_rgba(34,211,238,0.4)]' : 'border-cyan-500/30 hologram-glow'
+      }`}
     >
       {/* Hologram Flicker Overlay */}
       <div className="absolute inset-0 z-20 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
@@ -85,49 +101,80 @@ function TrailerCard({ trailer }: { trailer: typeof TRAILERS[0] }) {
       </div>
 
       {/* Poster Image */}
-      <Image
-        src={trailer.poster}
-        alt={trailer.title}
-        fill
-        className={`object-cover transition-opacity duration-500 ${isHovered ? 'opacity-0' : 'opacity-100'}`}
-        referrerPolicy="no-referrer"
-      />
-
-      {/* Video Preview */}
-      <div className={`absolute inset-0 z-10 transition-opacity duration-500 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
-        <video
-          ref={videoRef}
-          src={trailer.video}
-          muted
-          loop
-          playsInline
-          className="w-full h-full object-cover"
+      <div className={`absolute inset-0 z-10 transition-opacity duration-500 ${isActive ? 'opacity-0' : 'opacity-100'}`}>
+        <Image
+          src={tmdb.getImageUrl(movie.poster_path, 'w500')}
+          alt={movie.title}
+          fill
+          className="object-cover"
+          referrerPolicy="no-referrer"
         />
-        {/* Sound Wave Animation */}
-        <div className="absolute bottom-4 left-4 right-4 h-8 flex items-end gap-1 pointer-events-none">
+        {/* Light Beam Projection Effect */}
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-cyan-500/20 to-transparent z-10 pointer-events-none" />
+      </div>
+
+      {/* Video Preview / Iframe */}
+      <div className={`absolute inset-0 z-10 transition-opacity duration-500 ${isActive ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+        {isActive && trailerKey && (
+          <iframe
+            ref={iframeRef}
+            src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=${isMuted ? 1 : 0}&controls=1&rel=0&enablejsapi=1&origin=${window.location.origin}`}
+            className="w-full h-full border-0"
+            allow="autoplay; encrypted-media"
+            allowFullScreen
+          />
+        )}
+        
+        {/* Loading / Error States */}
+        {isLoading && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-40">
+            <Loader2 className="w-10 h-10 text-cyan-400 animate-spin mb-2" />
+            <p className="text-cyan-400 text-xs font-mono uppercase tracking-widest">Initializing Hologram...</p>
+          </div>
+        )}
+        {error && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-40 p-4 text-center">
+            <p className="text-red-500 font-bold mb-2 uppercase tracking-tighter">{error}</p>
+            <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); setTrailerKey(null); setError(null); fetchTrailer(); }}>
+              Retry
+            </Button>
+          </div>
+        )}
+
+        {/* Sound Wave Animation (Only when active) */}
+        <div className="absolute bottom-4 left-4 right-4 h-8 flex items-end gap-1 pointer-events-none z-30">
           {[...Array(12)].map((_, i) => (
             <motion.div
               key={i}
-              animate={{ height: isHovered ? [4, 16, 8, 20, 4] : 4 }}
+              animate={{ height: isActive ? [4, 16, 8, 20, 4] : 4 }}
               transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.05 }}
               className="flex-1 bg-cyan-400/60 rounded-full"
             />
           ))}
         </div>
+
+        {/* Mute Toggle Overlay */}
+        <div className="absolute top-4 right-4 z-30">
+          <Button 
+            size="icon" 
+            variant="ghost" 
+            className="bg-black/40 backdrop-blur-md text-white hover:bg-black/60"
+            onClick={(e) => { e.stopPropagation(); setIsMuted(!isMuted); }}
+          >
+            {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
+          </Button>
+        </div>
       </div>
 
-      {/* Light Beam Projection Effect */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-cyan-500/20 to-transparent z-10 pointer-events-none" />
-
       {/* Content Overlay */}
-      <div className="absolute inset-0 z-30 flex flex-col justify-end p-6 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <h3 className="text-lg font-bold text-white mb-1 drop-shadow-lg">{trailer.title}</h3>
-        <p className="text-cyan-400 text-sm font-medium mb-4">{trailer.year}</p>
+      <div className="absolute inset-0 z-30 flex flex-col justify-end p-6 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+        <h3 className="text-lg font-bold text-white mb-1 drop-shadow-lg line-clamp-1">{movie.title}</h3>
+        <p className="text-cyan-400 text-sm font-medium mb-4">{movie.release_date?.split('-')[0]}</p>
         
         <div className="flex gap-2">
           <Button size="sm" className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold flex-1">
             <Play className="w-4 h-4 mr-1 fill-black" />
-            Play
+            {isActive ? 'Playing' : 'Watch Trailer'}
           </Button>
           <Button size="sm" variant="outline" className="border-white/20 bg-white/5 hover:bg-white/10 text-white p-2">
             <Plus className="w-4 h-4" />
@@ -135,20 +182,58 @@ function TrailerCard({ trailer }: { trailer: typeof TRAILERS[0] }) {
         </div>
       </div>
 
-      {/* Play Button Center (Always visible but glows on hover) */}
-      <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-        <motion.div
-          animate={{ scale: isHovered ? 1.2 : 1, opacity: isHovered ? 1 : 0.6 }}
-          className="w-16 h-16 rounded-full bg-cyan-500/20 border-2 border-cyan-500/50 flex items-center justify-center backdrop-blur-sm"
-        >
-          <Play className="w-8 h-8 text-cyan-400 fill-cyan-400" />
-        </motion.div>
-      </div>
+      {/* Play Button Center (Glows on hover, hides when active) */}
+      {!isActive && (
+        <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
+          <motion.div
+            animate={{ 
+              scale: isHovered ? 1.2 : 1, 
+              opacity: isHovered ? 1 : 0.6,
+              boxShadow: isHovered ? "0 0 20px rgba(34,211,238,0.6)" : "0 0 0px rgba(34,211,238,0)"
+            }}
+            className="w-16 h-16 rounded-full bg-cyan-500/20 border-2 border-cyan-500/50 flex items-center justify-center backdrop-blur-sm transition-shadow duration-300"
+          >
+            <Play className="w-8 h-8 text-cyan-400 fill-cyan-400" />
+          </motion.div>
+        </div>
+      )}
     </motion.div>
   );
 }
 
 export function HologramTrailers() {
+  const [movies, setMovies] = useState<Movie[]>([]);
+  const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const fetchMovies = async () => {
+      try {
+        const data = await tmdb.getUpcoming();
+        setMovies(data.results.slice(0, 10));
+      } catch (err) {
+        console.error("Failed to fetch upcoming movies", err);
+      }
+    };
+    fetchMovies();
+  }, []);
+
+  const handleTrailerEnd = useCallback(() => {
+    if (activeIndex !== null && activeIndex < movies.length - 1) {
+      setActiveIndex(activeIndex + 1);
+      // Scroll to the next card
+      if (scrollRef.current) {
+        const cardWidth = 320 + 32; // width + gap
+        scrollRef.current.scrollTo({
+          left: (activeIndex + 1) * cardWidth,
+          behavior: 'smooth'
+        });
+      }
+    } else {
+      setActiveIndex(null);
+    }
+  }, [activeIndex, movies.length]);
+
   return (
     <section className="relative py-20 overflow-hidden bg-black">
       {/* Animated Background Gradients */}
@@ -163,20 +248,9 @@ export function HologramTrailers() {
         {FIXED_PARTICLES.map((p) => (
           <motion.div
             key={p.id}
-            initial={{ 
-              x: p.x, 
-              y: p.y,
-              opacity: 0.1
-            }}
-            animate={{ 
-              y: ["-10%", "110%"],
-              opacity: [0.1, 0.3, 0.1]
-            }}
-            transition={{ 
-              duration: p.duration, 
-              repeat: Infinity,
-              ease: "linear"
-            }}
+            initial={{ x: p.x, y: p.y, opacity: 0.1 }}
+            animate={{ y: ["-10%", "110%"], opacity: [0.1, 0.3, 0.1] }}
+            transition={{ duration: p.duration, repeat: Infinity, ease: "linear" }}
             className="absolute w-1 h-1 bg-cyan-400 rounded-full blur-[1px]"
           />
         ))}
@@ -213,11 +287,22 @@ export function HologramTrailers() {
 
         {/* Horizontal Scroll Area */}
         <div className="relative group">
-          <div className="flex gap-8 overflow-x-auto pb-12 pt-4 no-scrollbar snap-x snap-mandatory">
-            {TRAILERS.map((trailer) => (
-              <div key={trailer.id} className="snap-center">
-                <TrailerCard trailer={trailer} />
+          <div 
+            ref={scrollRef}
+            className="flex gap-8 overflow-x-auto pb-12 pt-4 no-scrollbar snap-x snap-mandatory"
+          >
+            {movies.map((movie, index) => (
+              <div key={movie.id} className="snap-center">
+                <TrailerCard 
+                  movie={movie} 
+                  isActive={activeIndex === index}
+                  onPlay={() => setActiveIndex(index)}
+                  onEnded={handleTrailerEnd}
+                />
               </div>
+            ))}
+            {movies.length === 0 && [...Array(5)].map((_, i) => (
+              <div key={i} className="min-w-[320px] aspect-[2/3] rounded-xl bg-white/5 animate-pulse" />
             ))}
           </div>
           
@@ -228,7 +313,11 @@ export function HologramTrailers() {
 
         {/* Bottom Action Buttons */}
         <div className="mt-12 flex flex-wrap justify-center gap-6">
-          <Button size="lg" className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-black px-10 h-14 rounded-full text-lg shadow-[0_0_30px_rgba(6,182,212,0.4)]">
+          <Button 
+            size="lg" 
+            onClick={() => setActiveIndex(0)}
+            className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-black px-10 h-14 rounded-full text-lg shadow-[0_0_30px_rgba(6,182,212,0.4)]"
+          >
             <Sparkles className="w-5 h-5 mr-2" />
             ENTER FULL IMMERSION
           </Button>
