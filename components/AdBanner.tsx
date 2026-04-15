@@ -29,26 +29,49 @@ export function AdBanner({ className = '', width = '728', height = '90' }: AdBan
     adWrapper.style.alignItems = 'center';
     container.appendChild(adWrapper);
 
-    // Dynamic script injection
-    const optionsScript = document.createElement('script');
-    optionsScript.type = 'text/javascript';
-    optionsScript.innerHTML = `
-      atOptions = {
-        'key' : '1026be2f67d070ed95d941d9840c7084',
-        'format' : 'iframe',
-        'height' : ${height},
-        'width' : ${width},
-        'params' : {}
-      };
+    // Use an iframe to isolate the ad script execution
+    // This prevents global variable conflicts (like atOptions) when multiple ads are on the same page
+    const iframe = document.createElement('iframe');
+    iframe.width = width;
+    iframe.height = height;
+    iframe.style.border = 'none';
+    iframe.style.overflow = 'hidden';
+    iframe.style.maxWidth = '100%';
+    iframe.setAttribute('frameborder', '0');
+    iframe.setAttribute('scrolling', 'no');
+    
+    const iframeContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <style>
+            body { margin: 0; padding: 0; overflow: hidden; display: flex; justify-content: center; align-items: center; background: transparent; }
+          </style>
+        </head>
+        <body>
+          <script type="text/javascript">
+            atOptions = {
+              'key' : '1026be2f67d070ed95d941d9840c7084',
+              'format' : 'iframe',
+              'height' : ${height},
+              'width' : ${width},
+              'params' : {}
+            };
+          </script>
+          <script type="text/javascript" src="//www.highperformanceformat.com/1026be2f67d070ed95d941d9840c7084/invoke.js"></script>
+        </body>
+      </html>
     `;
 
-    const invokeScript = document.createElement('script');
-    invokeScript.type = 'text/javascript';
-    invokeScript.src = `//www.highperformanceformat.com/1026be2f67d070ed95d941d9840c7084/invoke.js`;
+    adWrapper.appendChild(iframe);
     
-    // Append scripts to the unique wrapper
-    adWrapper.appendChild(optionsScript);
-    adWrapper.appendChild(invokeScript);
+    // Write content to iframe
+    const doc = iframe.contentWindow?.document || iframe.contentDocument;
+    if (doc) {
+      doc.open();
+      doc.write(iframeContent);
+      doc.close();
+    }
 
     return () => {
       if (container) container.innerHTML = '';
