@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import Link from 'next/link';
 import { 
   Newspaper, 
   Globe, 
@@ -31,6 +32,7 @@ interface NewsArticle {
   category: string[];
   country: string[];
   language: string;
+  content?: string;
 }
 
 const CATEGORIES = [
@@ -228,15 +230,13 @@ export default function NewsPage() {
                       <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">
                         {new Date(article.pubDate).toLocaleDateString()}
                       </span>
-                      <a 
-                        href={article.link} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
+                      <Link 
+                        href={`/news/${encodeURIComponent(article.article_id)}`} 
                         className="flex items-center gap-1 text-xs font-bold text-white hover:text-red-500 transition-colors group/link"
                       >
                         READ MORE
                         <ChevronRight className="w-4 h-4 transition-transform group-hover/link:translate-x-1" />
-                      </a>
+                      </Link>
                     </div>
                   </div>
                 </motion.div>
