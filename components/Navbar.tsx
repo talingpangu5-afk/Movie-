@@ -34,6 +34,7 @@ export function Navbar() {
 
   const navLinks = [
     { name: 'Home', href: '/' },
+    { name: 'Movies', href: '/movies' },
     { name: 'Trending', href: '/trending', hasNotification: true },
     { name: 'Popular', href: '/popular' },
     { name: 'Top Rated', href: '/top-rated' },
