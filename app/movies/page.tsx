@@ -67,17 +67,15 @@ export default function MoviesPage() {
   }, []);
 
   const handleUnlock = (title: string) => {
-    const updated = [...unlockedMovies, title];
-    setUnlockedMovies(updated);
-    localStorage.setItem('unlockedMovies', JSON.stringify(updated));
+    setUnlockedMovies(prev => {
+      const updated = [...prev, title];
+      localStorage.setItem('unlockedMovies', JSON.stringify(updated));
+      return updated;
+    });
     
     // Auto-play the movie after unlock
     if (selectedMovie) {
-      setActiveVideo({
-        title: selectedMovie.title,
-        url: selectedMovie.url,
-        description: selectedMovie.description
-      });
+      setActiveVideo(selectedMovie);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -257,11 +255,7 @@ export default function MoviesPage() {
                   onClick={() => {
                     if (movie.url !== "#") {
                       if (isMovieUnlocked(movie.title)) {
-                        setActiveVideo({
-                          title: movie.title,
-                          url: movie.url,
-                          description: (movie as any).description || ""
-                        });
+                        setActiveVideo(movie as any);
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       } else {
                         setSelectedMovie(movie);

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { QRCodeSVG } from 'qrcode.react'
 import { 
   Dialog, 
@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { Copy, CheckCircle2, RotateCw, Wallet, ShieldAlert } from 'lucide-react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence } from 'motion/react'
 
 interface PaymentModalProps {
   isOpen: boolean
@@ -26,8 +26,7 @@ const BTC_ADDRESS = '18EjNgsaSyQzsMkrwg7fnAQh3CHsSVdsno'
 const BTC_AMOUNT = '0.00001'
 
 export function PaymentModal({ isOpen, onClose, onVerified, title }: PaymentModalProps) {
-  const [isVerifying, setIsVerifying] = useState(false)
-  const [countdown, setCountdown] = useState(10) // Mock countdown for "verification"
+  const [countdown, setCountdown] = useState(10)
   const [step, setStep] = useState<'payment' | 'verifying'>('payment')
 
   const copyAddress = () => {
@@ -35,23 +34,22 @@ export function PaymentModal({ isOpen, onClose, onVerified, title }: PaymentModa
     toast.success('Address copied to clipboard')
   }
 
+  useEffect(() => {
+    let interval: NodeJS.Timeout;
+    if (step === 'verifying' && countdown > 0) {
+      interval = setInterval(() => {
+        setCountdown(prev => prev - 1);
+      }, 1000);
+    } else if (step === 'verifying' && countdown === 0) {
+      onVerified();
+      toast.success(`Access unlocked: ${title}`);
+      onClose();
+    }
+    return () => clearInterval(interval);
+  }, [step, countdown, onVerified, onClose, title]);
+
   const handleVerify = () => {
     setStep('verifying')
-    setIsVerifying(true)
-    
-    // Simulate API verification
-    let timer = countdown
-    const interval = setInterval(() => {
-      timer -= 1
-      setCountdown(timer)
-      if (timer <= 0) {
-        clearInterval(interval)
-        setIsVerifying(false)
-        onVerified()
-        toast.success(`Access unlocked for ${title}!`)
-        onClose()
-      }
-    }, 1000)
   }
 
   // Reset state when modal closes
@@ -60,7 +58,6 @@ export function PaymentModal({ isOpen, onClose, onVerified, title }: PaymentModa
       setTimeout(() => {
         setStep('payment')
         setCountdown(10)
-        setIsVerifying(false)
       }, 300)
     }
   }, [isOpen])
@@ -93,13 +90,13 @@ export function PaymentModal({ isOpen, onClose, onVerified, title }: PaymentModa
               exit={{ opacity: 0, x: 20 }}
               className="space-y-6 py-4 relative z-10"
             >
-              <div className="flex flex-col items-center justify-center p-6 bg-white/5 rounded-2xl border border-white/5 relative group">
+              <div className="flex flex-col items-center justify-center p-6 bg-white rounded-2xl border border-white/5 relative group">
                 <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl"></div>
                 <QRCodeSVG 
                   value={`bitcoin:${BTC_ADDRESS}?amount=${BTC_AMOUNT}`} 
                   size={180} 
-                  bgColor="transparent" 
-                  fgColor="#fff"
+                  bgColor="#ffffff" 
+                  fgColor="#000000"
                   level="H"
                   className="relative z-10"
                 />
