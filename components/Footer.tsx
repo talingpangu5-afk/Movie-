@@ -33,7 +33,7 @@ export function Footer() {
               <li><Link href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
               <li><Link href="/disclaimer" className="hover:text-primary transition-colors">Disclaimer</Link></li>
               <li><Link href="/contact" className="hover:text-primary transition-colors">Contact</Link></li>
-              <li><Link href="/developer" className="hover:text-primary transition-colors">Developer Hub</Link></li>
+              <li><Link href="/movies" className="hover:text-primary transition-colors">Movies</Link></li>
             </ul>
           </div>
 

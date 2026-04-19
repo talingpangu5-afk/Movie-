@@ -1,0 +1,229 @@
+'use client'
+
+import { motion } from 'motion/react'
+import { AdBanner } from '@/components/AdBanner'
+import { useEffect, useRef } from 'react'
+
+export default function MoviesPage() {
+  const adRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // If we wanted to inject the EXACT script from the user prompt:
+    // But since we have AdBanner, it's safer. 
+    // However, I will follow the user's "structure" as much as possible.
+  }, []);
+
+  return (
+    <div className="flex flex-col min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-12 flex-grow">
+        <div className="max-w-6xl mx-auto space-y-12">
+          {/* Header Section */}
+          <div className="text-center space-y-6">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="inline-block"
+            >
+              <span className="px-3 py-1 text-[10px] font-bold tracking-[0.3em] uppercase bg-primary/10 text-primary border border-primary/20 rounded-full mb-4">
+                Exclusive Premiere
+              </span>
+            </motion.div>
+            
+            <div className="space-y-2">
+              <motion.h1 
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="text-6xl md:text-9xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/20 select-none"
+              >
+                MADAM
+              </motion.h1>
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="flex items-center justify-center gap-4 text-xs font-bold tracking-widest text-primary/80 uppercase"
+              >
+                <span>Full HD</span>
+                <span className="w-1 h-1 rounded-full bg-white/20"></span>
+                <span>Premium Quality</span>
+                <span className="w-1 h-1 rounded-full bg-white/20"></span>
+                <span>1080p</span>
+              </motion.div>
+            </div>
+
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="text-muted-foreground text-xl max-w-2xl mx-auto font-medium leading-relaxed italic"
+            >
+              Korean Widow Adult Movie
+            </motion.p>
+          </div>
+
+          {/* Movie Player Section - Futuristic Frame */}
+          <div className="relative group max-w-5xl mx-auto">
+            {/* Outer Glow / Atmospheric Light */}
+            <div className="absolute -inset-4 bg-primary/20 blur-[100px] opacity-0 group-hover:opacity-40 transition-opacity duration-1000"></div>
+            
+            {/* Cyberpunk Border Decor */}
+            <div className="absolute -top-2 -left-2 w-10 h-10 border-t-2 border-l-2 border-primary rounded-tl-lg z-10"></div>
+            <div className="absolute -top-2 -right-2 w-10 h-10 border-t-2 border-r-2 border-primary rounded-tr-lg z-10"></div>
+            <div className="absolute -bottom-2 -left-2 w-10 h-10 border-b-2 border-l-2 border-primary rounded-bl-lg z-10"></div>
+            <div className="absolute -bottom-2 -right-2 w-10 h-10 border-b-2 border-r-2 border-primary rounded-br-lg z-10"></div>
+
+            <motion.div 
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="relative aspect-video bg-[#050505] rounded-lg overflow-hidden border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.8)]"
+            >
+              {/* Scanline Effect Overlay */}
+              <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-10 bg-[length:100%_2px,3px_100%]"></div>
+              
+              <div className="w-full h-full">
+                <iframe 
+                  src="https://ok.ru/videoembed/2814491562457"
+                  className="w-full h-full border-0"
+                  allowFullScreen
+                  title="Featured Content Player"
+                />
+              </div>
+            </motion.div>
+
+            {/* Futuristic Player Metadata Bar */}
+            <div className="flex flex-wrap items-center justify-between mt-6 px-4 gap-4">
+              <div className="flex items-center gap-6">
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-1">Status</span>
+                  <div className="flex items-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
+                    <span className="text-xs font-bold uppercase tracking-tighter">Live Transmission</span>
+                  </div>
+                </div>
+                <div className="h-8 w-[1px] bg-white/10"></div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase tracking-widest text-muted-foreground font-bold mb-1">Bitrate</span>
+                  <span className="text-xs font-mono text-primary">8.4 Mbps / AES-256</span>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <button className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-md text-[10px] font-bold uppercase tracking-widest transition-all">
+                  Switch Server
+                </button>
+                <button className="px-4 py-2 bg-primary/20 hover:bg-primary/30 border border-primary/50 text-primary rounded-md text-[10px] font-bold uppercase tracking-widest transition-all">
+                  Go Premium
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Adsterra Banner Ad Implementation (Following User Structure) */}
+          <div className="w-full mt-4 flex flex-col items-center">
+             <div className="flex items-center gap-4 w-full mb-4">
+              <div className="h-[1px] flex-grow bg-white/5"></div>
+              <span className="text-[10px] uppercase tracking-[0.4em] text-white/20 font-bold">Recommended for you</span>
+              <div className="h-[1px] flex-grow bg-white/5"></div>
+            </div>
+            
+            {/* We use AdBanner as it provides a safe, responsive wrapper for the Adsterra script logic */}
+            <div className="w-full flex justify-center">
+              <AdBanner />
+            </div>
+          </div>
+
+          {/* Premium Video Grid Section */}
+          <div className="pt-12 space-y-8">
+            <div className="flex items-end justify-between border-b border-white/5 pb-4">
+              <div className="space-y-1">
+                <h2 className="text-3xl font-black italic tracking-tighter uppercase">Premium Collection</h2>
+                <p className="text-xs text-muted-foreground font-bold tracking-[0.2em] uppercase">Handpicked Cinematic Masterpieces</p>
+              </div>
+              <div className="flex gap-2 mb-1">
+                <div className="w-8 h-[2px] bg-primary"></div>
+                <div className="w-2 h-[2px] bg-white/20"></div>
+                <div className="w-2 h-[2px] bg-white/20"></div>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+              {[
+                { title: "Seduction", genre: "Drama", rating: "9.8", year: "2024" },
+                { title: "Twilight", genre: "Romance", rating: "9.5", year: "2023" },
+                { title: "Midnight", genre: "Thriller", rating: "9.2", year: "2024" },
+                { title: "Elegance", genre: "Fashion", rating: "9.7", year: "2024" },
+              ].map((movie, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1 * i }}
+                  className="group relative"
+                >
+                  <div className="relative aspect-[3/4] bg-secondary/20 rounded-xl overflow-hidden border border-white/5 transition-all duration-500 group-hover:border-primary/50 group-hover:translate-y-[-8px]">
+                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60"></div>
+                    
+                    {/* Placeholder for movie poster */}
+                    <div className="absolute inset-0 flex items-center justify-center opacity-20 group-hover:scale-110 transition-transform duration-700">
+                      <svg className="w-16 h-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+
+                    <div className="absolute top-3 right-3 px-2 py-1 bg-black/60 backdrop-blur-md rounded text-[10px] font-black text-primary border border-primary/30">
+                      HD 4K
+                    </div>
+
+                    <div className="absolute bottom-4 left-4 right-4">
+                      <div className="text-[10px] font-bold text-primary/80 uppercase tracking-widest mb-1">{movie.genre} • {movie.year}</div>
+                      <h4 className="text-lg font-black tracking-tighter uppercase leading-none mb-2">{movie.title}</h4>
+                      <div className="flex items-center gap-1">
+                        <div className="flex items-center text-[10px] font-mono text-yellow-500">
+                          <span className="mr-1">★</span>
+                          {movie.rating}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Futuristic hover overlay */}
+                    <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center backdrop-blur-[2px]">
+                       <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center scale-75 group-hover:scale-100 transition-transform">
+                          <svg className="w-6 h-6 text-white fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                       </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+          
+          {/* Navigation/Actions Section */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-12">
+            <div className="relative overflow-hidden p-8 rounded-3xl bg-secondary/20 border border-white/5 group hover:border-primary/50 transition-all duration-500">
+              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                <svg className="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M21 3H3c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h18c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H3V5h18v14zM8 15c0-1.66 1.34-3 3-3s3 1.34 3 3-1.34 3-3 3-3-1.34-3-3z"/></svg>
+              </div>
+              <h3 className="text-2xl font-bold mb-2">Movie Library</h3>
+              <p className="text-muted-foreground mb-6">Explore our curated collection of upcoming and trending titles.</p>
+              <div className="flex gap-4">
+                <a href="/popular" className="px-6 py-2 bg-primary rounded-full text-white text-sm font-bold hover:bg-primary/80 transition-colors">Popular</a>
+                <a href="/trending" className="px-6 py-2 bg-white/5 rounded-full text-white text-sm font-bold hover:bg-white/10 transition-colors">Trending</a>
+              </div>
+            </div>
+            
+            <div className="relative overflow-hidden p-8 rounded-3xl bg-secondary/20 border border-white/5 group hover:border-primary/50 transition-all duration-500">
+              <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                 <svg className="w-24 h-24" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z"/></svg>
+              </div>
+              <h3 className="text-2xl font-bold mb-2">Help Center</h3>
+              <p className="text-muted-foreground mb-6">Need assistance? Our support team is here to help you 24/7.</p>
+              <a href="/contact" className="inline-flex items-center text-primary font-bold hover:gap-2 transition-all">
+                Contact Support <span className="ml-1">→</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
