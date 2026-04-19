@@ -2,10 +2,19 @@
 
 import { motion } from 'motion/react'
 import { AdBanner } from '@/components/AdBanner'
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
+
+export const dynamic = 'force-dynamic';
+
+const DEFAULT_VIDEO = {
+  title: "MADAM",
+  description: "Korean Widow Adult Movie",
+  url: "https://ok.ru/videoembed/2814491562457"
+};
 
 export default function MoviesPage() {
   const adRef = useRef<HTMLDivElement>(null);
+  const [activeVideo, setActiveVideo] = useState(DEFAULT_VIDEO);
 
   useEffect(() => {
     // If we wanted to inject the EXACT script from the user prompt:
@@ -31,11 +40,12 @@ export default function MoviesPage() {
             
             <div className="space-y-2">
               <motion.h1 
+                key={`${activeVideo.title}-title`}
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-6xl md:text-9xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/20 select-none"
+                className="text-6xl md:text-9xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/20 select-none uppercase"
               >
-                MADAM
+                {activeVideo.title}
               </motion.h1>
               <motion.div
                 initial={{ opacity: 0 }}
@@ -52,12 +62,13 @@ export default function MoviesPage() {
             </div>
 
             <motion.p 
+              key={`${activeVideo.title}-desc`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
               className="text-muted-foreground text-xl max-w-2xl mx-auto font-medium leading-relaxed italic"
             >
-              Korean Widow Adult Movie
+              {activeVideo.description}
             </motion.p>
           </div>
 
@@ -82,10 +93,11 @@ export default function MoviesPage() {
               
               <div className="w-full h-full">
                 <iframe 
-                  src="https://ok.ru/videoembed/2814491562457"
+                  key={activeVideo.url}
+                  src={activeVideo.url}
                   className="w-full h-full border-0"
                   allowFullScreen
-                  title="Featured Content Player"
+                  title={activeVideo.title}
                 />
               </div>
             </motion.div>
@@ -148,17 +160,27 @@ export default function MoviesPage() {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
               {[
-                { title: "Seduction", genre: "Drama", rating: "9.8", year: "2024" },
-                { title: "Twilight", genre: "Romance", rating: "9.5", year: "2023" },
-                { title: "Midnight", genre: "Thriller", rating: "9.2", year: "2024" },
-                { title: "Elegance", genre: "Fashion", rating: "9.7", year: "2024" },
+                { title: "Unfaithful", genre: "Drama", rating: "9.8", year: "2024", url: "https://ok.ru/videoembed/4617548401253", description: "Unfaithful - Premium Cinema Experience" },
+                { title: "Madam", genre: "Classic", rating: "9.9", year: "2024", url: "https://ok.ru/videoembed/2814491562457", description: "Korean Widow Adult Movie" },
+                { title: "Twilight", genre: "Romance", rating: "9.5", year: "2023", url: "#", description: "A Premium Romance Experience" },
+                { title: "Midnight", genre: "Thriller", rating: "9.2", year: "2024", url: "#", description: "Dark Midnight Thrills" },
               ].map((movie, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.1 * i }}
-                  className="group relative"
+                  className="group relative cursor-pointer"
+                  onClick={() => {
+                    if (movie.url !== "#") {
+                      setActiveVideo({
+                        title: movie.title,
+                        url: movie.url,
+                        description: movie.description
+                      });
+                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }
+                  }}
                 >
                   <div className="relative aspect-[3/4] bg-secondary/20 rounded-xl overflow-hidden border border-white/5 transition-all duration-500 group-hover:border-primary/50 group-hover:translate-y-[-8px]">
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60"></div>
@@ -171,7 +193,7 @@ export default function MoviesPage() {
                     </div>
 
                     <div className="absolute top-3 right-3 px-2 py-1 bg-black/60 backdrop-blur-md rounded text-[10px] font-black text-primary border border-primary/30">
-                      HD 4K
+                      {movie.url === "#" ? "SOON" : "WATCH NOW"}
                     </div>
 
                     <div className="absolute bottom-4 left-4 right-4">
@@ -187,9 +209,9 @@ export default function MoviesPage() {
 
                     {/* Futuristic hover overlay */}
                     <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center backdrop-blur-[2px]">
-                       <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center scale-75 group-hover:scale-100 transition-transform">
+                      <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center scale-75 group-hover:scale-100 transition-transform">
                           <svg className="w-6 h-6 text-white fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                       </div>
+                      </div>
                     </div>
                   </div>
                 </motion.div>
