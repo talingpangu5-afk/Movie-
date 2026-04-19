@@ -4,6 +4,10 @@ import { motion } from 'motion/react'
 import { AdBanner } from '@/components/AdBanner'
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
+import { PaymentModal } from '@/components/PaymentModal'
+import { Lock, Unlock, ShieldCheck } from 'lucide-react'
+import { toast } from 'sonner'
+import { Button } from '@/components/ui/button'
 
 export const dynamic = 'force-dynamic';
 
@@ -16,12 +20,48 @@ const DEFAULT_VIDEO = {
 export default function MoviesPage() {
   const adRef = useRef<HTMLDivElement>(null);
   const [activeVideo, setActiveVideo] = useState(DEFAULT_VIDEO);
+  const [unlockedMovies, setUnlockedMovies] = useState<string[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [selectedMovie, setSelectedMovie] = useState<any>(null);
 
   useEffect(() => {
-    // If we wanted to inject the EXACT script from the user prompt:
-    // But since we have AdBanner, it's safer. 
-    // However, I will follow the user's "structure" as much as possible.
+    // Standard mount-only sync
+    const savedUnlocked = localStorage.getItem('unlockedMovies');
+    if (savedUnlocked) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setUnlockedMovies(prev => {
+        const parsed = JSON.parse(savedUnlocked);
+        return Array.isArray(parsed) ? parsed : prev;
+      });
+    }
+
+    const adminStatus = localStorage.getItem('isAdmin');
+    if (adminStatus === 'true') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setIsAdmin(true);
+    }
   }, []);
+
+  const handleUnlock = (title: string) => {
+    const updated = [...unlockedMovies, title];
+    setUnlockedMovies(updated);
+    localStorage.setItem('unlockedMovies', JSON.stringify(updated));
+    
+    // Auto-play the movie after unlock
+    if (selectedMovie) {
+      setActiveVideo({
+        title: selectedMovie.title,
+        url: selectedMovie.url,
+        description: selectedMovie.description
+      });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
+
+  const isMovieUnlocked = (title: string) => {
+    return isAdmin || unlockedMovies.includes(title);
+  };
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -92,14 +132,43 @@ export default function MoviesPage() {
               {/* Scanline Effect Overlay */}
               <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-10 bg-[length:100%_2px,3px_100%]"></div>
               
-              <div className="w-full h-full">
-                <iframe 
-                  key={activeVideo.url}
-                  src={activeVideo.url}
-                  className="w-full h-full border-0"
-                  allowFullScreen
-                  title={activeVideo.title}
-                />
+              <div className="w-full h-full relative">
+                {isMovieUnlocked(activeVideo.title) || activeVideo.title === DEFAULT_VIDEO.title ? (
+                  <iframe 
+                    key={activeVideo.url}
+                    src={activeVideo.url}
+                    className="w-full h-full border-0"
+                    allowFullScreen
+                    title={activeVideo.title}
+                  />
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center space-y-4 bg-black/40 backdrop-blur-xl">
+                    <div className="p-6 bg-primary/20 rounded-full border border-primary/30 animate-pulse">
+                      <Lock className="w-12 h-12 text-primary" />
+                    </div>
+                    <div className="text-center">
+                      <h3 className="text-xl font-black uppercase tracking-tighter">Content Locked</h3>
+                      <p className="text-white/40 text-sm">Please verify payment to restore primary transmission</p>
+                    </div>
+                    <Button 
+                      onClick={() => {
+                        const movie = [
+                          { title: "Unfaithful", genre: "Drama", rating: "9.8", year: "2024", url: "https://ok.ru/videoembed/4617548401253", description: "Unfaithful - Premium Cinema Experience" },
+                          { title: "Madam", genre: "Classic", rating: "9.9", year: "2024", url: "https://ok.ru/videoembed/2814491562457", description: "Korean Widow Adult Movie" },
+                          { title: "Sin", genre: "Romance", rating: "9.5", year: "2023", url: "https://ok.ru/videoembed/2300466955754", description: "Sin - A Premium Romance Experience" },
+                          { title: "Young Mother 3", genre: "Drama", rating: "9.2", year: "2015", url: "https://ok.ru/videoembed/1002271672931", description: "Young Mother 3 - Premium Family Drama" },
+                        ].find(m => m.title === activeVideo.title);
+                        if (movie) {
+                          setSelectedMovie(movie);
+                          setIsPaymentModalOpen(true);
+                        }
+                      }}
+                      className="bg-primary hover:bg-primary/80"
+                    >
+                      Unlock Now
+                    </Button>
+                  </div>
+                )}
               </div>
             </motion.div>
 
@@ -194,18 +263,40 @@ export default function MoviesPage() {
                   className="group relative cursor-pointer"
                   onClick={() => {
                     if (movie.url !== "#") {
-                      setActiveVideo({
-                        title: movie.title,
-                        url: movie.url,
-                        description: movie.description
-                      });
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
+                      if (isMovieUnlocked(movie.title)) {
+                        setActiveVideo({
+                          title: movie.title,
+                          url: movie.url,
+                          description: movie.description
+                        });
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                      } else {
+                        setSelectedMovie(movie);
+                        setIsPaymentModalOpen(true);
+                        toast.info("Premium content requires verification");
+                      }
                     }
                   }}
                 >
                   <div className="relative aspect-[3/4] bg-secondary/20 rounded-xl overflow-hidden border border-white/5 transition-all duration-500 group-hover:border-primary/50 group-hover:translate-y-[-8px]">
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 z-10"></div>
                     
+                    {/* Admin/Locked Status Indicator */}
+                    <div className="absolute top-3 left-3 z-30 flex gap-2">
+                       {isAdmin && (
+                         <div className="px-2 py-0.5 bg-green-500/20 backdrop-blur-md rounded text-[9px] font-black text-green-500 border border-green-500/30 flex items-center gap-1">
+                           <ShieldCheck className="w-3 h-3" />
+                           MASTER
+                         </div>
+                       )}
+                       {!isMovieUnlocked(movie.title) && movie.url !== "#" && (
+                         <div className="px-2 py-0.5 bg-red-500/20 backdrop-blur-md rounded text-[9px] font-black text-red-500 border border-red-500/30 flex items-center gap-1">
+                           <Lock className="w-3 h-3" />
+                           LOCKED
+                         </div>
+                       )}
+                    </div>
+
                     {/* Movie Poster Thumbnail */}
                     {movie.image ? (
                       <Image
@@ -277,6 +368,13 @@ export default function MoviesPage() {
           </div>
         </div>
       </div>
+
+      <PaymentModal 
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        title={selectedMovie?.title}
+        onVerified={() => handleUnlock(selectedMovie?.title)}
+      />
     </div>
   )
 }
