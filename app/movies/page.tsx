@@ -43,22 +43,11 @@ const DEFAULT_VIDEO = MOVIES_COLLECTION[0];
 export default function MoviesPage() {
   const adRef = useRef<HTMLDivElement>(null);
   const [activeVideo, setActiveVideo] = useState(DEFAULT_VIDEO);
-  const [unlockedMovies, setUnlockedMovies] = useState<string[]>([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<any>(null);
 
   useEffect(() => {
-    // Standard mount-only sync
-    const savedUnlocked = localStorage.getItem('unlockedMovies');
-    if (savedUnlocked) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setUnlockedMovies(prev => {
-        const parsed = JSON.parse(savedUnlocked);
-        return Array.isArray(parsed) ? parsed : prev;
-      });
-    }
-
     const adminStatus = localStorage.getItem('isAdmin');
     if (adminStatus === 'true') {
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -66,22 +55,8 @@ export default function MoviesPage() {
     }
   }, []);
 
-  const handleUnlock = (title: string) => {
-    setUnlockedMovies(prev => {
-      const updated = [...prev, title];
-      localStorage.setItem('unlockedMovies', JSON.stringify(updated));
-      return updated;
-    });
-    
-    // Auto-play the movie after unlock
-    if (selectedMovie) {
-      setActiveVideo(selectedMovie);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  };
-
   const isMovieUnlocked = (title: string) => {
-    return isAdmin || unlockedMovies.includes(title);
+    return isAdmin;
   };
 
   return (
@@ -360,7 +335,6 @@ export default function MoviesPage() {
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
         title={selectedMovie?.title}
-        onVerified={() => handleUnlock(selectedMovie?.title)}
       />
     </div>
   )

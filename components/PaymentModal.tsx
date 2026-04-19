@@ -18,7 +18,7 @@ import { motion, AnimatePresence } from 'motion/react'
 interface PaymentModalProps {
   isOpen: boolean
   onClose: () => void
-  onVerified: () => void
+  onVerified?: () => void
   title?: string
 }
 
@@ -41,12 +41,11 @@ export function PaymentModal({ isOpen, onClose, onVerified, title }: PaymentModa
         setCountdown(prev => prev - 1);
       }, 1000);
     } else if (step === 'verifying' && countdown === 0) {
-      onVerified();
-      toast.success(`Access unlocked: ${title}`);
+      toast.success(`Transaction broadcasted. Manual verification pending for ${title}.`);
       onClose();
     }
     return () => clearInterval(interval);
-  }, [step, countdown, onVerified, onClose, title]);
+  }, [step, countdown, onClose, title]);
 
   const handleVerify = () => {
     setStep('verifying')
