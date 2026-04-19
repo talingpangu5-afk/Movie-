@@ -11,11 +11,34 @@ import { Button } from '@/components/ui/button'
 
 export const dynamic = 'force-dynamic';
 
-const DEFAULT_VIDEO = {
-  title: "MADAM",
-  description: "Korean Widow Adult Movie",
-  url: "https://ok.ru/videoembed/2814491562457"
-};
+const MOVIES_COLLECTION = [
+  { title: "Unfaithful", genre: "Drama", rating: "9.8", year: "2024", url: "https://ok.ru/videoembed/4617548401253", description: "Unfaithful - Premium Cinema Experience", image: "https://picsum.photos/seed/unfaithful-movie/500/750" },
+  { title: "Madam", genre: "Classic", rating: "9.9", year: "2024", url: "https://ok.ru/videoembed/2814491562457", description: "Korean Widow Adult Movie", image: "https://picsum.photos/seed/korean-madam/500/750" },
+  { title: "Sin", genre: "Romance", rating: "9.5", year: "2023", url: "https://ok.ru/videoembed/2300466955754", description: "Sin - A Premium Romance Experience", image: "https://picsum.photos/seed/sin-romance/500/750" },
+  { title: "Young Mother 3", genre: "Drama", rating: "9.2", year: "2015", url: "https://ok.ru/videoembed/1002271672931", description: "Young Mother 3 - Premium Family Drama", image: "https://picsum.photos/seed/young-mother/500/750" },
+  { title: "Fatal Duel", genre: "Action", rating: "9.4", year: "2024", url: "#", description: "Intense Combat Experience" },
+  { title: "Shadow Dance", genre: "Art", rating: "9.1", year: "2023", url: "#", description: "Visual Masterpiece" },
+  { title: "Neon Nights", genre: "Sci-Fi", rating: "9.6", year: "2024", url: "#", description: "Cyberpunk Future" },
+  { title: "Crimson Sky", genre: "Epic", rating: "9.3", year: "2024", url: "#", description: "Skyward Adventure" },
+  { title: "Urban Legend", genre: "Horror", rating: "9.0", year: "2023", url: "#", description: "Nightmare Tales" },
+  { title: "Frozen Heart", genre: "Fantasy", rating: "9.5", year: "2024", url: "#", description: "Winter Magic" },
+  { title: "Desert Storm", genre: "War", rating: "9.2", year: "2024", url: "#", description: "Sands of Valor" },
+  { title: "Silent Echo", genre: "Mystery", rating: "9.4", year: "2023", url: "#", description: "The Unheard Truth" },
+  { title: "Velvet Rope", genre: "Noir", rating: "9.1", year: "2024", url: "#", description: "Beyond the VIP" },
+  { title: "Golden Hour", genre: "Drama", rating: "9.7", year: "2024", url: "#", description: "Sunset Stories" },
+  { title: "Iron Will", genre: "Sport", rating: "9.2", year: "2023", url: "#", description: "Unbreakable Spirit" },
+  { title: "Broken Mirror", genre: "Thriller", rating: "9.5", year: "2024", url: "#", description: "Reflected Fear" },
+  { title: "Hidden Path", genre: "Adventure", rating: "9.3", year: "2024", url: "#", description: "Unknown Trails" },
+  { title: "Dark Waters", genre: "Suspense", rating: "9.4", year: "2023", url: "#", description: "Deep Secrets" },
+  { title: "Emerald City", genre: "Musical", rating: "9.6", year: "2024", url: "#", description: "Vibrant Melodies" },
+  { title: "Sapphire Dreams", genre: "Fantasy", rating: "9.1", year: "2024", url: "#", description: "Crystal Visions" },
+  { title: "Amber Light", genre: "Documentary", rating: "9.2", year: "2023", url: "#", description: "Luminous Reality" },
+  { title: "Silver Lining", genre: "Hope", rating: "9.8", year: "2024", url: "#", description: "Finding the Good" },
+  { title: "Bronze Age", genre: "History", rating: "9.0", year: "2024", url: "#", description: "Ancient Echoes" },
+  { title: "Platinum Soul", genre: "Cyber", rating: "9.7", year: "2024", url: "#", description: "Digital Identity" },
+];
+
+const DEFAULT_VIDEO = MOVIES_COLLECTION[0];
 
 export default function MoviesPage() {
   const adRef = useRef<HTMLDivElement>(null);
@@ -133,7 +156,7 @@ export default function MoviesPage() {
               <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-10 bg-[length:100%_2px,3px_100%]"></div>
               
               <div className="w-full h-full relative">
-                {isMovieUnlocked(activeVideo.title) || activeVideo.title === DEFAULT_VIDEO.title ? (
+                {isMovieUnlocked(activeVideo.title) ? (
                   <iframe 
                     key={activeVideo.url}
                     src={activeVideo.url}
@@ -152,12 +175,7 @@ export default function MoviesPage() {
                     </div>
                     <Button 
                       onClick={() => {
-                        const movie = [
-                          { title: "Unfaithful", genre: "Drama", rating: "9.8", year: "2024", url: "https://ok.ru/videoembed/4617548401253", description: "Unfaithful - Premium Cinema Experience" },
-                          { title: "Madam", genre: "Classic", rating: "9.9", year: "2024", url: "https://ok.ru/videoembed/2814491562457", description: "Korean Widow Adult Movie" },
-                          { title: "Sin", genre: "Romance", rating: "9.5", year: "2023", url: "https://ok.ru/videoembed/2300466955754", description: "Sin - A Premium Romance Experience" },
-                          { title: "Young Mother 3", genre: "Drama", rating: "9.2", year: "2015", url: "https://ok.ru/videoembed/1002271672931", description: "Young Mother 3 - Premium Family Drama" },
-                        ].find(m => m.title === activeVideo.title);
+                        const movie = MOVIES_COLLECTION.find(m => m.title === activeVideo.title);
                         if (movie) {
                           setSelectedMovie(movie);
                           setIsPaymentModalOpen(true);
@@ -229,37 +247,12 @@ export default function MoviesPage() {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {[
-                { title: "Unfaithful", genre: "Drama", rating: "9.8", year: "2024", url: "https://ok.ru/videoembed/4617548401253", description: "Unfaithful - Premium Cinema Experience", image: "https://picsum.photos/seed/unfaithful-movie/500/750" },
-                { title: "Madam", genre: "Classic", rating: "9.9", year: "2024", url: "https://ok.ru/videoembed/2814491562457", description: "Korean Widow Adult Movie", image: "https://picsum.photos/seed/korean-madam/500/750" },
-                { title: "Sin", genre: "Romance", rating: "9.5", year: "2023", url: "https://ok.ru/videoembed/2300466955754", description: "Sin - A Premium Romance Experience", image: "https://picsum.photos/seed/sin-romance/500/750" },
-                { title: "Young Mother 3", genre: "Drama", rating: "9.2", year: "2015", url: "https://ok.ru/videoembed/1002271672931", description: "Young Mother 3 - Premium Family Drama", image: "https://picsum.photos/seed/young-mother/500/750" },
-                { title: "Fatal Duel", genre: "Action", rating: "9.4", year: "2024", url: "#", description: "Intense Combat Experience" },
-                { title: "Shadow Dance", genre: "Art", rating: "9.1", year: "2023", url: "#", description: "Visual Masterpiece" },
-                { title: "Neon Nights", genre: "Sci-Fi", rating: "9.6", year: "2024", url: "#", description: "Cyberpunk Future" },
-                { title: "Crimson Sky", genre: "Epic", rating: "9.3", year: "2024", url: "#", description: "Skyward Adventure" },
-                { title: "Urban Legend", genre: "Horror", rating: "9.0", year: "2023", url: "#", description: "Nightmare Tales" },
-                { title: "Frozen Heart", genre: "Fantasy", rating: "9.5", year: "2024", url: "#", description: "Winter Magic" },
-                { title: "Desert Storm", genre: "War", rating: "9.2", year: "2024", url: "#", description: "Sands of Valor" },
-                { title: "Silent Echo", genre: "Mystery", rating: "9.4", year: "2023", url: "#", description: "The Unheard Truth" },
-                { title: "Velvet Rope", genre: "Noir", rating: "9.1", year: "2024", url: "#", description: "Beyond the VIP" },
-                { title: "Golden Hour", genre: "Drama", rating: "9.7", year: "2024", url: "#", description: "Sunset Stories" },
-                { title: "Iron Will", genre: "Sport", rating: "9.2", year: "2023", url: "#", description: "Unbreakable Spirit" },
-                { title: "Broken Mirror", genre: "Thriller", rating: "9.5", year: "2024", url: "#", description: "Reflected Fear" },
-                { title: "Hidden Path", genre: "Adventure", rating: "9.3", year: "2024", url: "#", description: "Unknown Trails" },
-                { title: "Dark Waters", genre: "Suspense", rating: "9.4", year: "2023", url: "#", description: "Deep Secrets" },
-                { title: "Emerald City", genre: "Musical", rating: "9.6", year: "2024", url: "#", description: "Vibrant Melodies" },
-                { title: "Sapphire Dreams", genre: "Fantasy", rating: "9.1", year: "2024", url: "#", description: "Crystal Visions" },
-                { title: "Amber Light", genre: "Documentary", rating: "9.2", year: "2023", url: "#", description: "Luminous Reality" },
-                { title: "Silver Lining", genre: "Hope", rating: "9.8", year: "2024", url: "#", description: "Finding the Good" },
-                { title: "Bronze Age", genre: "History", rating: "9.0", year: "2024", url: "#", description: "Ancient Echoes" },
-                { title: "Platinum Soul", genre: "Cyber", rating: "9.7", year: "2024", url: "#", description: "Digital Identity" },
-              ].map((movie, i) => (
+              {MOVIES_COLLECTION.map((movie, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 * i }}
+                  transition={{ delay: 0.1 * (i % 8) }}
                   className="group relative cursor-pointer"
                   onClick={() => {
                     if (movie.url !== "#") {
@@ -267,7 +260,7 @@ export default function MoviesPage() {
                         setActiveVideo({
                           title: movie.title,
                           url: movie.url,
-                          description: movie.description
+                          description: (movie as any).description || ""
                         });
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       } else {
