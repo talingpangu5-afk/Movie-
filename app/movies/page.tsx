@@ -162,8 +162,8 @@ export default function MoviesPage() {
               {[
                 { title: "Unfaithful", genre: "Drama", rating: "9.8", year: "2024", url: "https://ok.ru/videoembed/4617548401253", description: "Unfaithful - Premium Cinema Experience" },
                 { title: "Madam", genre: "Classic", rating: "9.9", year: "2024", url: "https://ok.ru/videoembed/2814491562457", description: "Korean Widow Adult Movie" },
-                { title: "Twilight", genre: "Romance", rating: "9.5", year: "2023", url: "#", description: "A Premium Romance Experience" },
-                { title: "Midnight", genre: "Thriller", rating: "9.2", year: "2024", url: "#", description: "Dark Midnight Thrills" },
+                { title: "Sin", genre: "Romance", rating: "9.5", year: "2023", url: "https://ok.ru/videoembed/2300466955754", description: "Sin - A Premium Romance Experience" },
+                { title: "Young Mother 3", genre: "Drama", rating: "9.2", year: "2015", url: "https://ok.ru/videoembed/1002271672931", description: "Young Mother 3 - Premium Family Drama" },
               ].map((movie, i) => (
                 <motion.div
                   key={i}
