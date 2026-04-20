@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'motion/react';
 import { Loader2, Film, ChevronRight, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -35,7 +36,6 @@ export function EntertainmentDropdown() {
     setLoading(true);
     setError(null);
     try {
-      // User requested Money Heist search specifically
       const response = await fetch('https://api.tvmaze.com/search/shows?q=money%20heist', {
         cache: 'no-store'
       });
@@ -57,25 +57,26 @@ export function EntertainmentDropdown() {
   return (
     <div 
       className="relative"
+      onMouseEnter={() => setIsOpen(true)}
       onMouseLeave={() => setIsOpen(false)}
     >
       <button
-        onMouseEnter={() => setIsOpen(true)}
-        className={`nav-link-hover transition-all duration-300 hover:text-primary relative uppercase tracking-widest text-sm font-bold flex items-center gap-1 ${
-          isOpen ? 'text-primary' : 'text-white/70'
+        onClick={() => setIsOpen(!isOpen)}
+        className={`nav-link-hover flex items-center gap-2 group transition-all duration-300 ${
+          isOpen ? 'text-primary h-full' : 'text-white/70 hover:text-white'
         }`}
       >
-        Entertainment
-        <div className={`w-1.5 h-1.5 rounded-full bg-primary glow-pulse ml-1 ${isOpen ? 'opacity-100' : 'opacity-40'}`} />
+        <span className="text-[12px] font-black uppercase tracking-[0.2em]">Entertainment</span>
+        <div className={`w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_#e50914] transition-all duration-300 ${isOpen ? 'scale-125 opacity-100' : 'scale-75 opacity-40 group-hover:opacity-80'}`} />
       </button>
 
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            initial={{ opacity: 0, y: 20, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
-            className="absolute top-full left-0 mt-4 w-[90vw] md:w-[600px] lg:w-[800px] bg-[#0c0c0c]/95 backdrop-blur-2xl border border-white/10 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.8)] overflow-hidden z-[100]"
+            exit={{ opacity: 0, y: 10, scale: 0.98 }}
+            className="fixed lg:absolute top-[64px] lg:top-full left-1/2 lg:left-0 -translate-x-1/2 lg:translate-x-0 mt-2 w-[95vw] lg:w-[750px] bg-[#0c0c0c]/98 backdrop-blur-3xl border border-white/10 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.9)] overflow-hidden z-[200] max-h-[80vh] flex flex-col"
           >
               <div className="p-6">
                 <div className="flex items-center justify-between mb-8">
@@ -116,35 +117,38 @@ export function EntertainmentDropdown() {
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
                     {shows.map(({ show }) => (
-                      <motion.a
+                      <Link
                         key={show.id}
-                        href={show.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        whileHover={{ scale: 1.02 }}
+                        href={`/entertainment/show/${show.id}`}
+                        onClick={() => setIsOpen(false)}
                         className="group flex gap-4 p-3 bg-white/5 border border-white/5 rounded-xl hover:bg-white/10 hover:border-primary/30 transition-all duration-300"
                       >
-                        <div className="relative w-24 h-32 shrink-0 rounded-lg overflow-hidden border border-white/5">
-                          <Image
-                            src={show.image?.medium || 'https://picsum.photos/seed/show/300/400'}
-                            alt={show.name}
-                            fill
-                            className="object-cover"
-                            referrerPolicy="no-referrer"
-                          />
-                        </div>
-                        <div className="flex flex-col justify-center space-y-2">
-                          <h4 className="font-black tracking-tight text-white group-hover:text-primary transition-colors leading-tight uppercase">
-                            {show.name}
-                          </h4>
-                          <p className="text-[11px] text-white/50 line-clamp-3 leading-relaxed">
-                            {stripHtml(show.summary)}
-                          </p>
-                          <div className="flex items-center text-[10px] font-bold text-primary italic uppercase tracking-widest gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                            View details <ChevronRight className="w-3 h-3" />
+                        <motion.div 
+                          whileHover={{ scale: 1.02 }}
+                          className="flex gap-4 w-full"
+                        >
+                          <div className="relative w-24 h-32 shrink-0 rounded-lg overflow-hidden border border-white/5">
+                            <Image
+                              src={show.image?.medium || 'https://picsum.photos/seed/show/300/400'}
+                              alt={show.name}
+                              fill
+                              className="object-cover"
+                              referrerPolicy="no-referrer"
+                            />
                           </div>
-                        </div>
-                      </motion.a>
+                          <div className="flex flex-col justify-center space-y-2 flex-grow">
+                            <h4 className="font-black tracking-tight text-white group-hover:text-primary transition-colors leading-tight uppercase">
+                              {show.name}
+                            </h4>
+                            <p className="text-[11px] text-white/50 line-clamp-3 leading-relaxed">
+                              {stripHtml(show.summary)}
+                            </p>
+                            <div className="flex items-center text-[10px] font-bold text-primary italic uppercase tracking-widest gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
+                              Internal Stream <ChevronRight className="w-3 h-3" />
+                            </div>
+                          </div>
+                        </motion.div>
+                      </Link>
                     ))}
                   </div>
                 )}

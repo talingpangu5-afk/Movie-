@@ -128,6 +128,11 @@ export function Navbar() {
                 </div>
                 
                 <div className="flex flex-col gap-6">
+                  {/* Priority Menu */}
+                  <div className="pb-4 border-b border-white/5">
+                    <EntertainmentDropdown />
+                  </div>
+
                   {navLinks.map((link) => (
                     <Link 
                       key={link.name}
@@ -140,11 +145,6 @@ export function Navbar() {
                     </Link>
                   ))}
                   
-                  {/* Entertainment section for mobile as well or just the toggle */}
-                  <div className="pt-2 border-t border-white/5">
-                    <EntertainmentDropdown />
-                  </div>
-
                   <Link href="/about" className="text-lg font-bold uppercase tracking-widest text-white/70 hover:text-white">About</Link>
                 </div>
 
