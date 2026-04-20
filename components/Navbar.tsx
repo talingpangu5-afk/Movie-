@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { motion, AnimatePresence } from 'motion/react';
+import { EntertainmentDropdown } from '@/components/EntertainmentDropdown';
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -84,6 +85,8 @@ export function Navbar() {
                 )}
               </Link>
             ))}
+            
+            <EntertainmentDropdown />
           </div>
         </div>
 
@@ -136,6 +139,12 @@ export function Navbar() {
                       {link.name}
                     </Link>
                   ))}
+                  
+                  {/* Entertainment section for mobile as well or just the toggle */}
+                  <div className="pt-2 border-t border-white/5">
+                    <EntertainmentDropdown />
+                  </div>
+
                   <Link href="/about" className="text-lg font-bold uppercase tracking-widest text-white/70 hover:text-white">About</Link>
                 </div>
 
