@@ -11,46 +11,66 @@ import { Button } from '@/components/ui/button'
 
 export const dynamic = 'force-dynamic';
 
-const MOVIES_COLLECTION = [
-  { title: "Unfaithful", genre: "Drama", rating: "9.8", year: "2024", url: "https://ok.ru/videoembed/4617548401253", description: "Unfaithful - Premium Cinema Experience", image: "https://picsum.photos/seed/unfaithful-movie/500/750" },
-  { title: "Madam", genre: "Classic", rating: "9.9", year: "2024", url: "https://ok.ru/videoembed/2814491562457", description: "Korean Widow Adult Movie", image: "https://picsum.photos/seed/korean-madam/500/750" },
-  { title: "Sin", genre: "Romance", rating: "9.5", year: "2023", url: "https://ok.ru/videoembed/2300466955754", description: "Sin - A Premium Romance Experience", image: "https://picsum.photos/seed/sin-romance/500/750" },
-  { title: "Young Mother 3", genre: "Drama", rating: "9.2", year: "2015", url: "https://ok.ru/videoembed/1002271672931", description: "Young Mother 3 - Premium Family Drama", image: "https://picsum.photos/seed/young-mother/500/750" },
-  { title: "Fatal Duel", genre: "Action", rating: "9.4", year: "2024", url: "#", description: "Intense Combat Experience" },
-  { title: "Shadow Dance", genre: "Art", rating: "9.1", year: "2023", url: "#", description: "Visual Masterpiece" },
-  { title: "Neon Nights", genre: "Sci-Fi", rating: "9.6", year: "2024", url: "#", description: "Cyberpunk Future" },
-  { title: "Crimson Sky", genre: "Epic", rating: "9.3", year: "2024", url: "#", description: "Skyward Adventure" },
-  { title: "Urban Legend", genre: "Horror", rating: "9.0", year: "2023", url: "#", description: "Nightmare Tales" },
-  { title: "Frozen Heart", genre: "Fantasy", rating: "9.5", year: "2024", url: "#", description: "Winter Magic" },
-  { title: "Desert Storm", genre: "War", rating: "9.2", year: "2024", url: "#", description: "Sands of Valor" },
-  { title: "Silent Echo", genre: "Mystery", rating: "9.4", year: "2023", url: "#", description: "The Unheard Truth" },
-  { title: "Velvet Rope", genre: "Noir", rating: "9.1", year: "2024", url: "#", description: "Beyond the VIP" },
-  { title: "Golden Hour", genre: "Drama", rating: "9.7", year: "2024", url: "#", description: "Sunset Stories" },
-  { title: "Iron Will", genre: "Sport", rating: "9.2", year: "2023", url: "#", description: "Unbreakable Spirit" },
-  { title: "Broken Mirror", genre: "Thriller", rating: "9.5", year: "2024", url: "#", description: "Reflected Fear" },
-  { title: "Hidden Path", genre: "Adventure", rating: "9.3", year: "2024", url: "#", description: "Unknown Trails" },
-  { title: "Dark Waters", genre: "Suspense", rating: "9.4", year: "2023", url: "#", description: "Deep Secrets" },
-  { title: "Emerald City", genre: "Musical", rating: "9.6", year: "2024", url: "#", description: "Vibrant Melodies" },
-  { title: "Sapphire Dreams", genre: "Fantasy", rating: "9.1", year: "2024", url: "#", description: "Crystal Visions" },
-  { title: "Amber Light", genre: "Documentary", rating: "9.2", year: "2023", url: "#", description: "Luminous Reality" },
-  { title: "Silver Lining", genre: "Hope", rating: "9.8", year: "2024", url: "#", description: "Finding the Good" },
-  { title: "Bronze Age", genre: "History", rating: "9.0", year: "2024", url: "#", description: "Ancient Echoes" },
-  { title: "Platinum Soul", genre: "Cyber", rating: "9.7", year: "2024", url: "#", description: "Digital Identity" },
-];
-
-const DEFAULT_VIDEO = MOVIES_COLLECTION[0];
+const TMDB_BASE_URL = 'https://api.themoviedb.org/3';
+const IMAGE_BASE_URL = 'https://image.tmdb.org/t/p/w500';
 
 export default function MoviesPage() {
   const adRef = useRef<HTMLDivElement>(null);
-  const [activeVideo, setActiveVideo] = useState(DEFAULT_VIDEO);
+  const [movies, setMovies] = useState<any[]>([]);
+  const [activeVideo, setActiveVideo] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch movies from TMDB
+  const fetchMovies = async () => {
+    setIsLoading(true);
+    try {
+      const apiKey = process.env.NEXT_PUBLIC_TMDB_API_KEY;
+      if (!apiKey) throw new Error('TMDB API Key missing');
+
+      // Fetch trending movies + popular to get a good list
+      const response = await fetch(
+        `${TMDB_BASE_URL}/trending/movie/week?api_key=${apiKey}&language=en-US`,
+        { cache: 'no-store' } // Force fresh data
+      );
+
+      if (!response.ok) throw new Error('API response error');
+
+      const data = await response.json();
+      
+      const mappedMovies = data.results.map((m: any) => ({
+        title: m.title,
+        genre: m.genre_ids?.[0] ? 'Action' : 'Drama', // We could map genre IDs if needed
+        rating: m.vote_average?.toFixed(1) || '8.0',
+        year: m.release_date?.split('-')[0] || '2024',
+        url: '#', // TMDB doesn't provide free stream links, using placeholder
+        description: m.overview || 'Exclusive Premiere Experience',
+        image: m.poster_path ? `${IMAGE_BASE_URL}${m.poster_path}` : `https://picsum.photos/seed/${m.id}/500/750`
+      }));
+
+      setMovies(mappedMovies);
+      if (mappedMovies.length > 0) {
+        setActiveVideo(mappedMovies[0]);
+      }
+    } catch (error) {
+      console.error('TMDB Fetch Error:', error);
+      toast.error('Failed to fetch latest movies. Showing local backup.');
+      // Fallback to minimal fixed list if API fails
+      setMovies([
+        { title: "Unfaithful", genre: "Drama", rating: "9.8", year: "2024", url: "https://ok.ru/videoembed/4617548401253", description: "Unfaithful - Premium Cinema Experience", image: "https://picsum.photos/seed/unfaithful-movie/500/750" },
+        { title: "Madam", genre: "Classic", rating: "9.9", year: "2024", url: "https://ok.ru/videoembed/2814491562457", description: "Korean Widow Adult Movie", image: "https://picsum.photos/seed/korean-madam/500/750" },
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
+    fetchMovies();
     const adminStatus = localStorage.getItem('isAdmin');
     if (adminStatus === 'true') {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsAdmin(true);
     }
   }, []);
@@ -77,12 +97,12 @@ export default function MoviesPage() {
             
             <div className="space-y-2">
               <motion.h1 
-                key={`${activeVideo.title}-title`}
+                key={`${activeVideo?.title || 'loading'}-title`}
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="text-6xl md:text-9xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/20 select-none uppercase"
               >
-                {activeVideo.title}
+                {activeVideo?.title || "Symmetra"}
               </motion.h1>
               <motion.div
                 initial={{ opacity: 0 }}
@@ -99,13 +119,13 @@ export default function MoviesPage() {
             </div>
 
             <motion.p 
-              key={`${activeVideo.title}-desc`}
+              key={`${activeVideo?.title || 'loading'}-desc`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
               className="text-muted-foreground text-xl max-w-2xl mx-auto font-medium leading-relaxed italic"
             >
-              {activeVideo.description}
+              {activeVideo?.description || "Initializing high-fidelity movie network..."}
             </motion.p>
           </div>
 
@@ -129,35 +149,39 @@ export default function MoviesPage() {
               <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-10 bg-[length:100%_2px,3px_100%]"></div>
               
               <div className="w-full h-full relative">
-                {isMovieUnlocked(activeVideo.title) ? (
-                  <iframe 
-                    key={activeVideo.url}
-                    src={activeVideo.url}
-                    className="w-full h-full border-0"
-                    allowFullScreen
-                    title={activeVideo.title}
-                  />
-                ) : (
-                  <div className="w-full h-full flex flex-col items-center justify-center space-y-4 bg-black/40 backdrop-blur-xl">
-                    <div className="p-6 bg-primary/20 rounded-full border border-primary/30 animate-pulse">
-                      <Lock className="w-12 h-12 text-primary" />
-                    </div>
-                    <div className="text-center">
-                      <h3 className="text-xl font-black uppercase tracking-tighter">Content Locked</h3>
-                      <p className="text-white/40 text-sm">Please verify payment to restore primary transmission</p>
-                    </div>
-                    <Button 
-                      onClick={() => {
-                        const movie = MOVIES_COLLECTION.find(m => m.title === activeVideo.title);
-                        if (movie) {
-                          setSelectedMovie(movie);
+                {activeVideo ? (
+                  isMovieUnlocked(activeVideo.title) ? (
+                    <iframe 
+                      key={activeVideo.url}
+                      src={activeVideo.url === '#' ? 'https://www.youtube.com/embed/dQw4w9WgXcQ' : activeVideo.url}
+                      className="w-full h-full border-0"
+                      allowFullScreen
+                      title={activeVideo.title}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center space-y-4 bg-black/40 backdrop-blur-xl">
+                      <div className="p-6 bg-primary/20 rounded-full border border-primary/30 animate-pulse">
+                        <Lock className="w-12 h-12 text-primary" />
+                      </div>
+                      <div className="text-center px-4">
+                        <h3 className="text-xl font-black uppercase tracking-tighter">Content Locked</h3>
+                        <p className="text-white/40 text-sm">Please verify payment to restore primary transmission</p>
+                      </div>
+                      <Button 
+                        onClick={() => {
+                          setSelectedMovie(activeVideo);
                           setIsPaymentModalOpen(true);
-                        }
-                      }}
-                      className="bg-primary hover:bg-primary/80"
-                    >
-                      Unlock Now
-                    </Button>
+                        }}
+                        className="bg-primary hover:bg-primary/80"
+                      >
+                        Unlock Now
+                      </Button>
+                    </div>
+                  )
+                ) : (
+                  <div className="w-full h-full flex flex-col items-center justify-center space-y-4 bg-black/60">
+                    <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                    <span className="text-[10px] font-bold tracking-[0.3em] uppercase text-white/40">Loading Transmission</span>
                   </div>
                 )}
               </div>
@@ -220,26 +244,31 @@ export default function MoviesPage() {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {MOVIES_COLLECTION.map((movie, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 * (i % 8) }}
-                  className="group relative cursor-pointer"
-                  onClick={() => {
-                    if (movie.url !== "#") {
+              {isLoading ? (
+                Array.from({ length: 8 }).map((_, i) => (
+                  <div key={i} className="aspect-[3/4] bg-white/5 rounded-xl animate-pulse flex items-center justify-center">
+                     <span className="text-[8px] font-bold uppercase tracking-widest text-white/10 italic">Secure Node Syncing...</span>
+                  </div>
+                ))
+              ) : (
+                movies.map((movie, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 * (i % 8) }}
+                    className="group relative cursor-pointer"
+                    onClick={() => {
                       if (isMovieUnlocked(movie.title)) {
-                        setActiveVideo(movie as any);
+                        setActiveVideo(movie);
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                       } else {
                         setSelectedMovie(movie);
                         setIsPaymentModalOpen(true);
                         toast.info("Premium content requires verification");
                       }
-                    }
-                  }}
-                >
+                    }}
+                  >
                   <div className="relative aspect-[3/4] bg-secondary/20 rounded-xl overflow-hidden border border-white/5 transition-all duration-500 group-hover:border-primary/50 group-hover:translate-y-[-8px]">
                     <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 z-10"></div>
                     
@@ -299,7 +328,8 @@ export default function MoviesPage() {
                     </div>
                   </div>
                 </motion.div>
-              ))}
+                ))
+              )}
             </div>
           </div>
           
