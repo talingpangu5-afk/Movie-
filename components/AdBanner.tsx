@@ -53,12 +53,12 @@ export function AdBanner({ className = '', width = '728', height = '90' }: AdBan
             atOptions = {
               'key' : '1026be2f67d070ed95d941d9840c7084',
               'format' : 'iframe',
-              'height' : ${height},
-              'width' : ${width},
+              'height' : Number(${height}),
+              'width' : Number(${width}),
               'params' : {}
             };
           </script>
-          <script type="text/javascript" src="//www.highperformanceformat.com/1026be2f67d070ed95d941d9840c7084/invoke.js"></script>
+          <script type="text/javascript" src="https://www.highperformanceformat.com/1026be2f67d070ed95d941d9840c7084/invoke.js"></script>
         </body>
       </html>
     `;

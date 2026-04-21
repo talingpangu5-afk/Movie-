@@ -2,6 +2,8 @@
 
 import { motion } from 'motion/react'
 import { AdBanner } from '@/components/AdBanner'
+import { AdManager } from '@/components/AdManager'
+import { AutoRefresh } from '@/components/AutoRefresh'
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { PaymentModal } from '@/components/PaymentModal'
@@ -222,7 +224,13 @@ export default function WebSeriesPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
+      <AutoRefresh />
+      <AdManager />
       <div className="container mx-auto px-4 py-12 flex-grow">
+        {/* Top Page Ad */}
+        <div className="w-full mb-8 flex justify-center">
+          <AdBanner />
+        </div>
         <div className="max-w-6xl mx-auto space-y-12">
           {/* Header */}
           <div className="text-center space-y-6">
@@ -309,6 +317,11 @@ export default function WebSeriesPage() {
 
           {/* Ad Banner */}
           <div className="w-full mt-4 flex flex-col items-center">
+            <AdBanner />
+          </div>
+
+          {/* Player Ad */}
+          <div className="w-full mt-8 flex flex-col items-center">
             <AdBanner />
           </div>
 
