@@ -17,8 +17,6 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 
-import { AdBanner } from './AdBanner';
-
 const categories = [
   { name: 'Movies', icon: Film, href: '/movies' },
   { name: 'Albums', icon: Music, href: '/albums' },
@@ -182,11 +180,6 @@ export function TouchSidebar() {
                       </div>
                       <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-primary group-hover:translate-x-1 transition-all" />
                     </Link>
-                    {cat.name === 'Web Series' && (
-                      <div className="my-4 px-2">
-                        <AdBanner width="250" height="250" className="mt-0 mb-0" />
-                      </div>
-                    )}
                   </motion.div>
                 ))}
               </div>
