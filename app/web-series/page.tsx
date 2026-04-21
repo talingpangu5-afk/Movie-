@@ -13,7 +13,28 @@ import { tmdb } from '@/lib/tmdb'
 
 export const dynamic = 'force-dynamic';
 
-const SERIES_COLLECTION = [];
+const SERIES_COLLECTION = [
+  { 
+    id: "premium-series-1", 
+    title: "The Silent Vault", 
+    genre: "Thriller", 
+    rating: "9.8", 
+    year: "2024", 
+    url: "https://ok.ru/videoembed/4617548401253", 
+    description: "A premium thriller series exclusive to our high-tier subscribers.",
+    image: "https://picsum.photos/seed/vault/500/750" 
+  },
+  { 
+    id: "premium-series-2", 
+    title: "Shadow Protocol", 
+    genre: "Action", 
+    rating: "9.5", 
+    year: "2024", 
+    url: "https://ok.ru/videoembed/2814491562457", 
+    description: "Dive into a world of espionage and high-stakes action.",
+    image: "https://picsum.photos/seed/protocol/500/750" 
+  }
+];
 
 function MovieCard({ movie, i, isAdmin, isMovieUnlocked, setActiveVideo, setSelectedMovie, setIsPaymentModalOpen }: any) {
   const [imgSrc, setImgSrc] = useState(movie.poster_path ? tmdb.getImageUrl(movie.poster_path, 'w500') : movie.image);
@@ -27,15 +48,17 @@ function MovieCard({ movie, i, isAdmin, isMovieUnlocked, setActiveVideo, setSele
       transition={{ delay: 0.1 * (i % 8) }}
       className="group relative cursor-pointer"
       onClick={() => {
-        if (movie.url !== "#") {
-          if (isMovieUnlocked(movie.title)) {
+        if (isMovieUnlocked(movie.title)) {
+          if (movie.url !== "#") {
             setActiveVideo(movie as any);
             window.scrollTo({ top: 0, behavior: 'smooth' });
           } else {
-            setSelectedMovie(movie);
-            setIsPaymentModalOpen(true);
-            toast.info("Premium content requires verification");
+            toast.info("Source synchronization in progress. Content available soon.");
           }
+        } else {
+          setSelectedMovie(movie);
+          setIsPaymentModalOpen(true);
+          toast.info("Premium content requires verification");
         }
       }}
     >
@@ -56,7 +79,7 @@ function MovieCard({ movie, i, isAdmin, isMovieUnlocked, setActiveVideo, setSele
                MASTER
              </div>
            )}
-           {!isMovieUnlocked(movie.title) && movie.url !== "#" && (
+           {!isMovieUnlocked(movie.title) && (
              <div className="px-2 py-0.5 bg-red-500/20 backdrop-blur-md rounded text-[9px] font-black text-red-500 border border-red-500/30 flex items-center gap-1">
                <Lock className="w-3 h-3" />
                LOCKED
@@ -109,6 +132,7 @@ function MovieCard({ movie, i, isAdmin, isMovieUnlocked, setActiveVideo, setSele
 
 export default function WebSeriesPage() {
   const [activeVideo, setActiveVideo] = useState<any>(null);
+  const [isPremium, setIsPremium] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<any>(null);
@@ -150,7 +174,7 @@ export default function WebSeriesPage() {
       });
       
       if (pageToFetch === 1) {
-        setActiveVideo(SERIES_COLLECTION[0]);
+        setActiveVideo(SERIES_COLLECTION[0] || formatted[0]);
       }
       
       setHasMore(formatted.length > 0);
@@ -163,11 +187,17 @@ export default function WebSeriesPage() {
 
   useEffect(() => {
     const adminStatus = localStorage.getItem('isAdmin');
-    if (adminStatus === 'true') {
-      setIsAdmin(true);
-    }
+    const premiumStatus = localStorage.getItem('isPremium');
+    if (adminStatus === 'true') setIsAdmin(true);
+    if (premiumStatus === 'true') setIsPremium(true);
     fetchSeries(1);
   }, []);
+
+  const handleVerified = () => {
+    localStorage.setItem('isPremium', 'true');
+    setIsPremium(true);
+    toast.success("Verification successful! Premium access granted.");
+  };
 
   const loadMore = () => {
     const nextPage = page + 1;
@@ -176,7 +206,7 @@ export default function WebSeriesPage() {
   };
 
   const isMovieUnlocked = (title: string) => {
-    return isAdmin;
+    return isAdmin || isPremium;
   };
 
   if (!activeVideo && isLoading) {
@@ -325,6 +355,7 @@ export default function WebSeriesPage() {
       <PaymentModal 
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
+        onVerified={handleVerified}
         title={selectedMovie?.title}
       />
     </div>
