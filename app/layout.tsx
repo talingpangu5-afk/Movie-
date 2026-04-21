@@ -6,6 +6,7 @@ import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { Toaster } from '@/components/ui/sonner';
 import { TouchSidebar } from '@/components/TouchSidebar';
+import { AdultTrigger } from '@/components/AdultTrigger';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -36,6 +37,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
         </main>
         <Footer />
         <TouchSidebar />
+        <AdultTrigger />
         <Toaster position="top-center" />
       </body>
     </html>
