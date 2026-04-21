@@ -59,8 +59,14 @@ function MovieCard({ movie, i, isAdmin, isMovieUnlocked, setActiveVideo, setSele
       className="group relative cursor-pointer"
       onClick={() => {
         if (movie.url !== "#") {
-          setActiveVideo(movie as any);
-          window.scrollTo({ top: 0, behavior: 'smooth' });
+          if (isMovieUnlocked(movie.title)) {
+            setActiveVideo(movie as any);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else {
+            setSelectedMovie(movie);
+            setIsPaymentModalOpen(true);
+            toast.info("Premium content requires verification");
+          }
         }
       }}
     >
@@ -79,6 +85,12 @@ function MovieCard({ movie, i, isAdmin, isMovieUnlocked, setActiveVideo, setSele
              <div className="px-2 py-0.5 bg-green-500/20 backdrop-blur-md rounded text-[9px] font-black text-green-500 border border-green-500/30 flex items-center gap-1">
                <ShieldCheck className="w-3 h-3" />
                MASTER
+             </div>
+           )}
+           {!isMovieUnlocked(movie.title) && movie.url !== "#" && (
+             <div className="px-2 py-0.5 bg-red-500/20 backdrop-blur-md rounded text-[9px] font-black text-red-500 border border-red-500/30 flex items-center gap-1">
+               <Lock className="w-3 h-3" />
+               LOCKED
              </div>
            )}
         </div>
@@ -195,7 +207,7 @@ export default function WebSeriesPage() {
   };
 
   const isMovieUnlocked = (title: string) => {
-    return true; // Web series are unlocked for everyone
+    return isAdmin;
   };
 
   if (!activeVideo && isLoading) {
@@ -262,7 +274,7 @@ export default function WebSeriesPage() {
               className="relative aspect-video bg-[#050505] rounded-lg overflow-hidden border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.8)]"
             >
               <div className="w-full h-full relative">
-                {activeVideo ? (
+                {activeVideo && isMovieUnlocked(activeVideo.title) ? (
                   <iframe 
                     key={activeVideo.url}
                     src={activeVideo.url}
@@ -273,8 +285,23 @@ export default function WebSeriesPage() {
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center space-y-4 bg-black/40 backdrop-blur-xl">
                     <div className="p-6 bg-primary/20 rounded-full border border-primary/30 animate-pulse">
-                      <Play className="w-12 h-12 text-primary" />
+                      <Lock className="w-12 h-12 text-primary" />
                     </div>
+                    <div className="text-center">
+                      <h3 className="text-xl font-black uppercase tracking-tighter">Content Locked</h3>
+                      <p className="text-white/40 text-sm">Please verify payment to restore primary transmission</p>
+                    </div>
+                    <Button 
+                      onClick={() => {
+                        if (activeVideo) {
+                          setSelectedMovie(activeVideo);
+                          setIsPaymentModalOpen(true);
+                        }
+                      }}
+                      className="bg-primary hover:bg-primary/80"
+                    >
+                      Unlock Now
+                    </Button>
                   </div>
                 )}
               </div>
