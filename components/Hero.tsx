@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { MovieDetails, tmdb } from '@/lib/tmdb';
 import { TrailerModal } from './TrailerModal';
 import { JellyfishLights } from './JellyfishLights';
+import { HackerTyping } from './HackerTyping';
 
 interface HeroProps {
   movies: MovieDetails[];
@@ -158,6 +159,7 @@ export function Hero({ movies }: HeroProps) {
       className="relative h-[90vh] w-full overflow-hidden bg-black"
     >
       <JellyfishLights />
+      <HackerTyping />
       {/* Fallback / Loading Poster */}
       <AnimatePresence mode="wait">
         <motion.div 
