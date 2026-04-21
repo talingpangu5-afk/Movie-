@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Button } from '@/components/ui/button';
 import { MovieDetails, tmdb } from '@/lib/tmdb';
 import { TrailerModal } from './TrailerModal';
+import { JellyfishLights } from './JellyfishLights';
 
 interface HeroProps {
   movies: MovieDetails[];
@@ -156,6 +157,7 @@ export function Hero({ movies }: HeroProps) {
       ref={containerRef}
       className="relative h-[90vh] w-full overflow-hidden bg-black"
     >
+      <JellyfishLights />
       {/* Fallback / Loading Poster */}
       <AnimatePresence mode="wait">
         <motion.div 
