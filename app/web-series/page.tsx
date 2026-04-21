@@ -13,38 +13,7 @@ import { tmdb } from '@/lib/tmdb'
 
 export const dynamic = 'force-dynamic';
 
-const SERIES_COLLECTION = [
-  { 
-    id: "lallu-ki-mami-ep2", 
-    title: "Lallu Ki Mami Episode 2", 
-    genre: "Web Series", 
-    rating: "9.9", 
-    year: "2024", 
-    url: "https://ok.ru/videoembed/4617548401253", 
-    description: "Watch Lallu Ki Mami Episode 2. A high-stakes drama series exploring complex family dynamics and hidden secrets.",
-    image: "https://picsum.photos/seed/lallu-ki-mami-2/500/750" 
-  },
-  { 
-    id: "lallu-ki-mami-ep1", 
-    title: "Lallu Ki Mami Episode 1", 
-    genre: "Web Series", 
-    rating: "9.7", 
-    year: "2024", 
-    url: "https://ok.ru/videoembed/2814491562457", 
-    description: "Watch Lallu Ki Mami Episode 1. The beginning of a scandalous journey.",
-    image: "https://picsum.photos/seed/lallu-ki-mami-1/500/750" 
-  },
-  { 
-    id: "lallu-ki-mami-ep3", 
-    title: "Lallu Ki Mami Episode 3", 
-    genre: "Web Series", 
-    rating: "9.8", 
-    year: "2024", 
-    url: "#", 
-    description: "Watch Lallu Ki Mami Episode 3. Coming Soon to Premium Hub.",
-    image: "https://picsum.photos/seed/lallu-ki-mami-3/500/750" 
-  },
-];
+const SERIES_COLLECTION = [];
 
 function MovieCard({ movie, i, isAdmin, isMovieUnlocked, setActiveVideo, setSelectedMovie, setIsPaymentModalOpen }: any) {
   const [imgSrc, setImgSrc] = useState(movie.poster_path ? tmdb.getImageUrl(movie.poster_path, 'w500') : movie.image);
