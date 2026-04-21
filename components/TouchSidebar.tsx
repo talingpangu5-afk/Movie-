@@ -25,6 +25,7 @@ const categories = [
   { name: 'Comedy', icon: Laugh, href: '/comedy' },
   { name: 'Serials', icon: Tv, href: '/serials' },
   { name: 'Web Series', icon: MonitorPlay, href: '/web-series' },
+  { name: 'Lallu Ki Mami', icon: MonitorPlay, href: '/web-series' },
   { name: 'Trending', icon: TrendingUp, href: '/trending' },
   { name: 'Popular', icon: Star, href: '/popular' },
 ];

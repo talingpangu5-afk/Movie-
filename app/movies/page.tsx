@@ -5,59 +5,227 @@ import { AdBanner } from '@/components/AdBanner'
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { PaymentModal } from '@/components/PaymentModal'
-import { Lock, Unlock, ShieldCheck } from 'lucide-react'
+import { Lock, Unlock, ShieldCheck, Play } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
+import { tmdb } from '@/lib/tmdb'
 
 export const dynamic = 'force-dynamic';
 
 const MOVIES_COLLECTION = [
-  { title: "Unfaithful", genre: "Drama", rating: "9.8", year: "2024", url: "https://ok.ru/videoembed/4617548401253", description: "Unfaithful - Premium Cinema Experience", image: "https://picsum.photos/seed/unfaithful-movie/500/750" },
-  { title: "Madam", genre: "Classic", rating: "9.9", year: "2024", url: "https://ok.ru/videoembed/2814491562457", description: "Korean Widow Adult Movie", image: "https://picsum.photos/seed/korean-madam/500/750" },
-  { title: "Sin", genre: "Romance", rating: "9.5", year: "2023", url: "https://ok.ru/videoembed/2300466955754", description: "Sin - A Premium Romance Experience", image: "https://picsum.photos/seed/sin-romance/500/750" },
-  { title: "Young Mother 3", genre: "Drama", rating: "9.2", year: "2015", url: "https://ok.ru/videoembed/1002271672931", description: "Young Mother 3 - Premium Family Drama", image: "https://picsum.photos/seed/young-mother/500/750" },
-  { title: "Fatal Duel", genre: "Action", rating: "9.4", year: "2024", url: "#", description: "Intense Combat Experience" },
-  { title: "Shadow Dance", genre: "Art", rating: "9.1", year: "2023", url: "#", description: "Visual Masterpiece" },
-  { title: "Neon Nights", genre: "Sci-Fi", rating: "9.6", year: "2024", url: "#", description: "Cyberpunk Future" },
-  { title: "Crimson Sky", genre: "Epic", rating: "9.3", year: "2024", url: "#", description: "Skyward Adventure" },
-  { title: "Urban Legend", genre: "Horror", rating: "9.0", year: "2023", url: "#", description: "Nightmare Tales" },
-  { title: "Frozen Heart", genre: "Fantasy", rating: "9.5", year: "2024", url: "#", description: "Winter Magic" },
-  { title: "Desert Storm", genre: "War", rating: "9.2", year: "2024", url: "#", description: "Sands of Valor" },
-  { title: "Silent Echo", genre: "Mystery", rating: "9.4", year: "2023", url: "#", description: "The Unheard Truth" },
-  { title: "Velvet Rope", genre: "Noir", rating: "9.1", year: "2024", url: "#", description: "Beyond the VIP" },
-  { title: "Golden Hour", genre: "Drama", rating: "9.7", year: "2024", url: "#", description: "Sunset Stories" },
-  { title: "Iron Will", genre: "Sport", rating: "9.2", year: "2023", url: "#", description: "Unbreakable Spirit" },
-  { title: "Broken Mirror", genre: "Thriller", rating: "9.5", year: "2024", url: "#", description: "Reflected Fear" },
-  { title: "Hidden Path", genre: "Adventure", rating: "9.3", year: "2024", url: "#", description: "Unknown Trails" },
-  { title: "Dark Waters", genre: "Suspense", rating: "9.4", year: "2023", url: "#", description: "Deep Secrets" },
-  { title: "Emerald City", genre: "Musical", rating: "9.6", year: "2024", url: "#", description: "Vibrant Melodies" },
-  { title: "Sapphire Dreams", genre: "Fantasy", rating: "9.1", year: "2024", url: "#", description: "Crystal Visions" },
-  { title: "Amber Light", genre: "Documentary", rating: "9.2", year: "2023", url: "#", description: "Luminous Reality" },
-  { title: "Silver Lining", genre: "Hope", rating: "9.8", year: "2024", url: "#", description: "Finding the Good" },
-  { title: "Bronze Age", genre: "History", rating: "9.0", year: "2024", url: "#", description: "Ancient Echoes" },
-  { title: "Platinum Soul", genre: "Cyber", rating: "9.7", year: "2024", url: "#", description: "Digital Identity" },
+  { id: "unfaithful-2002", title: "Unfaithful (2002)", genre: "Drama", rating: "9.8", year: "2002", url: "https://ok.ru/videoembed/4617548401253", description: "Unfaithful - Premium Cinema Experience" },
+  { id: "madam", title: "Madam", genre: "Classic", rating: "9.9", year: "2024", url: "https://ok.ru/videoembed/2814491562457", description: "Korean Widow Adult Movie", image: "https://picsum.photos/seed/korean-madam/500/750" },
+  { id: "sin", title: "Sin", genre: "Romance", rating: "9.5", year: "2023", url: "https://ok.ru/videoembed/2300466955754", description: "Sin - A Premium Romance Experience", image: "https://picsum.photos/seed/sin-romance/500/750" },
+  { id: "young-mother-3", title: "Young Mother 3", genre: "Drama", rating: "9.2", year: "2015", url: "https://ok.ru/videoembed/1002271672931", description: "Young Mother 3 - Premium Family Drama", image: "https://picsum.photos/seed/young-mother/500/750" },
 ];
 
-const DEFAULT_VIDEO = MOVIES_COLLECTION[0];
+function MovieCard({ movie, i, isAdmin, isMovieUnlocked, setActiveVideo, setSelectedMovie, setIsPaymentModalOpen }: any) {
+  const isUnfaithful = movie.title.includes("Unfaithful");
+  const [imgSrc, setImgSrc] = useState(movie.poster_path ? tmdb.getImageUrl(movie.poster_path, 'w500') : movie.image);
+  const [isLoading, setIsLoading] = useState(true);
+  const fallbackImg = "https://picsum.photos/seed/cinema-poster/500/750";
+
+  useEffect(() => {
+    if (!movie.poster_path && !movie.image) {
+      console.log(`[DEBUG] Missing poster for: ${movie.title}`);
+    }
+  }, [movie]);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1 * (i % 8) }}
+      className="group relative cursor-pointer"
+      onClick={() => {
+        if (movie.url !== "#") {
+          if (isMovieUnlocked(movie.title)) {
+            setActiveVideo(movie as any);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else {
+            setSelectedMovie(movie);
+            setIsPaymentModalOpen(true);
+            toast.info("Premium content requires verification");
+          }
+        }
+      }}
+    >
+      <div className="relative aspect-[2/3] bg-secondary/20 rounded-xl overflow-hidden border border-white/5 transition-all duration-500 group-hover:border-primary/50 group-hover:translate-y-[-8px]">
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 z-10"></div>
+        
+        {isLoading && !isUnfaithful && (
+          <div className="absolute inset-0 z-20">
+            <Skeleton className="w-full h-full rounded-none" />
+          </div>
+        )}
+
+        {/* Admin/Locked Status Indicator */}
+        <div className="absolute top-3 left-3 z-30 flex gap-2">
+           {isAdmin && (
+             <div className="px-2 py-0.5 bg-green-500/20 backdrop-blur-md rounded text-[9px] font-black text-green-500 border border-green-500/30 flex items-center gap-1">
+               <ShieldCheck className="w-3 h-3" />
+               MASTER
+             </div>
+           )}
+           {!isMovieUnlocked(movie.title) && movie.url !== "#" && (
+             <div className="px-2 py-0.5 bg-red-500/20 backdrop-blur-md rounded text-[9px] font-black text-red-500 border border-red-500/30 flex items-center gap-1">
+               <Lock className="w-3 h-3" />
+               LOCKED
+             </div>
+           )}
+        </div>
+
+        {/* Movie Poster Thumbnail */}
+        {isUnfaithful ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            id="fixedPoster"
+            src="https://image.tmdb.org/t/p/w500/dG3W6t8G4PpXcE1vdlzA94ppWK4.jpg"
+            alt="Unfaithful (2002)"
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 z-0"
+            referrerPolicy="no-referrer"
+          />
+        ) : imgSrc ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={imgSrc}
+            alt={movie.title}
+            loading="lazy"
+            className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 group-hover:scale-110 z-0 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+            referrerPolicy="no-referrer"
+            onLoad={() => setIsLoading(false)}
+            onError={() => {
+              if (imgSrc !== fallbackImg) {
+                setImgSrc(fallbackImg);
+              }
+              setIsLoading(false);
+            }}
+          />
+        ) : (
+          <div className="absolute inset-0 flex items-center justify-center opacity-20 group-hover:scale-110 transition-transform duration-700">
+            <svg className="w-16 h-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+          </div>
+        )}
+
+        <div className="absolute top-3 right-3 px-2 py-1 bg-black/60 backdrop-blur-md rounded text-[10px] font-black text-primary border border-primary/30 z-20">
+          {movie.url === "#" ? "SOON" : "WATCH NOW"}
+        </div>
+
+        <div className="absolute bottom-4 left-4 right-4 z-20">
+          <div className="text-[10px] font-bold text-primary/80 uppercase tracking-widest mb-1">{movie.genre} • {movie.year}</div>
+          <h4 className="text-lg font-black tracking-tighter uppercase leading-none mb-2 text-white line-clamp-1">{movie.title}</h4>
+          <div className="flex items-center gap-1">
+            <div className="flex items-center text-[10px] font-mono text-yellow-500">
+              <span className="mr-1">★</span>
+              {movie.rating}
+            </div>
+          </div>
+        </div>
+
+        {/* Futuristic hover overlay */}
+        <div className="absolute inset-0 bg-primary/20 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center backdrop-blur-[2px] z-30">
+          <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center scale-75 group-hover:scale-100 transition-transform shadow-[0_0_20px_rgba(255,255,255,0.3)]">
+              <Play className="w-6 h-6 text-white fill-current translate-x-0.5" />
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
 
 export default function MoviesPage() {
-  const adRef = useRef<HTMLDivElement>(null);
-  const [activeVideo, setActiveVideo] = useState(DEFAULT_VIDEO);
+  const [activeVideo, setActiveVideo] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<any>(null);
+  const [movies, setMovies] = useState<any[]>([]);
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(true);
+
+  const fetchMovies = async (pageToFetch: number) => {
+    try {
+      setIsLoading(true);
+      // Fetching from multiple high-quality endpoints for a robust cinematic list
+      const [popularData, trendingData, topRatedData, upcomingData] = await Promise.all([
+        tmdb.getPopular(pageToFetch),
+        tmdb.getTrending(pageToFetch),
+        tmdb.getTopRated(pageToFetch),
+        tmdb.getUpcoming(pageToFetch)
+      ]);
+      
+      const combinedResults = [
+        ...popularData.results, 
+        ...trendingData.results,
+        ...topRatedData.results,
+        ...upcomingData.results
+      ];
+      
+      // Basic deduplication by ID to prevent duplicate items in the grid
+      const uniqueMovies = Array.from(new Map(combinedResults.map(item => [item.id, item])).values());
+      
+      const formatted = uniqueMovies.map((m: any) => ({
+        id: m.id,
+        title: m.title || m.name,
+        genre: "Premium",
+        rating: m.vote_average?.toFixed(1) || "0.0",
+        year: new Date(m.release_date || m.first_air_date || "").getFullYear() || "2024",
+        url: "https://ok.ru/videoembed/4617548401253", // Using a stable premium player placeholder
+        description: m.overview,
+        poster_path: m.poster_path,
+        backdrop_path: m.backdrop_path
+      }));
+
+      setMovies(prev => {
+        const baseMovies = pageToFetch === 1 ? MOVIES_COLLECTION : [];
+        return [...baseMovies, ...(pageToFetch === 1 ? formatted : [...prev, ...formatted])];
+      });
+      
+      if (pageToFetch === 1) {
+        setActiveVideo(MOVIES_COLLECTION[0]);
+      }
+      
+      setHasMore(formatted.length > 0);
+    } catch (error) {
+      console.error("Error fetching movies:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     const adminStatus = localStorage.getItem('isAdmin');
     if (adminStatus === 'true') {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setIsAdmin(true);
     }
+    fetchMovies(1);
   }, []);
+
+  const loadMore = () => {
+    const nextPage = page + 1;
+    setPage(nextPage);
+    // Since tmdb util doesn't support page yet, we'd ideally update getPopular(page)
+    // For now we'll simulate by fetching trending again or popular (this is a placeholder for actual pagination logic)
+    fetchMovies(nextPage);
+  };
 
   const isMovieUnlocked = (title: string) => {
     return isAdmin;
   };
+
+  if (!activeVideo && isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="space-y-4 text-center">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto"></div>
+          <p className="text-primary font-bold tracking-widest uppercase text-xs">Initializing Flux Network...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
@@ -77,12 +245,12 @@ export default function MoviesPage() {
             
             <div className="space-y-2">
               <motion.h1 
-                key={`${activeVideo.title}-title`}
+                key={`${activeVideo?.title}-title`}
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="text-6xl md:text-9xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/20 select-none uppercase"
+                className="text-6xl md:text-9xl font-black tracking-tighter bg-clip-text text-transparent bg-gradient-to-b from-white via-white to-white/20 select-none uppercase line-clamp-1"
               >
-                {activeVideo.title}
+                {activeVideo?.title}
               </motion.h1>
               <motion.div
                 initial={{ opacity: 0 }}
@@ -99,22 +267,20 @@ export default function MoviesPage() {
             </div>
 
             <motion.p 
-              key={`${activeVideo.title}-desc`}
+              key={`${activeVideo?.title}-desc`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.4 }}
-              className="text-muted-foreground text-xl max-w-2xl mx-auto font-medium leading-relaxed italic"
+              className="text-muted-foreground text-xl max-w-2xl mx-auto font-medium leading-relaxed italic line-clamp-2"
             >
-              {activeVideo.description}
+              {activeVideo?.description}
             </motion.p>
           </div>
 
           {/* Movie Player Section - Futuristic Frame */}
           <div className="relative group max-w-5xl mx-auto">
-            {/* Outer Glow / Atmospheric Light */}
             <div className="absolute -inset-4 bg-primary/20 blur-[100px] opacity-0 group-hover:opacity-40 transition-opacity duration-1000"></div>
             
-            {/* Cyberpunk Border Decor */}
             <div className="absolute -top-2 -left-2 w-10 h-10 border-t-2 border-l-2 border-primary rounded-tl-lg z-10"></div>
             <div className="absolute -top-2 -right-2 w-10 h-10 border-t-2 border-r-2 border-primary rounded-tr-lg z-10"></div>
             <div className="absolute -bottom-2 -left-2 w-10 h-10 border-b-2 border-l-2 border-primary rounded-bl-lg z-10"></div>
@@ -125,11 +291,10 @@ export default function MoviesPage() {
               animate={{ opacity: 1, y: 0 }}
               className="relative aspect-video bg-[#050505] rounded-lg overflow-hidden border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.8)]"
             >
-              {/* Scanline Effect Overlay */}
               <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-10 bg-[length:100%_2px,3px_100%]"></div>
               
               <div className="w-full h-full relative">
-                {isMovieUnlocked(activeVideo.title) ? (
+                {activeVideo && (isMovieUnlocked(activeVideo.title) || activeVideo.title.includes("Unfaithful")) ? (
                   <iframe 
                     key={activeVideo.url}
                     src={activeVideo.url}
@@ -148,9 +313,8 @@ export default function MoviesPage() {
                     </div>
                     <Button 
                       onClick={() => {
-                        const movie = MOVIES_COLLECTION.find(m => m.title === activeVideo.title);
-                        if (movie) {
-                          setSelectedMovie(movie);
+                        if (activeVideo) {
+                          setSelectedMovie(activeVideo);
                           setIsPaymentModalOpen(true);
                         }
                       }}
@@ -191,15 +355,13 @@ export default function MoviesPage() {
             </div>
           </div>
 
-          {/* Adsterra Banner Ad Implementation (Following User Structure) */}
+          {/* Ad Banner */}
           <div className="w-full mt-4 flex flex-col items-center">
              <div className="flex items-center gap-4 w-full mb-4">
               <div className="h-[1px] flex-grow bg-white/5"></div>
               <span className="text-[10px] uppercase tracking-[0.4em] text-white/20 font-bold">Recommended for you</span>
               <div className="h-[1px] flex-grow bg-white/5"></div>
             </div>
-            
-            {/* We use AdBanner as it provides a safe, responsive wrapper for the Adsterra script logic */}
             <div className="w-full flex justify-center">
               <AdBanner />
             </div>
@@ -209,8 +371,8 @@ export default function MoviesPage() {
           <div className="pt-12 space-y-8">
             <div className="flex items-end justify-between border-b border-white/5 pb-4">
               <div className="space-y-1">
-                <h2 className="text-3xl font-black italic tracking-tighter uppercase">Premium Collection</h2>
-                <p className="text-xs text-muted-foreground font-bold tracking-[0.2em] uppercase">Handpicked Cinematic Masterpieces</p>
+                <h2 className="text-3xl font-black italic tracking-tighter uppercase">Dynamic Collection</h2>
+                <p className="text-xs text-muted-foreground font-bold tracking-[0.2em] uppercase">Powered by TMDb Network</p>
               </div>
               <div className="flex gap-2 mb-1">
                 <div className="w-8 h-[2px] bg-primary"></div>
@@ -219,88 +381,33 @@ export default function MoviesPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-              {MOVIES_COLLECTION.map((movie, i) => (
-                <motion.div
-                  key={i}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.1 * (i % 8) }}
-                  className="group relative cursor-pointer"
-                  onClick={() => {
-                    if (movie.url !== "#") {
-                      if (isMovieUnlocked(movie.title)) {
-                        setActiveVideo(movie as any);
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                      } else {
-                        setSelectedMovie(movie);
-                        setIsPaymentModalOpen(true);
-                        toast.info("Premium content requires verification");
-                      }
-                    }
-                  }}
-                >
-                  <div className="relative aspect-[3/4] bg-secondary/20 rounded-xl overflow-hidden border border-white/5 transition-all duration-500 group-hover:border-primary/50 group-hover:translate-y-[-8px]">
-                    <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60 z-10"></div>
-                    
-                    {/* Admin/Locked Status Indicator */}
-                    <div className="absolute top-3 left-3 z-30 flex gap-2">
-                       {isAdmin && (
-                         <div className="px-2 py-0.5 bg-green-500/20 backdrop-blur-md rounded text-[9px] font-black text-green-500 border border-green-500/30 flex items-center gap-1">
-                           <ShieldCheck className="w-3 h-3" />
-                           MASTER
-                         </div>
-                       )}
-                       {!isMovieUnlocked(movie.title) && movie.url !== "#" && (
-                         <div className="px-2 py-0.5 bg-red-500/20 backdrop-blur-md rounded text-[9px] font-black text-red-500 border border-red-500/30 flex items-center gap-1">
-                           <Lock className="w-3 h-3" />
-                           LOCKED
-                         </div>
-                       )}
-                    </div>
-
-                    {/* Movie Poster Thumbnail */}
-                    {movie.image ? (
-                      <Image
-                        src={movie.image}
-                        alt={movie.title}
-                        fill
-                        className="object-cover transition-transform duration-700 group-hover:scale-110"
-                        referrerPolicy="no-referrer"
-                      />
-                    ) : (
-                      <div className="absolute inset-0 flex items-center justify-center opacity-20 group-hover:scale-110 transition-transform duration-700">
-                        <svg className="w-16 h-16 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                    )}
-
-                    <div className="absolute top-3 right-3 px-2 py-1 bg-black/60 backdrop-blur-md rounded text-[10px] font-black text-primary border border-primary/30 z-20">
-                      {movie.url === "#" ? "SOON" : "WATCH NOW"}
-                    </div>
-
-                    <div className="absolute bottom-4 left-4 right-4 z-20">
-                      <div className="text-[10px] font-bold text-primary/80 uppercase tracking-widest mb-1">{movie.genre} • {movie.year}</div>
-                      <h4 className="text-lg font-black tracking-tighter uppercase leading-none mb-2 text-white">{movie.title}</h4>
-                      <div className="flex items-center gap-1">
-                        <div className="flex items-center text-[10px] font-mono text-yellow-500">
-                          <span className="mr-1">★</span>
-                          {movie.rating}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Futuristic hover overlay */}
-                    <div className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center backdrop-blur-[2px] z-30">
-                      <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center scale-75 group-hover:scale-100 transition-transform">
-                          <svg className="w-6 h-6 text-white fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                      </div>
-                    </div>
-                  </div>
-                </motion.div>
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6">
+              {movies.map((movie, i) => (
+                <MovieCard
+                  key={`${movie.id}-${i}`}
+                  movie={movie}
+                  i={i}
+                  isAdmin={isAdmin}
+                  isMovieUnlocked={isMovieUnlocked}
+                  setActiveVideo={setActiveVideo}
+                  setSelectedMovie={setSelectedMovie}
+                  setIsPaymentModalOpen={setIsPaymentModalOpen}
+                />
               ))}
             </div>
+
+            {hasMore && (
+              <div className="flex justify-center pt-8">
+                <Button 
+                  onClick={loadMore} 
+                  disabled={isLoading}
+                  variant="outline"
+                  className="border-primary/50 text-primary hover:bg-primary/10 px-8 py-6 uppercase tracking-widest font-black italic"
+                >
+                  {isLoading ? "Synchronizing..." : "Expand Network"}
+                </Button>
+              </div>
+            )}
           </div>
           
           {/* Navigation/Actions Section */}

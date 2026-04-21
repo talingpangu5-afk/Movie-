@@ -67,12 +67,15 @@ async function fetchTMDB(endpoint: string, params: Record<string, string> = {}) 
 }
 
 export const tmdb = {
-  getTrending: () => fetchTMDB('/trending/movie/day'),
-  getNowPlaying: () => fetchTMDB('/movie/now_playing'),
-  getPopular: () => fetchTMDB('/movie/popular'),
-  getTopRated: () => fetchTMDB('/movie/top_rated'),
-  getUpcoming: () => fetchTMDB('/movie/upcoming'),
-  search: (query: string) => fetchTMDB('/search/multi', { query }),
+  getTrending: (page: number = 1) => fetchTMDB('/trending/movie/day', { page: page.toString() }),
+  getTrendingTV: (page: number = 1) => fetchTMDB('/trending/tv/day', { page: page.toString() }),
+  getNowPlaying: (page: number = 1) => fetchTMDB('/movie/now_playing', { page: page.toString() }),
+  getPopular: (page: number = 1) => fetchTMDB('/movie/popular', { page: page.toString() }),
+  getPopularTV: (page: number = 1) => fetchTMDB('/tv/popular', { page: page.toString() }),
+  getTopRated: (page: number = 1) => fetchTMDB('/movie/top_rated', { page: page.toString() }),
+  getTopRatedTV: (page: number = 1) => fetchTMDB('/tv/top_rated', { page: page.toString() }),
+  getUpcoming: (page: number = 1) => fetchTMDB('/movie/upcoming', { page: page.toString() }),
+  search: (query: string, page: number = 1) => fetchTMDB('/search/multi', { query, page: page.toString() }),
   getMovieDetails: (id: string) => fetchTMDB(`/movie/${id}`, { append_to_response: 'credits,videos' }),
   getMultipleMovieDetails: async (ids: number[]) => {
     const promises = ids.map(id => fetchTMDB(`/movie/${id}`, { append_to_response: 'credits,videos' }));
