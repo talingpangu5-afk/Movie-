@@ -9,8 +9,11 @@ import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { motion, AnimatePresence } from 'motion/react';
 import { EntertainmentDropdown } from '@/components/EntertainmentDropdown';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
+import { LanguageSelector } from '@/components/LanguageSelector';
 
 export function Navbar() {
+  const { t } = useTranslation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchExpanded, setIsSearchExpanded] = useState(false);
@@ -34,11 +37,11 @@ export function Navbar() {
   };
 
   const navLinks = [
-    { name: 'Home', href: '/' },
-    { name: 'Trending', href: '/trending', hasNotification: true },
-    { name: 'Popular', href: '/popular' },
-    { name: 'Top Rated', href: '/top-rated' },
-    { name: 'Live News', href: '/news', isLive: true },
+    { name: t('common.home'), href: '/' },
+    { name: t('common.trending'), href: '/trending', hasNotification: true },
+    { name: t('common.popular'), href: '/popular' },
+    { name: t('common.topRated'), href: '/top-rated' },
+    { name: t('common.liveNews'), href: '/news', isLive: true },
   ];
 
   return (
@@ -91,6 +94,10 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-4">
+          <div className="hidden sm:block">
+            <LanguageSelector />
+          </div>
+          
           <form 
             onSubmit={handleSearch} 
             className={`relative flex items-center transition-all duration-500 ease-in-out ${
@@ -103,7 +110,7 @@ export function Navbar() {
             />
             <Input 
               type="text" 
-              placeholder="Search movies..." 
+              placeholder={t('common.search')} 
               className={`pl-10 h-10 bg-secondary/40 border border-white/10 rounded-full focus-visible:ring-primary focus-visible:border-primary transition-all duration-300 ${
                 isSearchExpanded ? 'opacity-100' : 'opacity-0 md:opacity-100'
               }`}
@@ -128,6 +135,11 @@ export function Navbar() {
                 </div>
                 
                 <div className="flex flex-col gap-6">
+                  <div className="flex items-center justify-between pb-4 border-b border-white/5">
+                    <span className="text-xs font-bold text-white/40 uppercase tracking-widest">{t('common.selectLanguage')}</span>
+                    <LanguageSelector />
+                  </div>
+
                   {/* Priority Menu */}
                   <div className="pb-4 border-b border-white/5">
                     <EntertainmentDropdown />

@@ -1,7 +1,11 @@
+'use client';
+
 import Link from 'next/link';
 import { Film, Youtube, Facebook, BookOpen } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 export function Footer() {
+  const { t } = useTranslation();
   return (
     <footer className="bg-secondary/30 border-t py-12 mt-20">
       <div className="container mx-auto px-4">
@@ -17,22 +21,22 @@ export function Footer() {
           </div>
 
           <div>
-            <h4 className="font-bold mb-4">Quick Links</h4>
+            <h4 className="font-bold mb-4">{t('footer.links')}</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link href="/" className="hover:text-primary transition-colors">Home</Link></li>
-              <li><Link href="/trending" className="hover:text-primary transition-colors">Trending</Link></li>
-              <li><Link href="/popular" className="hover:text-primary transition-colors">Popular</Link></li>
-              <li><Link href="/top-rated" className="hover:text-primary transition-colors">Top Rated</Link></li>
+              <li><Link href="/" className="hover:text-primary transition-colors">{t('common.home')}</Link></li>
+              <li><Link href="/trending" className="hover:text-primary transition-colors">{t('common.trending')}</Link></li>
+              <li><Link href="/popular" className="hover:text-primary transition-colors">{t('common.popular')}</Link></li>
+              <li><Link href="/top-rated" className="hover:text-primary transition-colors">{t('common.topRated')}</Link></li>
             </ul>
           </div>
 
           <div>
-            <h4 className="font-bold mb-4">Support</h4>
+            <h4 className="font-bold mb-4">{t('footer.legal')}</h4>
             <ul className="space-y-2 text-sm text-muted-foreground">
-              <li><Link href="/about" className="hover:text-primary transition-colors">About Us</Link></li>
-              <li><Link href="/privacy" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
-              <li><Link href="/disclaimer" className="hover:text-primary transition-colors">Disclaimer</Link></li>
-              <li><Link href="/contact" className="hover:text-primary transition-colors">Contact</Link></li>
+              <li><Link href="/about" className="hover:text-primary transition-colors">{t('common.about')}</Link></li>
+              <li><Link href="/privacy" className="hover:text-primary transition-colors">{t('common.privacy')}</Link></li>
+              <li><Link href="/disclaimer" className="hover:text-primary transition-colors">{t('common.disclaimer')}</Link></li>
+              <li><Link href="/contact" className="hover:text-primary transition-colors">{t('common.contact')}</Link></li>
               <li><Link href="/movies" className="hover:text-primary transition-colors">Movies</Link></li>
             </ul>
           </div>
@@ -89,7 +93,7 @@ export function Footer() {
         </div>
         
         <div className="border-t mt-12 pt-8 text-center text-sm text-muted-foreground">
-          <p>© {new Date().getFullYear()} Taling Pangu. All rights reserved. Built with Next.js and Tailwind CSS.</p>
+          <p>© {new Date().getFullYear()} Taling Pangu. {t('footer.rightsReserved')} Built with Next.js and Tailwind CSS.</p>
         </div>
       </div>
     </footer>

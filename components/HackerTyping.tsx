@@ -2,19 +2,21 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
-
-const MESSAGES = [
-  "Initializing system...",
-  "Connecting to secure gateway...",
-  "Accessing Flux Network metadata...",
-  "Bypassing firewalls...",
-  "Synchronizing streaming cores...",
-  "Decryption complete...",
-  "Welcome back, Operator."
-];
+import { useTranslation } from '@/lib/i18n/LanguageContext';
 
 export function HackerTyping() {
+  const { t } = useTranslation();
   const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+
+  const MESSAGES = React.useMemo(() => [
+    t('hero.initializing'),
+    t('hero.connecting'),
+    "Accessing Flux Network metadata...",
+    "Bypassing firewalls...",
+    t('hero.loadingModules'),
+    t('hero.accessGranted'),
+    t('hero.welcome')
+  ], [t]);
   const [currentText, setCurrentText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [typingSpeed, setTypingSpeed] = useState(100);
@@ -49,7 +51,7 @@ export function HackerTyping() {
 
     const timer = setTimeout(handleType, typingSpeed);
     return () => clearTimeout(timer);
-  }, [currentText, isDeleting, currentMessageIndex, typingSpeed]);
+  }, [currentText, isDeleting, currentMessageIndex, typingSpeed, MESSAGES]);
 
   return (
     <div className="absolute top-[85px] left-1/2 -translate-x-1/2 z-30 pointer-events-none w-full max-w-xl text-center">
