@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { Play, AlertCircle, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -10,7 +10,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import { SmartPlayer } from '@/components/SmartPlayer';
 
 interface TrailerModalProps {
   trailerKey: string | undefined;
@@ -30,6 +29,7 @@ export function TrailerModal({
   children 
 }: TrailerModalProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -47,27 +47,35 @@ export function TrailerModal({
           )
         }
       />
-      <DialogContent className="sm:max-w-[900px] p-0 bg-black border-none overflow-hidden aspect-video shadow-2xl">
+      <DialogContent className="sm:max-w-[900px] p-0 bg-black border-none overflow-hidden aspect-video">
         <DialogHeader className="sr-only">
           <DialogTitle>{title} Trailer</DialogTitle>
         </DialogHeader>
-        
-        {trailerKey ? (
-          <div className="w-full h-full">
-            <SmartPlayer key={trailerKey} trailerKey={trailerKey} title={title} />
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center text-white h-full p-8 space-y-4">
-            <div className="p-6 rounded-3xl bg-white/5 border border-white/10">
-              <AlertCircle className="w-16 h-16 text-primary/40" />
+        <div className="relative w-full h-full flex items-center justify-center">
+          {trailerKey ? (
+            <>
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black z-10">
+                  <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+                </div>
+              )}
+              <iframe
+                src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=1&rel=0&modestbranding=1`}
+                title={`${title} Trailer`}
+                className="absolute inset-0 w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                onLoad={() => setIsLoading(false)}
+              />
+            </>
+          ) : (
+            <div className="flex flex-col items-center justify-center text-white p-8 space-y-4">
+              <Play className="w-16 h-16 opacity-20" />
+              <p className="text-xl font-bold">Trailer not available</p>
+              <p className="text-muted-foreground">We couldn&apos;t find a trailer for this movie.</p>
             </div>
-            <div className="text-center">
-              <h3 className="text-2xl font-black uppercase tracking-tighter">Trailer Unavailable</h3>
-              <p className="text-muted-foreground font-medium">Remote archive for this entry is restricted or missing.</p>
-            </div>
-            <Button variant="outline" onClick={() => setIsOpen(false)} className="rounded-full px-8">Return to Dossier</Button>
-          </div>
-        )}
+          )}
+        </div>
       </DialogContent>
     </Dialog>
   );

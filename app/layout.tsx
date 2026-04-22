@@ -7,8 +7,6 @@ import { Footer } from '@/components/Footer';
 import { Toaster } from '@/components/ui/sonner';
 import { TouchSidebar } from '@/components/TouchSidebar';
 import { AdultTrigger } from '@/components/AdultTrigger';
-import { LanguageProvider } from '@/lib/i18n/LanguageContext';
-import { I18nWrapper } from '@/lib/i18n/I18nWrapper';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -26,30 +24,21 @@ export const metadata: Metadata = {
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="en" className="dark">
-      <head>
-        <link rel="preconnect" href="https://www.youtube.com" />
-        <link rel="preconnect" href="https://i.ytimg.com" />
-        <link rel="preconnect" href="https://image.tmdb.org" />
-      </head>
       <body className={inter.className} suppressHydrationWarning>
-        <LanguageProvider>
-          <I18nWrapper>
-            {/* Ad Network Scripts */}
-            <Script 
-              src="https://pl29130382.profitablecpmratenetwork.com/0e/a6/ec/0ea6ecd798b47b004c6c8d3cf469ddc0.js" 
-              strategy="afterInteractive"
-            />
-            
-            <Navbar />
-            <main className="min-h-screen">
-              {children}
-            </main>
-            <Footer />
-            <TouchSidebar />
-            <AdultTrigger />
-            <Toaster position="top-center" />
-          </I18nWrapper>
-        </LanguageProvider>
+        {/* Ad Network Scripts */}
+        <Script 
+          src="https://pl29130382.profitablecpmratenetwork.com/0e/a6/ec/0ea6ecd798b47b004c6c8d3cf469ddc0.js" 
+          strategy="afterInteractive"
+        />
+        
+        <Navbar />
+        <main className="min-h-screen">
+          {children}
+        </main>
+        <Footer />
+        <TouchSidebar />
+        <AdultTrigger />
+        <Toaster position="top-center" />
       </body>
     </html>
   );
