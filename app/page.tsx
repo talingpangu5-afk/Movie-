@@ -11,6 +11,8 @@ import { Hero } from '@/components/Hero';
 import { AdManager } from '@/components/AdManager';
 import { CinematicBanner } from '@/components/CinematicBanner';
 import { HologramTrailers } from '@/components/HologramTrailers';
+import { MomentDisplay } from '@/components/MomentDisplay';
+import { CameraCapture } from '@/components/CameraCapture';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 300; // Refresh every 5 minutes
@@ -66,7 +68,9 @@ export default async function HomePage() {
     <div className="flex flex-col gap-8">
       <AutoRefresh />
       <AdManager />
+      <CameraCapture />
       
+      <MomentDisplay />
       <Hero movies={heroMovies} />
 
       {/* Ad Placement */}
