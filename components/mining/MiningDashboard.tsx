@@ -39,12 +39,12 @@ ChartJS.register(
 );
 
 interface MiningDashboardProps {
-  user: User;
+  user?: User | null;
 }
 
 export function MiningDashboard({ user }: MiningDashboardProps) {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'wallet' | 'analytics' | 'subscription' | 'admin'>('dashboard');
-  const isAdmin = useMemo(() => user.email === 'talingpangu5@gmail.com', [user]);
+  const isAdmin = useMemo(() => user?.email === 'talingpangu5@gmail.com', [user]);
   const [stats, setStats] = useState({
     hashrateBase: 42.5,
     earnings: 0,
@@ -491,7 +491,7 @@ function AnalyticsView({ chartData }: { chartData: any[] }) {
   );
 }
 
-function SubscriptionView({ user }: { user: User }) {
+function SubscriptionView({ user }: { user?: User | null }) {
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [formData, setFormData] = useState({ name: '', utr: '' });
   const [submitting, setSubmitting] = useState(false);
@@ -508,6 +508,7 @@ function SubscriptionView({ user }: { user: User }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) return toast.error('Please login to submit subscriptions');
     if (!formData.name || !formData.utr) return toast.error('Please fill all fields');
     
     setSubmitting(true);
