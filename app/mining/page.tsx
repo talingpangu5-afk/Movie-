@@ -56,14 +56,27 @@ export default function MiningPage() {
               Join the most advanced cloud mining network. Start earning real-time mining rewards 
               with our state-of-the-art simulation and hardware integration.
             </p>
-            <Button 
-              onClick={handleLogin}
-              size="lg" 
-              className="bg-primary hover:bg-primary/90 text-black font-bold px-10 h-14 rounded-xl text-lg shadow-2xl shadow-primary/20 transition-all hover:scale-105"
-            >
-              <Lock className="w-5 h-5 mr-3" />
-              LOGIN TO ACCESS DASHBOARD
-            </Button>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Button 
+                onClick={handleLogin}
+                size="lg" 
+                className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-black font-bold px-10 h-14 rounded-xl text-lg shadow-2xl shadow-primary/20 transition-all hover:scale-105"
+              >
+                <Lock className="w-5 h-5 mr-3" />
+                LOGIN WITH GOOGLE
+              </Button>
+              <Button 
+                onClick={handleLogin}
+                variant="outline"
+                size="lg" 
+                className="w-full sm:w-auto border-white/20 text-white hover:bg-white/5 font-bold px-10 h-14 rounded-xl text-lg transition-all hover:scale-105"
+              >
+                CREATE ACCOUNT
+              </Button>
+            </div>
+            <p className="mt-8 text-xs text-white/30 uppercase tracking-widest font-bold">
+              Secure one-click authentication powered by Firebase Auth
+            </p>
           </motion.div>
         </div>
       </div>
