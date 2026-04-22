@@ -29,12 +29,7 @@ interface TrailerCardProps {
 
 function TrailerCard({ movie, isActive, onPlay, onEnded }: TrailerCardProps) {
   const [isHovered, setIsHovered] = useState(false);
-  // Default to the first pre-fetched trailer key if available
-  const initialKey = (movie as any).videos?.results?.find(
-    (v: any) => v.type === "Trailer" && v.site === "YouTube"
-  )?.key || null;
-  
-  const [trailerKey, setTrailerKey] = useState<string | null>(initialKey);
+  const [trailerKey, setTrailerKey] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isMuted, setIsMuted] = useState(true);
@@ -65,12 +60,8 @@ function TrailerCard({ movie, isActive, onPlay, onEnded }: TrailerCardProps) {
 
   const handleInteraction = async () => {
     if (!isActive) {
-      if (!trailerKey) {
-        const key = await fetchTrailer();
-        if (key) onPlay();
-      } else {
-        onPlay();
-      }
+      const key = await fetchTrailer();
+      if (key) onPlay();
     } else {
       setIsMuted(!isMuted);
     }
@@ -127,7 +118,7 @@ function TrailerCard({ movie, isActive, onPlay, onEnded }: TrailerCardProps) {
         {isActive && trailerKey && (
           <iframe
             ref={iframeRef}
-            src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=${isMuted ? 1 : 0}&controls=1&rel=0&enablejsapi=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}&modestbranding=1&widget_referrer=${typeof window !== 'undefined' ? window.location.origin : ''}&showinfo=0&iv_load_policy=3`}
+            src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=${isMuted ? 1 : 0}&controls=1&rel=0&enablejsapi=1&origin=${window.location.origin}`}
             className="w-full h-full border-0"
             allow="autoplay; encrypted-media"
             allowFullScreen
@@ -219,11 +210,7 @@ export function HologramTrailers() {
     const fetchMovies = async () => {
       try {
         const data = await tmdb.getUpcoming();
-        const movieResults = data.results.slice(0, 10);
-        
-        // Prefetch movie details (which includes videos) to avoid delay on click
-        const detailedMovies = await tmdb.getMultipleMovieDetails(movieResults.map((m: Movie) => m.id));
-        setMovies(detailedMovies);
+        setMovies(data.results.slice(0, 10));
       } catch (err) {
         console.error("Failed to fetch upcoming movies", err);
       }

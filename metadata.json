@@ -1,5 +1,5 @@
 {
   "name": "Taling Pangu ",
   "description": "A modern, fully responsive movie website powered by TMDb API, featuring trending movies, search, and trailers.",
-  "requestFramePermissions": ["camera"]
+  "requestFramePermissions": []
 }
