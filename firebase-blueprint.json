@@ -1,0 +1,57 @@
+{
+  "entities": {
+    "Subscription": {
+      "title": "Subscription",
+      "description": "User mining subscription details",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "name": { "type": "string" },
+        "utr": { "type": "string" },
+        "plan": { "type": "string" },
+        "amount": { "type": "number" },
+        "status": { "type": "string", "enum": ["pending", "approved", "rejected"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "name", "utr", "plan", "amount", "status", "createdAt"]
+    },
+    "MiningSettings": {
+      "title": "Mining Settings",
+      "description": "Admin controls for mining simulation",
+      "type": "object",
+      "properties": {
+        "miningSpeed": { "type": "number" },
+        "profitFactor": { "type": "number" },
+        "lossFactor": { "type": "number" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["miningSpeed", "profitFactor", "lossFactor", "updatedAt"]
+    },
+    "UserWallet": {
+      "title": "User Wallet",
+      "description": "User's virtual balance and stats",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "balance": { "type": "number" },
+        "minedCoins": { "type": "number" },
+        "lastUpdated": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "balance", "minedCoins", "lastUpdated"]
+    }
+  },
+  "firestore": {
+    "/subscriptions/{subId}": {
+      "schema": "Subscription",
+      "description": "Collection of payment subscriptions"
+    },
+    "/settings/mining": {
+      "schema": "MiningSettings",
+      "description": "Global mining settings"
+    },
+    "/wallets/{userId}": {
+      "schema": "UserWallet",
+      "description": "User wallet information"
+    }
+  }
+}

@@ -35,6 +35,7 @@ export function Navbar() {
 
   const navLinks = [
     { name: 'Home', href: '/' },
+    { name: 'Mining Platform', href: '/mining', isNew: true },
     { name: 'Trending', href: '/trending', hasNotification: true },
     { name: 'Popular', href: '/popular' },
     { name: 'Top Rated', href: '/top-rated' },
@@ -74,6 +75,9 @@ export function Navbar() {
                 }`}
               >
                 {link.name}
+                {link.isNew && (
+                  <span className="absolute -top-3 -right-4 px-1.5 py-0.5 bg-primary text-[8px] text-black font-black rounded-full animate-bounce">NEW</span>
+                )}
                 {link.hasNotification && (
                   <span className="absolute -top-1 -right-2 w-1.5 h-1.5 bg-primary rounded-full glow-pulse" />
                 )}
@@ -141,7 +145,12 @@ export function Navbar() {
                         pathname === link.href ? 'text-primary neon-red' : 'text-white/70 hover:text-white'
                       }`}
                     >
-                      {link.name}
+                      <span className="flex items-center gap-2">
+                        {link.name}
+                        {link.isNew && (
+                          <span className="px-2 py-0.5 bg-primary text-[8px] text-black font-black rounded-full">NEW</span>
+                        )}
+                      </span>
                     </Link>
                   ))}
                   
