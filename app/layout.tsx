@@ -26,6 +26,11 @@ export const metadata: Metadata = {
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="en" className="dark">
+      <head>
+        <link rel="preconnect" href="https://www.youtube.com" />
+        <link rel="preconnect" href="https://i.ytimg.com" />
+        <link rel="preconnect" href="https://image.tmdb.org" />
+      </head>
       <body className={inter.className} suppressHydrationWarning>
         <LanguageProvider>
           <I18nWrapper>

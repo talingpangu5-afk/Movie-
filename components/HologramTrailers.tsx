@@ -37,6 +37,14 @@ function TrailerCard({ movie, isActive, onPlay, onEnded }: TrailerCardProps) {
 
   const fetchTrailer = useCallback(async () => {
     if (trailerKey) return trailerKey;
+    
+    // Check session storage first for extremely fast retrieval
+    const cachedKey = sessionStorage.getItem(`trailer_${movie.id}`);
+    if (cachedKey) {
+      setTrailerKey(cachedKey);
+      return cachedKey;
+    }
+
     setIsLoading(true);
     try {
       const data = await tmdb.getMovieDetails(movie.id.toString());
@@ -45,6 +53,7 @@ function TrailerCard({ movie, isActive, onPlay, onEnded }: TrailerCardProps) {
       );
       if (trailer) {
         setTrailerKey(trailer.key);
+        sessionStorage.setItem(`trailer_${movie.id}`, trailer.key);
         return trailer.key;
       } else {
         setError("Trailer not available");
@@ -118,7 +127,7 @@ function TrailerCard({ movie, isActive, onPlay, onEnded }: TrailerCardProps) {
         {isActive && trailerKey && (
           <iframe
             ref={iframeRef}
-            src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=${isMuted ? 1 : 0}&controls=1&rel=0&enablejsapi=1&origin=${window.location.origin}`}
+            src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=${isMuted ? 1 : 0}&controls=1&rel=0&VQ=HD1080&enablejsapi=1&origin=${window.location.origin}`}
             className="w-full h-full border-0"
             allow="autoplay; encrypted-media"
             allowFullScreen

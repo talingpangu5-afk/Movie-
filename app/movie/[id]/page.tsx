@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { TrailerModal } from '@/components/TrailerModal';
+import { SmartPlayer } from '@/components/SmartPlayer';
 import { WatchlistButton } from '@/components/WatchlistButton';
 import { AdBanner } from '@/components/AdBanner';
 
@@ -138,14 +139,12 @@ export default async function MovieDetailsPage({ params }: { params: Promise<{ i
             {/* Trailer Embed */}
             {trailer && (
               <div className="space-y-6 pt-12">
-                <h3 className="text-2xl font-bold">Official Trailer</h3>
-                <div className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl border border-muted/20">
-                  <iframe
-                    src={`https://www.youtube.com/embed/${trailer.key}`}
-                    title={`${movie.title} Trailer`}
-                    className="absolute inset-0 w-full h-full"
-                    allowFullScreen
-                  />
+                <h3 className="text-2xl font-bold flex items-center gap-2">
+                  <Play className="w-6 h-6 text-primary" />
+                  Official Trailer
+                </h3>
+                <div className="max-w-4xl">
+                  <SmartPlayer key={trailer.key} trailerKey={trailer.key} title={movie.title} />
                 </div>
               </div>
             )}
