@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { MiningDashboard } from '@/components/mining/MiningDashboard';
 import { auth } from '@/lib/firebase';
-import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, User } from 'firebase/auth';
+import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, User, getAdditionalUserInfo } from 'firebase/auth';
 import { Button } from '@/components/ui/button';
 import { motion } from 'motion/react';
 import { Cpu, Lock } from 'lucide-react';
@@ -35,23 +35,33 @@ export default function MiningPage() {
     };
   }, [loading]);
 
-  const handleLogin = async () => {
+  const handleLogin = async (isSignUp = false) => {
     const provider = new GoogleAuthProvider();
-    // Force specific behavior for the popup
     provider.setCustomParameters({
       prompt: 'select_account'
     });
 
     try {
-      console.log('Attempting login...');
-      await signInWithPopup(auth, provider);
-      toast.success('Sign in successful!');
+      console.log('Attempting authentication...');
+      const result = await signInWithPopup(auth, provider);
+      const additionalInfo = getAdditionalUserInfo(result);
+      
+      if (additionalInfo?.isNewUser || isSignUp) {
+        toast.success('Account Created Successfully! Welcome to the network.');
+      } else {
+        toast.success('Welcome back! Logging into dashboard.');
+      }
     } catch (error: any) {
       console.error('Login failed:', error);
+      
       if (error.code === 'auth/popup-blocked') {
-        toast.error('Popup blocked! Please allow popups or open in a new tab.');
+        toast.error('Popup blocked! Please enable popups in your browser.');
+      } else if (error.code === 'auth/unauthorized-domain') {
+        toast.error('Domain not whitelisted! Go to Firebase Console > Auth > Settings > Authorized Domains and add this URL.');
+      } else if (error.code === 'auth/configuration-not-found') {
+        toast.error('Google Login is not enabled! Please enable "Google" provider in Firebase Console > Authentication > Sign-in method.');
       } else if (error.code === 'auth/popup-closed-by-user') {
-        toast.info('Login cancelled by user.');
+        toast.info('Login window closed.');
       } else {
         toast.error(`Login failed: ${error.message}`);
       }
@@ -87,7 +97,7 @@ export default function MiningPage() {
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Button 
-                onClick={handleLogin}
+                onClick={() => handleLogin(false)}
                 size="lg" 
                 className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-black font-bold px-10 h-14 rounded-xl text-lg shadow-2xl shadow-primary/20 transition-all hover:scale-105"
               >
@@ -95,7 +105,7 @@ export default function MiningPage() {
                 LOGIN WITH GOOGLE
               </Button>
               <Button 
-                onClick={handleLogin}
+                onClick={() => handleLogin(true)}
                 variant="outline"
                 size="lg" 
                 className="w-full sm:w-auto border-white/20 text-white hover:bg-white/5 font-bold px-10 h-14 rounded-xl text-lg transition-all hover:scale-105"
