@@ -7,25 +7,54 @@ import { onAuthStateChanged, signInWithPopup, GoogleAuthProvider, User } from 'f
 import { Button } from '@/components/ui/button';
 import { motion } from 'motion/react';
 import { Cpu, Lock } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function MiningPage() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
-      setUser(user);
+    // Set a maximum load time for auth check
+    const timeout = setTimeout(() => {
+      if (loading) {
+        console.warn('Auth check taking too long, forcing load state');
+        setLoading(false);
+      }
+    }, 5000);
+
+    const unsubscribe = onAuthStateChanged(auth, (authUser) => {
+      console.log('Auth state changed:', authUser ? 'User Logged In' : 'No User');
+      setUser(authUser);
       setLoading(false);
+      clearTimeout(timeout);
     });
-    return () => unsubscribe();
-  }, []);
+
+    return () => {
+      unsubscribe();
+      clearTimeout(timeout);
+    };
+  }, [loading]);
 
   const handleLogin = async () => {
     const provider = new GoogleAuthProvider();
+    // Force specific behavior for the popup
+    provider.setCustomParameters({
+      prompt: 'select_account'
+    });
+
     try {
+      console.log('Attempting login...');
       await signInWithPopup(auth, provider);
-    } catch (error) {
+      toast.success('Sign in successful!');
+    } catch (error: any) {
       console.error('Login failed:', error);
+      if (error.code === 'auth/popup-blocked') {
+        toast.error('Popup blocked! Please allow popups or open in a new tab.');
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        toast.info('Login cancelled by user.');
+      } else {
+        toast.error(`Login failed: ${error.message}`);
+      }
     }
   };
 

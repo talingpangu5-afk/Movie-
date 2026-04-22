@@ -149,29 +149,32 @@ export function MiningDashboard({ user }: MiningDashboardProps) {
     return () => clearInterval(interval);
   }, []);
 
-  const lineChartData = {
-    labels: Array(chartData.length).fill(''),
-    datasets: [
-      {
-        label: 'Hashrate (TH/s)',
-        data: chartData,
-        borderColor: '#00ff88',
-        borderWidth: 2,
-        backgroundColor: (context: any) => {
-          const ctx = context.chart.ctx;
-          const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-          gradient.addColorStop(0, 'rgba(0, 255, 136, 0.2)');
-          gradient.addColorStop(1, 'rgba(0, 255, 136, 0)');
-          return gradient;
+  const lineChartData = useMemo(() => {
+    if (!chartData || chartData.length === 0) return null;
+    return {
+      labels: Array(chartData.length).fill(''),
+      datasets: [
+        {
+          label: 'Hashrate (TH/s)',
+          data: chartData,
+          borderColor: '#00ff88',
+          borderWidth: 2,
+          backgroundColor: (context: any) => {
+            const ctx = context.chart.ctx;
+            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+            gradient.addColorStop(0, 'rgba(0, 255, 136, 0.2)');
+            gradient.addColorStop(1, 'rgba(0, 255, 136, 0)');
+            return gradient;
+          },
+          fill: true,
+          tension: 0.1,
+          pointRadius: 0,
+          pointHoverRadius: 5,
+          pointBackgroundColor: '#00ff88',
         },
-        fill: true,
-        tension: 0.1,
-        pointRadius: 0,
-        pointHoverRadius: 5,
-        pointBackgroundColor: '#00ff88',
-      },
-    ],
-  };
+      ],
+    };
+  }, [chartData]);
 
   const chartOptions = {
     responsive: true,
@@ -267,7 +270,13 @@ export function MiningDashboard({ user }: MiningDashboardProps) {
                       <RefreshCw className="w-5 h-5 text-white/20 animate-spin-slow" />
                     </div>
                     <div className="h-64 mb-8">
-                      <Line data={lineChartData} options={chartOptions} />
+                      {lineChartData ? (
+                        <Line data={lineChartData} options={chartOptions} />
+                      ) : (
+                        <div className="h-full w-full flex items-center justify-center text-white/20 uppercase tracking-widest text-xs">
+                          Initializing Terminal...
+                        </div>
+                      )}
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                       <div className="bg-white/5 p-4 rounded-2xl">
