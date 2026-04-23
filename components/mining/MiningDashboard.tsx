@@ -58,7 +58,43 @@ export function MiningDashboard({ user }: MiningDashboardProps) {
     profitFactor: 1,
     lossFactor: 1
   });
+  const [marketPrice, setMarketPrice] = useState<number>(8500000); // Default placeholder
   const [logs, setLogs] = useState<any[]>([]);
+
+  // Fetch real market stats from secure backend
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const token = await user?.getIdToken();
+        const res = await fetch('/api/mining/stats', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        const result = await res.json();
+        if (result.success) {
+          const price = parseFloat(result.data.price);
+          if (price > 0) {
+            setMarketPrice(price * 84); // Convert USD to INR roughly or keep as is
+            
+            // Add a log entry for price update
+            setLogs(prev => [{
+              id: Date.now(),
+              type: 'MARKET SYNC',
+              time: new Date().toLocaleTimeString(),
+              value: `$${price.toLocaleString()} USDT`
+            }, ...prev.slice(0, 4)]);
+          }
+        }
+      } catch (error) {
+        console.error('Failed to sync market data');
+      }
+    };
+
+    fetchStats();
+    const interval = setInterval(fetchStats, 30000); // Update every 30s
+    return () => clearInterval(interval);
+  }, [user]);
   const [chartData, setChartData] = useState<number[]>(() => Array(24).fill(0).map(() => Math.random() * 100));
 
   // Test connection on boot
@@ -112,7 +148,7 @@ export function MiningDashboard({ user }: MiningDashboardProps) {
         // ₹10/day from ₹1000 investment
         // ₹10 / 86400 seconds = ₹0.00011574 per second
         const TARGET_INR_PER_SEC = 0.00011574 * miningSettings.profitFactor;
-        const BTC_EQUIVALENT = TARGET_INR_PER_SEC / 8500000;
+        const BTC_EQUIVALENT = TARGET_INR_PER_SEC / marketPrice;
         
         return {
           ...prev,
@@ -129,7 +165,7 @@ export function MiningDashboard({ user }: MiningDashboardProps) {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, [miningSettings, currentHashrate]);
+  }, [miningSettings, currentHashrate, marketPrice]);
 
   // Activity logs simulation
   useEffect(() => {
@@ -495,15 +531,19 @@ function SubscriptionView({ user }: { user?: User | null }) {
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [formData, setFormData] = useState({ name: '', utr: '' });
   const [submitting, setSubmitting] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'upi' | 'usdt'>('upi');
+
+  const USDT_ADDRESS = 'TAQ8si77XK2cFqFxtVzpootVMQMce1WVFE';
 
   const plans = [
-    { id: '3m', name: '3 Months Starter', price: 1000, color: 'from-blue-500/20' },
-    { id: '6m', name: '6 Months Professional', price: 3000, color: 'from-purple-500/20' },
-    { id: '12m', name: '12 Months Ultimate', price: 5000, color: 'from-primary/20' },
+    { id: '3m', name: '3 Months Starter', price: 1000, priceUsdt: 12, color: 'from-blue-500/20' },
+    { id: '6m', name: '6 Months Professional', price: 3000, priceUsdt: 35, color: 'from-purple-500/20' },
+    { id: '12m', name: '12 Months Ultimate', price: 5000, priceUsdt: 58, color: 'from-primary/20' },
   ];
 
   const handlePayClick = (plan: any) => {
     setSelectedPlan(plan);
+    setPaymentMethod('upi');
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -518,7 +558,8 @@ function SubscriptionView({ user }: { user?: User | null }) {
         name: formData.name,
         utr: formData.utr,
         plan: selectedPlan.name,
-        amount: selectedPlan.price,
+        amount: paymentMethod === 'upi' ? `₹${selectedPlan.price}` : `$${selectedPlan.priceUsdt} USDT`,
+        method: paymentMethod,
         status: 'pending',
         createdAt: new Date()
       });
@@ -552,12 +593,17 @@ function SubscriptionView({ user }: { user?: User | null }) {
               <span className="text-[10px] uppercase tracking-widest text-white/40">/ subscription</span>
             </div>
             
-            <div className="space-y-4 mb-8 flex-1">
+            <div className="space-y-4 mb-4 flex-1">
               {['24/7 Cloud Support', 'Priority Nodes', 'No Withdrawal Limit'].map(f => (
                 <div key={f} className="flex items-center gap-2 text-[10px] uppercase tracking-widest font-bold text-white/60">
                   <Check className="w-3 h-3 text-primary" /> {f}
                 </div>
               ))}
+            </div>
+
+            <div className="mb-8 p-3 rounded-xl bg-white/5 border border-white/5">
+              <p className="text-[9px] uppercase tracking-[0.2em] text-white/30 mb-1">USDT Equivalent</p>
+              <p className="text-sm font-bold text-primary tracking-tighter">${plan.priceUsdt} USDT (TRC20)</p>
             </div>
 
             <Button 
@@ -572,12 +618,12 @@ function SubscriptionView({ user }: { user?: User | null }) {
 
       <AnimatePresence>
         {selectedPlan && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="glass-card w-full max-w-md p-8 rounded-[2rem] border border-white/10 relative"
+              className="glass-card w-full max-w-md p-8 my-8 rounded-[2rem] border border-white/10 relative"
             >
               <button 
                 onClick={() => setSelectedPlan(null)}
@@ -586,31 +632,65 @@ function SubscriptionView({ user }: { user?: User | null }) {
                 <AlertCircle className="w-6 h-6 rotate-45" />
               </button>
 
-              <div className="text-center mb-8">
-                <h3 className="text-2xl font-black uppercase tracking-tighter mb-1">Pay via <span className="text-primary italic">UPI</span></h3>
-                <p className="text-xs text-white/40 tracking-widest uppercase">Scan to complete payment</p>
+              <div className="text-center mb-6">
+                <h3 className="text-2xl font-black uppercase tracking-tighter mb-1">Checkout <span className="text-primary italic">Plan</span></h3>
+                <p className="text-xs text-white/40 tracking-widest uppercase">{selectedPlan.name}</p>
               </div>
 
-              <div className="bg-white p-6 rounded-2xl mx-auto w-fit mb-8 shadow-[0_0_50px_rgba(255,255,255,0.1)]">
-                <QRCodeSVG 
-                  value={`upi://pay?pa=8731006024-2@ybl&pn=CTPool&am=${selectedPlan.price}&cu=INR`} 
-                  size={200}
-                />
+              {/* Payment Method Switcher */}
+              <div className="flex gap-2 p-1 bg-white/5 rounded-2xl mb-8 border border-white/5">
+                <button
+                  onClick={() => setPaymentMethod('upi')}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${paymentMethod === 'upi' ? 'bg-primary text-black' : 'text-white/40 hover:bg-white/5'}`}
+                >
+                  UPI (INR)
+                </button>
+                <button
+                  onClick={() => setPaymentMethod('usdt')}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${paymentMethod === 'usdt' ? 'bg-primary text-black' : 'text-white/40 hover:bg-white/5'}`}
+                >
+                  USDT (TRC20)
+                </button>
+              </div>
+
+              <div className="text-center mb-8">
+                <div className="bg-white p-6 rounded-2xl mx-auto w-fit mb-4 shadow-[0_0_50px_rgba(255,255,255,0.1)]">
+                  <QRCodeSVG 
+                    value={paymentMethod === 'upi' 
+                      ? `upi://pay?pa=8731006024-2@ybl&pn=CTPool&am=${selectedPlan.price}&cu=INR`
+                      : USDT_ADDRESS
+                    } 
+                    size={160}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xs text-white/40 tracking-widest uppercase">Amount Payable</p>
+                  <p className="text-3xl font-black text-primary tracking-tighter">
+                    {paymentMethod === 'upi' ? `₹${selectedPlan.price}` : `$${selectedPlan.priceUsdt} USDT`}
+                  </p>
+                  {paymentMethod === 'usdt' && (
+                    <p className="text-[10px] text-primary/60 uppercase tracking-widest font-bold">Network: TRON (TRC20)</p>
+                  )}
+                </div>
               </div>
 
               <div className="bg-white/5 p-4 rounded-2xl mb-8 flex items-center justify-between border border-white/10">
-                <div className="flex flex-col">
-                  <span className="text-[10px] uppercase tracking-widest text-white/40 mb-1">UPI ID</span>
-                  <span className="text-sm font-mono font-bold tracking-tight">8731006024-2@ybl</span>
+                <div className="flex flex-col min-w-0 flex-1 mr-4">
+                  <span className="text-[10px] uppercase tracking-widest text-white/40 mb-1">
+                    {paymentMethod === 'upi' ? 'UPI ID' : 'TRC20 Address'}
+                  </span>
+                  <span className="text-xs font-mono font-bold tracking-tight truncate">
+                    {paymentMethod === 'upi' ? '8731006024-2@ybl' : USDT_ADDRESS}
+                  </span>
                 </div>
                 <Button 
                   size="icon" 
                   variant="ghost" 
                   onClick={() => {
-                    navigator.clipboard.writeText('8731006024-2@ybl');
-                    toast.success('UPI ID Copied');
+                    navigator.clipboard.writeText(paymentMethod === 'upi' ? '8731006024-2@ybl' : USDT_ADDRESS);
+                    toast.success('Address Copied');
                   }}
-                  className="text-primary"
+                  className="text-primary shrink-0"
                 >
                   <Copy className="w-4 h-4" />
                 </Button>
@@ -624,7 +704,7 @@ function SubscriptionView({ user }: { user?: User | null }) {
                   onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
                 />
                 <Input 
-                  placeholder="Enter Transaction ID (UTR)" 
+                  placeholder={paymentMethod === 'upi' ? "Enter Transaction ID (UTR)" : "Enter Transaction Hash / ID"} 
                   className="bg-white/5 border-white/10 h-12 rounded-xl"
                   value={formData.utr}
                   onChange={e => setFormData(prev => ({ ...prev, utr: e.target.value }))}
@@ -708,14 +788,21 @@ function AdminPanelView({ settings, setSettings }: any) {
               <div key={sub.id} className="p-4 bg-white/5 rounded-2xl border border-white/5">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h5 className="font-bold text-sm">{sub.name}</h5>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h5 className="font-bold text-sm">{sub.name}</h5>
+                      <span className={`text-[8px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-widest ${sub.method === 'usdt' ? 'bg-primary/20 text-primary' : 'bg-blue-500/20 text-blue-400'}`}>
+                        {sub.method || 'upi'}
+                      </span>
+                    </div>
                     <p className="text-[10px] text-white/40 uppercase tracking-widest">{sub.plan}</p>
                   </div>
-                  <span className="text-primary font-black text-sm italic">₹{sub.amount}</span>
+                  <span className="text-primary font-black text-sm italic">{sub.amount}</span>
                 </div>
                 <div className="bg-black/40 p-2 rounded-lg mb-4 flex items-center justify-between">
-                  <span className="text-[10px] text-white/40">UTR: {sub.utr}</span>
-                  <button onClick={() => { navigator.clipboard.writeText(sub.utr); toast.success('UTR Copied'); }}>
+                  <span className="text-[10px] text-white/40 truncate mr-2">
+                    {sub.method === 'usdt' ? 'HASH: ' : 'UTR: '}{sub.utr}
+                  </span>
+                  <button onClick={() => { navigator.clipboard.writeText(sub.utr); toast.success('Copied'); }}>
                     <Copy className="w-3 h-3 text-white/40 hover:text-primary" />
                   </button>
                 </div>
