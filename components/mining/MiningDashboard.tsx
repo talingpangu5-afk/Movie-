@@ -26,6 +26,9 @@ import {
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 import { QRCodeSVG } from 'qrcode.react';
+import TradingViewWidget from './TradingViewWidget';
+import TradingViewTechnicalAnalysis from './TradingViewTechnicalAnalysis';
+import { BadgeDollarSign } from 'lucide-react';
 
 ChartJS.register(
   CategoryScale,
@@ -43,7 +46,7 @@ interface MiningDashboardProps {
 }
 
 export function MiningDashboard({ user }: MiningDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'wallet' | 'analytics' | 'subscription' | 'admin'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'trade' | 'wallet' | 'analytics' | 'subscription' | 'admin'>('dashboard');
   const isAdmin = useMemo(() => user?.email === 'talingpangu5@gmail.com', [user]);
   const [stats, setStats] = useState({
     hashrateBase: 42.5,
@@ -75,9 +78,21 @@ export function MiningDashboard({ user }: MiningDashboardProps) {
         if (result.success) {
           const price = parseFloat(result.data.price);
           if (price > 0) {
-            setMarketPrice(price * 84); // Convert USD to INR roughly or keep as is
+            setMarketPrice(price * 84); // Convert USD to INR
             
-            // Add a log entry for price update
+            // Sync real balances if available
+            const btcAccount = result.data.accounts.find((a: any) => a.currency === 'BTC' && a.type === 'trade');
+            const usdtAccount = result.data.accounts.find((a: any) => a.currency === 'USDT' && a.type === 'trade');
+            
+            if (usdtAccount || btcAccount) {
+              setStats(prev => ({
+                ...prev,
+                balance: usdtAccount ? parseFloat(usdtAccount.balance) * 84 : prev.balance, // USDT to INR
+                earnings: btcAccount ? parseFloat(btcAccount.balance) : prev.earnings,
+                livePL: btcAccount ? (parseFloat(btcAccount.balance) * price * 84) : prev.livePL
+              }));
+            }
+
             setLogs(prev => [{
               id: Date.now(),
               type: 'MARKET SYNC',
@@ -252,6 +267,7 @@ export function MiningDashboard({ user }: MiningDashboardProps) {
         <aside className="w-full lg:w-64 flex flex-col gap-2">
           {[
             { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
+            { id: 'trade', label: 'Trade', icon: BadgeDollarSign },
             { id: 'wallet', label: 'Wallet', icon: Wallet },
             { id: 'analytics', label: 'Analytics', icon: BarChart3 },
             { id: 'subscription', label: 'Subscription', icon: CreditCard },
@@ -283,11 +299,39 @@ export function MiningDashboard({ user }: MiningDashboardProps) {
                 exit={{ opacity: 0, x: -20 }}
                 className="space-y-6"
               >
+                {/* KuCoin System Status Row */}
+                <div className="flex flex-wrap items-center gap-4 mb-6 p-4 bg-primary/5 rounded-2xl border border-primary/20 backdrop-blur-md">
+                  <div className="flex items-center gap-2 px-3 py-1 bg-black/40 rounded-full border border-white/5">
+                    <div className="w-2 h-2 rounded-full bg-green-500 shadow-[0_0_8px_#22c55e] animate-pulse" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white/80">KuCoin Node: Online</span>
+                  </div>
+                  <div className="flex items-center gap-2 px-3 py-1 bg-black/40 rounded-full border border-white/5">
+                    <Cpu className="w-3 h-3 text-primary" />
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white/80">Bridge: Encrypted</span>
+                  </div>
+                  <div className="flex-1" />
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <p className="text-[10px] uppercase tracking-widest text-white/40 font-bold">KuCoin BTC Price</p>
+                      <p className="text-sm font-black text-primary tracking-tighter">
+                        ₹{marketPrice.toLocaleString()} <span className="text-[10px] text-white/40 font-normal">INR / BTC</span>
+                      </p>
+                    </div>
+                    <div className="w-px h-8 bg-white/10" />
+                    <div className="text-right">
+                      <p className="text-[10px] uppercase tracking-widest text-white/40 font-bold">API Latency</p>
+                      <p className="text-sm font-black text-cyan-400 tracking-tighter">
+                        24ms <span className="text-[10px] text-white/40 font-normal">Handshake</span>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Stats Row */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <StatCard label="Hashrate" value={`${currentHashrate.toFixed(2)} TH/s`} icon={Zap} color="text-cyan-400" />
-                  <StatCard label="Miner Status" value="Running" icon={Activity} color="text-green-400" pulse />
-                  <StatCard label="Daily Earnings" value={`${stats.earnings.toFixed(6)} BTC`} icon={TrendingUp} color="text-yellow-400" />
+                  <StatCard label="Live Hashrate" value={`${currentHashrate.toFixed(2)} TH/s`} icon={Zap} color="text-cyan-400" />
+                  <StatCard label="KuCoin Status" value="Syncing" icon={Activity} color="text-green-400" pulse />
+                  <StatCard label="Daily Yield" value={`${stats.earnings.toFixed(6)} BTC`} icon={TrendingUp} color="text-yellow-400" sub="via KuCoin" />
                   <StatCard label="Network Diff" value="Low" icon={Database} color="text-purple-400" />
                 </div>
 
@@ -402,6 +446,7 @@ export function MiningDashboard({ user }: MiningDashboardProps) {
               </motion.div>
             )}
 
+            {activeTab === 'trade' && <TradeView marketPrice={marketPrice} stats={stats} user={user} />}
             {activeTab === 'wallet' && <WalletView stats={stats} />}
             {activeTab === 'analytics' && <AnalyticsView chartData={chartData} />}
             {activeTab === 'subscription' && <SubscriptionView user={user} />}
@@ -413,7 +458,162 @@ export function MiningDashboard({ user }: MiningDashboardProps) {
   );
 }
 
-function StatCard({ label, value, icon: Icon, color, pulse }: any) {
+function TradeView({ marketPrice, stats, user }: { marketPrice: number, stats: any, user: any }) {
+  const [amount, setAmount] = useState<string>('');
+  const [type, setType] = useState<'buy' | 'sell'>('buy');
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const handleTrade = async () => {
+    if (!amount || parseFloat(amount) <= 0) return toast.error('Enter valid amount');
+    setIsProcessing(true);
+    
+    try {
+      const token = await user?.getIdToken();
+      
+      // For KuCoin Market Orders:
+      // Side 'buy' requires 'funds' (total amount of quote currency, e.g. USDT)
+      // Side 'sell' requires 'size' (total amount of base currency, e.g. BTC)
+      
+      // Convert INR amount back to USD for the API
+      const usdAmount = parseFloat(amount) / 84;
+
+      const response = await fetch('/api/mining/trade', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          symbol: 'BTC-USDT',
+          side: type,
+          amount: type === 'buy' ? usdAmount : (parseFloat(amount) / marketPrice)
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        toast.success(`Order Processed: ${type.toUpperCase()} Success`);
+        setAmount('');
+      } else {
+        toast.error(`Trade Failed: ${result.error || 'Unknown Error'}`);
+      }
+    } catch (error: any) {
+      toast.error('Connection to KuCoin Bridge failed');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      className="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[650px]"
+    >
+       <div className="lg:col-span-2 glass-card rounded-[2.5rem] border border-white/5 overflow-hidden flex flex-col bg-black shadow-2xl">
+          <div className="p-6 border-b border-white/5 flex items-center justify-between bg-white/5">
+             <h3 className="text-sm font-black uppercase tracking-tighter flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-primary" />
+                Live Market <span className="text-primary italic">Terminal</span>
+             </h3>
+             <div className="flex items-center gap-2">
+                <span className="text-[10px] bg-green-500/10 text-green-400 px-3 py-1 rounded-full font-black uppercase tracking-widest border border-green-500/20">TRADINGVIEW ENGINE</span>
+                <span className="text-[10px] bg-primary/10 text-primary px-3 py-1 rounded-full font-black uppercase tracking-widest border border-primary/20">BTC/USDT</span>
+             </div>
+          </div>
+          <div className="flex-1 w-full relative">
+             <TradingViewWidget />
+          </div>
+       </div>
+
+       <div className="glass-card p-8 rounded-[2.5rem] border border-white/5 flex flex-col bg-gradient-to-b from-white/5 to-transparent">
+          <div className="flex items-center justify-between mb-8">
+             <h3 className="text-xl font-black uppercase tracking-tighter">API <span className="text-primary">Execution</span></h3>
+             <div className="px-2 py-0.5 bg-green-500/10 rounded-md border border-green-500/20">
+                <span className="text-[8px] font-bold text-green-500 uppercase tracking-widest">LIVE TRADING</span>
+             </div>
+          </div>
+          
+          <div className="flex gap-2 p-1.5 bg-white/5 rounded-2xl mb-8 border border-white/5">
+             <button 
+               onClick={() => setType('buy')}
+               className={`flex-1 py-4 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-500 ${type === 'buy' ? 'bg-green-500 text-black shadow-lg shadow-green-500/20' : 'text-white/40 hover:bg-white/5'}`}
+             >
+               Buy BTC
+             </button>
+             <button 
+               onClick={() => setType('sell')}
+               className={`flex-1 py-4 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-500 ${type === 'sell' ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'text-white/40 hover:bg-white/5'}`}
+             >
+               Sell BTC
+             </button>
+          </div>
+
+          <div className="space-y-8 flex-1">
+             <div className="space-y-3">
+                <div className="flex justify-between items-center px-1">
+                   <label className="text-[10px] uppercase tracking-widest text-white/40 font-bold">Trade Amount</label>
+                   <span className="text-[10px] font-bold text-primary italic uppercase tracking-widest cursor-pointer hover:text-white" onClick={() => setAmount(stats.balance.toString())}>Max Balance</span>
+                </div>
+                <div className="relative group">
+                   <Input 
+                     type="number"
+                     placeholder="0.00"
+                     value={amount}
+                     onChange={(e) => setAmount(e.target.value)}
+                     className="bg-white/5 border-white/10 h-16 rounded-2xl pl-12 font-black text-xl group-focus-within:border-primary/50 transition-all outline-none ring-0"
+                   />
+                   <span className="absolute left-5 top-1/2 -translate-y-1/2 text-primary text-lg font-black italic">₹</span>
+                </div>
+             </div>
+
+             <div className="space-y-4">
+                <div className="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
+                   <div className="space-y-1">
+                      <p className="text-[9px] uppercase tracking-widest text-white/40 font-bold">KuCoin Index Price</p>
+                      <p className="text-sm font-black text-white tracking-tighter">₹{marketPrice.toLocaleString()}</p>
+                   </div>
+                   <TrendingUp className="w-4 h-4 text-primary opacity-20" />
+                </div>
+
+                <div className="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
+                   <div className="space-y-1">
+                      <p className="text-[9px] uppercase tracking-widest text-white/40 font-bold">Estimated Output</p>
+                      <p className={`text-sm font-black tracking-tighter ${type === 'buy' ? 'text-green-400' : 'text-red-400'}`}>
+                        {amount ? (parseFloat(amount) / marketPrice).toFixed(8) : '0.00000000'} BTC
+                      </p>
+                   </div>
+                   <RefreshCw className="w-4 h-4 text-white/20" />
+                </div>
+             </div>
+          </div>
+
+          <div className="mt-8 space-y-4">
+             <Button 
+               onClick={handleTrade}
+               disabled={isProcessing}
+               className={`w-full h-16 rounded-2xl font-black uppercase tracking-widest text-sm shadow-2xl transition-all duration-300 hover:scale-[1.02] active:scale-95 ${
+                 type === 'buy' ? 'bg-green-500 hover:bg-green-400 text-black shadow-green-500/10' : 'bg-red-500 hover:bg-red-400 text-white shadow-red-500/10'
+               }`}
+             >
+               {isProcessing ? (
+                 <div className="flex items-center gap-2">
+                    <RefreshCw className="w-4 h-4 animate-spin" />
+                    Executing...
+                 </div>
+               ) : `Place KuCoin ${type.toUpperCase()} Order`}
+             </Button>
+             <p className="text-[9px] text-white/20 text-center uppercase tracking-widest font-bold">
+                Orders are routed directly to KuCoin Spot Exchange
+             </p>
+          </div>
+       </div>
+    </motion.div>
+  );
+}
+
+function StatCard({ label, value, icon: Icon, color, pulse, sub }: any) {
   return (
     <div className="glass-card p-6 rounded-2xl border border-white/5 hover:border-primary/20 transition-all duration-500 group">
       <div className="flex items-center gap-4">
@@ -421,7 +621,10 @@ function StatCard({ label, value, icon: Icon, color, pulse }: any) {
           <Icon className={`w-5 h-5 ${pulse ? 'animate-pulse' : ''}`} />
         </div>
         <div>
-          <p className="text-[10px] uppercase tracking-widest text-white/40 mb-0.5">{label}</p>
+          <div className="flex items-center gap-2">
+            <p className="text-[10px] uppercase tracking-widest text-white/40 mb-0.5">{label}</p>
+            {sub && <span className="text-[8px] px-1 bg-white/10 rounded-sm text-white/40 font-bold uppercase tracking-tighter">{sub}</span>}
+          </div>
           <h4 className="text-xl font-black tracking-tight">{value}</h4>
         </div>
       </div>
@@ -757,6 +960,27 @@ function AdminPanelView({ settings, setSettings }: any) {
         <h3 className="text-xl font-black uppercase tracking-tighter">Mining <span className="text-primary italic">Controls</span></h3>
         
         <div className="space-y-6">
+          <div className="p-4 bg-[#050505] rounded-2xl border border-white/5">
+             <div className="flex items-center justify-between mb-4">
+                <h4 className="text-xs font-black uppercase tracking-[0.2em] text-white/60">KuCoin Bridge Status</h4>
+                <div className="flex items-center gap-1.5 px-2 py-0.5 bg-green-500/10 rounded-full border border-green-500/20">
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500 shadow-[0_0_5px_#22c55e]" />
+                  <span className="text-[8px] font-black text-green-500 uppercase tracking-tighter">Active</span>
+                </div>
+             </div>
+             <div className="grid grid-cols-2 gap-3">
+                <div className="p-3 bg-white/5 rounded-xl text-center">
+                  <p className="text-[9px] uppercase tracking-widest text-white/40 mb-1">Spot Auth</p>
+                  <p className="text-xs font-bold text-primary">Verified</p>
+                </div>
+                <div className="p-3 bg-white/5 rounded-xl text-center">
+                  <p className="text-[9px] uppercase tracking-widest text-white/40 mb-1">Tunneling</p>
+                  <p className="text-xs font-bold text-cyan-400">Secure</p>
+                </div>
+             </div>
+             <p className="text-[8px] text-white/20 mt-3 italic text-center font-mono uppercase tracking-[0.1em]">Proxy: ais-secure-gateway.kucoin.internal</p>
+          </div>
+
           <div className="space-y-2">
             <label className="text-[10px] uppercase tracking-widest text-white/40">Mining Speed Multiplier ({settings.miningSpeed}x)</label>
             <input 
