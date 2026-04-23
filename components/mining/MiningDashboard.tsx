@@ -29,6 +29,7 @@ import { QRCodeSVG } from 'qrcode.react';
 import TradingViewWidget from './TradingViewWidget';
 import TradingViewTechnicalAnalysis from './TradingViewTechnicalAnalysis';
 import { BadgeDollarSign } from 'lucide-react';
+import { TestimonialsSection } from './TestimonialsSection';
 
 ChartJS.register(
   CategoryScale,
@@ -924,6 +925,8 @@ function SubscriptionView({ user }: { user?: User | null }) {
           </div>
         )}
       </AnimatePresence>
+
+      <TestimonialsSection />
     </motion.div>
   );
 }
