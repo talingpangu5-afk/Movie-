@@ -16,7 +16,7 @@ type CallState = 'idle' | 'pre-call' | 'connecting' | 'live' | 'ended';
 export function VideoSupportSystem() {
   const [isOpen, setIsOpen] = useState(false);
   const [callState, setCallState] = useState<CallState>('idle');
-  const [formData, setFormData] = useState({ name: '', issue: 'Support' });
+  const [formData, setFormData] = useState({ name: '', phone: '+918731006024', issue: 'Support' });
   const [isMuted, setIsMuted] = useState(false);
   const [isVideoOff, setIsVideoOff] = useState(false);
   const [timer, setTimer] = useState(0);
@@ -49,9 +49,6 @@ export function VideoSupportSystem() {
         audio: true 
       });
       streamRef.current = stream;
-      if (localVideoRef.current) {
-        localVideoRef.current.srcObject = stream;
-      }
       return true;
     } catch (err) {
       toast.error('Could not access camera or microphone');
@@ -177,6 +174,15 @@ export function VideoSupportSystem() {
                         placeholder="e.g. talingpangu5" 
                         value={formData.name}
                         onChange={e => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                        className="bg-white/5 border-white/10 h-14 rounded-xl focus:border-primary/50"
+                      />
+                    </div>
+                    <div className="space-y-2 text-left">
+                      <label className="text-[10px] uppercase tracking-widest text-white/40 ml-1">Phone Number</label>
+                      <Input 
+                        placeholder="+91..." 
+                        value={formData.phone}
+                        onChange={e => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                         className="bg-white/5 border-white/10 h-14 rounded-xl focus:border-primary/50"
                       />
                     </div>
