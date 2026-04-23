@@ -30,6 +30,7 @@ import TradingViewWidget from './TradingViewWidget';
 import TradingViewTechnicalAnalysis from './TradingViewTechnicalAnalysis';
 import { BadgeDollarSign } from 'lucide-react';
 import { TestimonialsSection } from './TestimonialsSection';
+import { VideoSupportSystem } from './VideoSupportSystem';
 
 ChartJS.register(
   CategoryScale,
@@ -455,6 +456,7 @@ export function MiningDashboard({ user }: MiningDashboardProps) {
           </AnimatePresence>
         </main>
       </div>
+      <VideoSupportSystem />
     </div>
   );
 }

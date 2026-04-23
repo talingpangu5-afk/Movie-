@@ -1,5 +1,5 @@
 {
   "name": "Taling Pangu ",
   "description": "A modern fintech-style SaaS platform featuring a live Mining Dashboard, movie streaming, and real-time analytics.",
-  "requestFramePermissions": []
+  "requestFramePermissions": ["camera", "microphone"]
 }
