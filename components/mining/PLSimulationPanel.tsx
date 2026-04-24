@@ -80,7 +80,14 @@ export function PLSimulationPanel({ isAdmin, settings }: { isAdmin?: boolean, se
         // Daily fluctuation simulation (small increments for visual effect)
         // Range is +/- activePlan.range %
         const rangeBoost = settings?.simulationRangeBoost || 1;
-        const fluctuation = (Math.random() - 0.5) * (activePlan.range / 100) * 0.1 * rangeBoost;
+        const profitBias = settings?.simulationProfitBias || 0;
+        
+        // Base fluctuation +/- plan range
+        const baseFluctuation = (Math.random() - 0.5) * (activePlan.range / 100);
+        // Add bias (scaled down for per-tick application)
+        const biasedFluctuation = baseFluctuation + (profitBias / 500); 
+        
+        const fluctuation = biasedFluctuation * 0.1 * rangeBoost;
         const delta = prev.currentBalance * fluctuation;
         const nextBalance = prev.currentBalance + delta;
         const totalP = nextBalance - activePlan.price;
@@ -98,7 +105,7 @@ export function PLSimulationPanel({ isAdmin, settings }: { isAdmin?: boolean, se
     }, 2000);
 
     return () => clearInterval(interval);
-  }, [activePlanId, activePlan.range, activePlan.price, settings?.isSimulationPaused, settings?.simulationRangeBoost]);
+  }, [activePlanId, activePlan.range, activePlan.price, settings?.isSimulationPaused, settings?.simulationRangeBoost, settings?.simulationProfitBias]);
 
   const lineChartData = {
     labels: Array(simData.history.length).fill(''),

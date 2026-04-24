@@ -11,6 +11,7 @@ import { Hero } from '@/components/Hero';
 import { AdManager } from '@/components/AdManager';
 import { CinematicBanner } from '@/components/CinematicBanner';
 import { HologramTrailers } from '@/components/HologramTrailers';
+import { EarthZoomContact } from '@/components/EarthZoomContact';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 300; // Refresh every 5 minutes
@@ -47,62 +48,75 @@ async function MovieRow({ title, fetcher }: { title: string, fetcher: () => Prom
 }
 
 export default async function HomePage() {
-  const trendingData = await tmdb.getTrending();
-  const trendingMovies = trendingData.results?.slice(0, 10) || [];
+  try {
+    const trendingData = await tmdb.getTrending();
+    const trendingMovies = trendingData.results?.slice(0, 5) || [];
 
-  if (trendingMovies.length === 0) {
+    if (trendingMovies.length === 0) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
+          <h1 className="text-2xl font-bold mb-4">Welcome to Taling Pangu</h1>
+          <p className="text-muted-foreground">Unable to load trending movies at the moment. Please check your API configuration.</p>
+        </div>
+      );
+    }
+
+    // Fetch full details for hero movies to get trailers
+    const heroMovies: MovieDetails[] = await tmdb.getMultipleMovieDetails(trendingMovies.map((m: Movie) => m.id));
+
+    return (
+      <div className="flex flex-col">
+        <AutoRefresh />
+        <AdManager />
+        <EarthZoomContact />
+        <Hero movies={heroMovies} />
+        
+        <div className="flex flex-col gap-8">
+
+        {/* Ad Placement */}
+        <div className="container mx-auto px-4 py-4">
+          <AdBanner />
+        </div>
+
+        {/* Movie Rows */}
+        <div className="space-y-8 pb-20">
+          <MovieRow title="Now Playing" fetcher={tmdb.getNowPlaying} />
+          
+          {/* Ad Between Sections */}
+          <div className="container mx-auto px-4">
+            <AdBanner />
+          </div>
+
+          <MovieRow title="Popular Movies" fetcher={tmdb.getPopular} />
+          
+          {/* Ad Between Sections */}
+          <div className="container mx-auto px-4">
+            <AdBanner />
+          </div>
+
+          <MovieRow title="Top Rated" fetcher={tmdb.getTopRated} />
+          
+          {/* Ad Between Sections */}
+          <div className="container mx-auto px-4">
+            <AdBanner />
+          </div>
+
+          <CinematicBanner />
+
+          <MovieRow title="Upcoming" fetcher={tmdb.getUpcoming} />
+
+          <HologramTrailers />
+        </div>
+      </div>
+    </div>
+    );
+  } catch (error) {
+    console.error('Error in HomePage:', error);
     return (
       <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
-        <h1 className="text-2xl font-bold mb-4">Welcome to Taling Pangu</h1>
-        <p className="text-muted-foreground">Unable to load trending movies at the moment. Please check your API configuration.</p>
+        <h1 className="text-2xl font-bold mb-4">Something went wrong</h1>
+        <p className="text-muted-foreground">We encountered an error loading the home page. Please try again later.</p>
       </div>
     );
   }
-
-  // Fetch full details for hero movies to get trailers
-  const heroMovies: MovieDetails[] = await tmdb.getMultipleMovieDetails(trendingMovies.map((m: Movie) => m.id));
-
-  return (
-    <div className="flex flex-col gap-8">
-      <AutoRefresh />
-      <AdManager />
-      
-      <Hero movies={heroMovies} />
-
-      {/* Ad Placement */}
-      <div className="container mx-auto px-4 py-4">
-        <AdBanner />
-      </div>
-
-      {/* Movie Rows */}
-      <div className="space-y-8 pb-20">
-        <MovieRow title="Now Playing" fetcher={tmdb.getNowPlaying} />
-        
-        {/* Ad Between Sections */}
-        <div className="container mx-auto px-4">
-          <AdBanner />
-        </div>
-
-        <MovieRow title="Popular Movies" fetcher={tmdb.getPopular} />
-        
-        {/* Ad Between Sections */}
-        <div className="container mx-auto px-4">
-          <AdBanner />
-        </div>
-
-        <MovieRow title="Top Rated" fetcher={tmdb.getTopRated} />
-        
-        {/* Ad Between Sections */}
-        <div className="container mx-auto px-4">
-          <AdBanner />
-        </div>
-
-        <CinematicBanner />
-
-        <MovieRow title="Upcoming" fetcher={tmdb.getUpcoming} />
-
-        <HologramTrailers />
-      </div>
-    </div>
-  );
 }

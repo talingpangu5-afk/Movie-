@@ -64,7 +64,8 @@ export function MiningDashboard({ user }: MiningDashboardProps) {
     profitFactor: 1,
     lossFactor: 1,
     isSimulationPaused: false,
-    simulationRangeBoost: 1
+    simulationRangeBoost: 1,
+    simulationProfitBias: 0
   });
   const [marketPrice, setMarketPrice] = useState<number>(8500000); // Default placeholder
   const [logs, setLogs] = useState<any[]>([]);
@@ -145,6 +146,7 @@ export function MiningDashboard({ user }: MiningDashboardProps) {
             lossFactor: 1,
             isSimulationPaused: false,
             simulationRangeBoost: 1,
+            simulationProfitBias: 0,
             updatedAt: new Date()
           });
         } catch (err) {
@@ -1044,14 +1046,15 @@ function AdminPanelView({ settings, setSettings }: any) {
             </div>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <label className="text-[10px] uppercase tracking-widest text-white/40">Range Multiplier ({settings.simulationRangeBoost}x)</label>
+                <label className="text-[10px] uppercase tracking-widest text-white/40">Profit/Loss Bias ({settings.simulationProfitBias > 0 ? '+' : ''}{settings.simulationProfitBias}%)</label>
               </div>
               <input 
-                type="range" min="0.5" max="3" step="0.1" 
-                value={settings.simulationRangeBoost} 
-                onChange={e => updateSettings('simulationRangeBoost', parseFloat(e.target.value))}
-                className="w-full h-1 bg-white/10 rounded-full appearance-none accent-primary"
+                type="range" min="-5" max="5" step="0.5" 
+                value={settings.simulationProfitBias} 
+                onChange={e => updateSettings('simulationProfitBias', parseFloat(e.target.value))}
+                className="w-full h-1 bg-white/10 rounded-full appearance-none accent-green-400"
               />
+              <p className="text-[8px] text-white/20 uppercase tracking-widest font-bold">Forces simulation to lean towards Profit (+) or Loss (-)</p>
             </div>
           </div>
         </div>
