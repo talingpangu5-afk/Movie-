@@ -409,6 +409,10 @@ export default function MoviesPage() {
               </div>
             )}
           </div>
+
+          <div className="flex justify-center pt-12 border-t border-white/5">
+            <AdBanner />
+          </div>
           
           {/* Navigation/Actions Section */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-12">

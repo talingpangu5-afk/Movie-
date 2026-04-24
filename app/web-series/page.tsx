@@ -349,6 +349,10 @@ export default function WebSeriesPage() {
               </div>
             )}
           </div>
+
+          <div className="flex justify-center pt-12 border-t border-white/5">
+            <AdBanner />
+          </div>
         </div>
       </div>
 

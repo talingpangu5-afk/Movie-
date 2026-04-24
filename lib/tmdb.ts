@@ -75,6 +75,8 @@ export const tmdb = {
   getTopRated: (page: number = 1) => fetchTMDB('/movie/top_rated', { page: page.toString() }),
   getTopRatedTV: (page: number = 1) => fetchTMDB('/tv/top_rated', { page: page.toString() }),
   getUpcoming: (page: number = 1) => fetchTMDB('/movie/upcoming', { page: page.toString() }),
+  getByGenre: (genreId: number, page: number = 1) => fetchTMDB('/discover/movie', { with_genres: genreId.toString(), page: page.toString() }),
+  getTVShows: (page: number = 1) => fetchTMDB('/discover/tv', { page: page.toString() }),
   search: (query: string, page: number = 1) => fetchTMDB('/search/multi', { query, page: page.toString() }),
   getMovieDetails: (id: string) => fetchTMDB(`/movie/${id}`, { append_to_response: 'credits,videos' }),
   getMultipleMovieDetails: async (ids: number[]) => {

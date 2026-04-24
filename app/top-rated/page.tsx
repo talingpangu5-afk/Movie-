@@ -1,6 +1,7 @@
 import { tmdb, Movie } from '@/lib/tmdb';
 import { MovieCard } from '@/components/MovieCard';
 import { Award } from 'lucide-react';
+import { AdBanner } from '@/components/AdBanner';
 
 export const dynamic = 'force-dynamic';
 
@@ -22,6 +23,10 @@ export default async function TopRatedPage() {
           {results.map((movie: Movie) => (
             <MovieCard key={movie.id} movie={movie} />
           ))}
+        </div>
+
+        <div className="flex justify-center pt-12 border-t border-white/5">
+          <AdBanner />
         </div>
       </div>
     </div>
