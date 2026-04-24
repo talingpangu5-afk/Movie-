@@ -79,7 +79,7 @@ export function AdBanner({ className = '', width = '728', height = '90' }: AdBan
   }, [adId, width, height]);
 
   return (
-    <div className={`w-full flex justify-center mt-10 mb-6 ${className}`}>
+    <div className={`w-full flex justify-center ${className}`}>
       <div 
         ref={containerRef}
         style={{ maxWidth: `${width}px`, minHeight: `${height}px` }}

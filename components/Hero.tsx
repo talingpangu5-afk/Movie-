@@ -156,7 +156,7 @@ export function Hero({ movies }: HeroProps) {
   return (
     <section 
       ref={containerRef}
-      className="relative h-[90vh] w-full overflow-hidden bg-black"
+      className="relative h-[65vh] md:h-[75vh] w-full overflow-hidden bg-black"
     >
       <JellyfishLights />
       <HackerTyping />

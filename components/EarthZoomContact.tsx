@@ -38,11 +38,11 @@ export function EarthZoomContact() {
     sceneRef.current = scene;
 
     const width = window.innerWidth;
-    const height = window.innerHeight * 0.6 || 300;
+    const height = window.innerHeight * 0.45 || 300;
     const aspect = width / height;
 
     const camera = new THREE.PerspectiveCamera(45, aspect, 0.1, 2000);
-    camera.position.z = 250;
+    camera.position.z = 200;
     cameraRef.current = camera;
 
     const renderer = new THREE.WebGLRenderer({
@@ -63,7 +63,7 @@ export function EarthZoomContact() {
     const starTexture = loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/sprites/disc.png');
 
     // EARTH
-    const earthGeo = new THREE.SphereGeometry(100, 64, 64);
+    const earthGeo = new THREE.SphereGeometry(75, 64, 64);
     const earthMat = new THREE.MeshPhongMaterial({
       map: earthTexture,
       shininess: 5,
@@ -73,7 +73,7 @@ export function EarthZoomContact() {
     earthRef.current = earth;
 
     // CLOUDS
-    const cloudGeo = new THREE.SphereGeometry(101, 64, 64);
+    const cloudGeo = new THREE.SphereGeometry(75.8, 64, 64);
     const cloudMat = new THREE.MeshPhongMaterial({
       map: cloudTexture,
       transparent: true,
@@ -84,7 +84,7 @@ export function EarthZoomContact() {
     cloudsRef.current = clouds;
 
     // ATMOSPHERE GLOW
-    const glowGeo = new THREE.SphereGeometry(105, 64, 64);
+    const glowGeo = new THREE.SphereGeometry(78.5, 64, 64);
     const glowMat = new THREE.ShaderMaterial({
       transparent: true,
       uniforms: {
@@ -165,7 +165,7 @@ export function EarthZoomContact() {
     const handleResize = () => {
       if (!cameraRef.current || !rendererRef.current) return;
       const w = window.innerWidth;
-      const h = window.innerHeight * 0.6 || 300;
+      const h = window.innerHeight * 0.45 || 300;
       cameraRef.current.aspect = w / h;
       cameraRef.current.updateProjectionMatrix();
       rendererRef.current.setSize(w, h);
@@ -227,7 +227,7 @@ export function EarthZoomContact() {
     }, "-=0.5");
 
     tl.to(cameraRef.current!.position, {
-      z: 110,
+      z: 82,
       duration: 3,
       ease: 'expo.inOut'
     }, "<");
@@ -249,14 +249,14 @@ export function EarthZoomContact() {
   const reset = () => {
     setStage('idle');
     setShowMailUi(false);
-    if (cameraRef.current) cameraRef.current.position.z = 250;
+    if (cameraRef.current) cameraRef.current.position.z = 200;
     document.body.style.overflow = 'auto';
   };
 
   return (
     <div 
       ref={containerRef}
-      className="relative w-full h-[40vh] md:h-[60vh] overflow-hidden bg-black select-none z-40 pt-20"
+      className="relative w-full h-[35vh] md:h-[45vh] overflow-hidden bg-black select-none z-40 border-b border-white/5"
       style={{ margin: 0, padding: 0 }}
     >
       <canvas 
@@ -269,38 +269,39 @@ export function EarthZoomContact() {
       <AnimatePresence>
         {stage === 'idle' && (
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 flex items-center justify-center pointer-events-none z-10"
+            className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-10"
           >
-            <div className="text-center px-4">
+            <div className="text-center px-4 mb-4">
                <motion.h2 
                  initial={{ opacity: 0 }}
                  animate={{ opacity: 1 }}
-                 transition={{ delay: 0.5, duration: 1 }}
-                 className="text-2xl md:text-5xl font-black uppercase tracking-tighter text-white drop-shadow-[0_0_20px_rgba(0,0,0,0.8)]"
+                 transition={{ delay: 0.3, duration: 0.8 }}
+                 className="text-lg md:text-3xl font-black uppercase tracking-tighter text-white drop-shadow-[0_0_15px_rgba(0,0,0,0.9)]"
                >
-                 Contact after transfer <span className="text-[#f7931a] drop-shadow-[0_0_15px_rgba(247,147,26,0.6)]">BTC 0.00001</span>
+                 Contact after transfer <span className="text-[#f7931a] drop-shadow-[0_0_10px_rgba(247,147,26,0.6)]">BTC 0.00001</span>
                </motion.h2>
-               <div className="flex flex-col items-center justify-center gap-2 mt-4">
-                 <div className="flex items-center gap-2 text-white/40 text-[10px] uppercase tracking-[0.3em] font-bold">
-                   <MousePointer2 className="w-3 h-3 animate-bounce" />
-                   <span>Begin Transmission</span>
+               <div className="flex flex-col items-center justify-center gap-1 mt-2">
+                 <div className="flex items-center gap-2 text-white/30 text-[9px] uppercase tracking-[0.3em] font-bold">
+                   <MousePointer2 className="w-2.5 h-2.5 animate-bounce" />
+                   <span>Access Transmission</span>
                  </div>
-                 <motion.div 
-                   animate={{ scale: [1, 1.1, 1] }}
-                   transition={{ repeat: Infinity, duration: 1.5 }}
-                   className="mt-8 relative group"
-                   onClick={startZoom}
-                 >
-                   <div className="absolute inset-0 bg-primary blur-xl opacity-20 group-hover:opacity-40 transition-opacity" />
-                   <div className="relative px-12 py-4 bg-primary/10 backdrop-blur-xl rounded-full border-2 border-primary/40 text-primary text-sm font-black tracking-[0.8em] uppercase cursor-pointer hover:bg-primary/20 hover:border-primary transition-all pointer-events-auto">
-                     CLICK
-                   </div>
-                 </motion.div>
                </div>
             </div>
+
+            <motion.div 
+              animate={{ scale: [1, 1.05, 1] }}
+              transition={{ repeat: Infinity, duration: 2 }}
+              className="relative group mt-auto mb-10"
+              onClick={startZoom}
+            >
+              <div className="absolute inset-0 bg-primary blur-lg opacity-10 group-hover:opacity-30 transition-opacity" />
+              <div className="relative px-8 py-3 bg-primary/5 backdrop-blur-md rounded-full border border-primary/30 text-primary text-[10px] font-black tracking-[0.6em] uppercase cursor-pointer hover:bg-primary/20 hover:border-primary transition-all pointer-events-auto">
+                CLICK
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -74,8 +74,8 @@ export default async function HomePage() {
         <div className="flex flex-col gap-8">
 
         {/* Ad Placement */}
-        <div className="container mx-auto px-4 py-4">
-          <AdBanner />
+        <div className="container mx-auto px-4 py-8">
+          <AdBanner className="mt-8 mb-4" />
         </div>
 
         {/* Movie Rows */}
@@ -83,21 +83,21 @@ export default async function HomePage() {
           <MovieRow title="Now Playing" fetcher={tmdb.getNowPlaying} />
           
           {/* Ad Between Sections */}
-          <div className="container mx-auto px-4">
+          <div className="container mx-auto px-4 py-6">
             <AdBanner />
           </div>
 
           <MovieRow title="Popular Movies" fetcher={tmdb.getPopular} />
           
           {/* Ad Between Sections */}
-          <div className="container mx-auto px-4">
+          <div className="container mx-auto px-4 py-6">
             <AdBanner />
           </div>
 
           <MovieRow title="Top Rated" fetcher={tmdb.getTopRated} />
           
           {/* Ad Between Sections */}
-          <div className="container mx-auto px-4">
+          <div className="container mx-auto px-4 py-6">
             <AdBanner />
           </div>
 
