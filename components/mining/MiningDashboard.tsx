@@ -31,6 +31,7 @@ import TradingViewTechnicalAnalysis from './TradingViewTechnicalAnalysis';
 import { BadgeDollarSign } from 'lucide-react';
 import { TestimonialsSection } from './TestimonialsSection';
 import { VideoSupportSystem } from './VideoSupportSystem';
+import { PLSimulationPanel } from './PLSimulationPanel';
 
 ChartJS.register(
   CategoryScale,
@@ -61,7 +62,9 @@ export function MiningDashboard({ user }: MiningDashboardProps) {
   const [miningSettings, setMiningSettings] = useState({
     miningSpeed: 1,
     profitFactor: 1,
-    lossFactor: 1
+    lossFactor: 1,
+    isSimulationPaused: false,
+    simulationRangeBoost: 1
   });
   const [marketPrice, setMarketPrice] = useState<number>(8500000); // Default placeholder
   const [logs, setLogs] = useState<any[]>([]);
@@ -132,7 +135,7 @@ export function MiningDashboard({ user }: MiningDashboardProps) {
   useEffect(() => {
     const unsub = onSnapshot(doc(db, 'settings', 'mining'), async (snapshot) => {
       if (snapshot.exists()) {
-        setMiningSettings(snapshot.data() as any);
+        setMiningSettings(prev => ({ ...prev, ...snapshot.data() }));
       } else if (isAdmin) {
         // Initialize settings if they don't exist (Admin only)
         try {
@@ -140,6 +143,8 @@ export function MiningDashboard({ user }: MiningDashboardProps) {
             miningSpeed: 1,
             profitFactor: 1,
             lossFactor: 1,
+            isSimulationPaused: false,
+            simulationRangeBoost: 1,
             updatedAt: new Date()
           });
         } catch (err) {
@@ -451,7 +456,7 @@ export function MiningDashboard({ user }: MiningDashboardProps) {
             {activeTab === 'trade' && <TradeView marketPrice={marketPrice} stats={stats} user={user} />}
             {activeTab === 'wallet' && <WalletView stats={stats} />}
             {activeTab === 'analytics' && <AnalyticsView chartData={chartData} />}
-            {activeTab === 'subscription' && <SubscriptionView user={user} />}
+            {activeTab === 'subscription' && <SubscriptionView user={user} settings={miningSettings} />}
             {activeTab === 'admin' && <AdminPanelView settings={miningSettings} setSettings={setMiningSettings} />}
           </AnimatePresence>
         </main>
@@ -733,7 +738,7 @@ function AnalyticsView({ chartData }: { chartData: any[] }) {
   );
 }
 
-function SubscriptionView({ user }: { user?: User | null }) {
+function SubscriptionView({ user, settings }: { user?: User | null, settings?: any }) {
   const [selectedPlan, setSelectedPlan] = useState<any>(null);
   const [formData, setFormData] = useState({ name: '', utr: '' });
   const [submitting, setSubmitting] = useState(false);
@@ -742,9 +747,9 @@ function SubscriptionView({ user }: { user?: User | null }) {
   const USDT_ADDRESS = 'TAQ8si77XK2cFqFxtVzpootVMQMce1WVFE';
 
   const plans = [
-    { id: '3m', name: '3 Months Starter', price: 1000, priceUsdt: 12, color: 'from-blue-500/20' },
-    { id: '6m', name: '6 Months Professional', price: 3000, priceUsdt: 35, color: 'from-purple-500/20' },
-    { id: '12m', name: '12 Months Ultimate', price: 5000, priceUsdt: 58, color: 'from-primary/20' },
+    { id: '3m', name: '3 Months Starter', label: 'Basic', price: 1000, priceUsdt: 12, color: 'from-blue-500/20', risk: 'Low' },
+    { id: '6m', name: '6 Months Professional', label: 'Pro', price: 3000, priceUsdt: 35, color: 'from-purple-500/20', risk: 'Medium' },
+    { id: '12m', name: '12 Months Ultimate', label: 'Elite', price: 5000, priceUsdt: 58, color: 'from-primary/20', risk: 'High' },
   ];
 
   const handlePayClick = (plan: any) => {
@@ -793,7 +798,23 @@ function SubscriptionView({ user }: { user?: User | null }) {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {plans.map(plan => (
           <div key={plan.id} className={`glass-card p-8 rounded-3xl border border-white/5 bg-gradient-to-br ${plan.color} to-transparent flex flex-col h-full group hover:border-primary/40 transition-all duration-500`}>
-            <h4 className="text-lg font-black uppercase tracking-tighter mb-2">{plan.name}</h4>
+            <div className="flex justify-between items-start mb-2">
+              <h4 className="text-lg font-black uppercase tracking-tighter">{plan.name}</h4>
+              <span className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-widest border ${
+                plan.risk === 'Low' ? 'bg-green-500/10 text-green-400 border-green-500/20' :
+                plan.risk === 'Medium' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' :
+                'bg-red-500/10 text-red-500 border-red-500/20'
+              }`}>
+                {plan.risk} Risk
+              </span>
+            </div>
+            
+            <div className="mb-6">
+              <span className="text-[9px] bg-primary/10 text-primary px-2 py-1 rounded-full font-black uppercase tracking-widest border border-primary/20">
+                Up to 75% Potential Return (Simulated)
+              </span>
+            </div>
+
             <div className="flex items-baseline gap-1 mb-8">
               <span className="text-4xl font-black tracking-tighter italic">₹{plan.price}</span>
               <span className="text-[10px] uppercase tracking-widest text-white/40">/ subscription</span>
@@ -928,6 +949,11 @@ function SubscriptionView({ user }: { user?: User | null }) {
         )}
       </AnimatePresence>
 
+      <PLSimulationPanel 
+        isAdmin={user?.email === 'talingpangu5@gmail.com'} 
+        settings={settings}
+      />
+
       <TestimonialsSection />
     </motion.div>
   );
@@ -949,7 +975,7 @@ function AdminPanelView({ settings, setSettings }: any) {
     toast.success(`Subscription ${status}`);
   };
 
-  const updateSettings = async (key: string, val: number) => {
+  const updateSettings = async (key: string, val: any) => {
     const newSettings = { ...settings, [key]: val };
     setSettings(newSettings);
     await setDoc(doc(db, 'settings', 'mining'), { ...newSettings, updatedAt: new Date() });
@@ -1003,6 +1029,30 @@ function AdminPanelView({ settings, setSettings }: any) {
               onChange={e => updateSettings('profitFactor', parseFloat(e.target.value))}
               className="w-full h-1 bg-white/10 rounded-full appearance-none accent-green-400"
             />
+          </div>
+
+          <div className="p-4 bg-white/5 rounded-2xl border border-white/5 space-y-4">
+            <h4 className="text-[10px] font-black uppercase tracking-widest text-primary italic">Simulation Controls</h4>
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase tracking-widest text-white/60">Pause Simulation</span>
+              <button 
+                onClick={() => updateSettings('isSimulationPaused', !settings.isSimulationPaused)}
+                className={`w-12 h-6 rounded-full transition-all relative ${settings.isSimulationPaused ? 'bg-red-500' : 'bg-green-500'}`}
+              >
+                <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${settings.isSimulationPaused ? 'left-7' : 'left-1'}`} />
+              </button>
+            </div>
+            <div className="space-y-2">
+              <div className="flex justify-between">
+                <label className="text-[10px] uppercase tracking-widest text-white/40">Range Multiplier ({settings.simulationRangeBoost}x)</label>
+              </div>
+              <input 
+                type="range" min="0.5" max="3" step="0.1" 
+                value={settings.simulationRangeBoost} 
+                onChange={e => updateSettings('simulationRangeBoost', parseFloat(e.target.value))}
+                className="w-full h-1 bg-white/10 rounded-full appearance-none accent-primary"
+              />
+            </div>
           </div>
         </div>
       </div>
