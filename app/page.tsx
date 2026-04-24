@@ -65,7 +65,7 @@ export default async function HomePage() {
     const heroMovies: MovieDetails[] = await tmdb.getMultipleMovieDetails(trendingMovies.map((m: Movie) => m.id));
 
     return (
-      <div className="flex flex-col">
+      <div className="flex flex-col pt-20">
         <AutoRefresh />
         <AdManager />
         <EarthZoomContact />
