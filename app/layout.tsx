@@ -16,6 +16,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://talingpangu.com'),
   title: 'Taling Pangu | Discover Your Next Favorite Movie',
   description: 'Explore trending, popular, and top-rated movies. Watch trailers, check ratings, and find your next cinematic experience.',
   keywords: 'movies, cinema, trailers, tmdb, taling pangu, trending movies',
