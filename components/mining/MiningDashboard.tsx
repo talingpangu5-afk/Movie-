@@ -80,15 +80,21 @@ export function MiningDashboard({ user }: MiningDashboardProps) {
             'Authorization': `Bearer ${token}`
           }
         });
+        
+        if (!res.ok) {
+          throw new Error(`Server responded with ${res.status}`);
+        }
+
         const result = await res.json();
-        if (result.success) {
+        if (result.success && result.data) {
           const price = parseFloat(result.data.price);
           if (price > 0) {
             setMarketPrice(price * 84); // Convert USD to INR
             
             // Sync real balances if available
-            const btcAccount = result.data.accounts.find((a: any) => a.currency === 'BTC' && a.type === 'trade');
-            const usdtAccount = result.data.accounts.find((a: any) => a.currency === 'USDT' && a.type === 'trade');
+            const accounts = result.data.accounts || [];
+            const btcAccount = accounts.find((a: any) => a.currency === 'BTC' && a.type === 'trade');
+            const usdtAccount = accounts.find((a: any) => a.currency === 'USDT' && a.type === 'trade');
             
             if (usdtAccount || btcAccount) {
               setStats(prev => ({
@@ -106,9 +112,11 @@ export function MiningDashboard({ user }: MiningDashboardProps) {
               value: `$${price.toLocaleString()} USDT`
             }, ...prev.slice(0, 4)]);
           }
+        } else {
+          console.warn('Market data sync unsuccessful:', result.error);
         }
       } catch (error) {
-        console.error('Failed to sync market data');
+        console.error('Failed to sync market data:', error);
       }
     };
 

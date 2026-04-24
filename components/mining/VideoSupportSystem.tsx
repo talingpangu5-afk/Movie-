@@ -36,6 +36,13 @@ export function VideoSupportSystem() {
     return () => clearInterval(interval);
   }, [callState]);
 
+  // Bind stream to local video element
+  useEffect(() => {
+    if (callState === 'live' && streamRef.current && localVideoRef.current) {
+      localVideoRef.current.srcObject = streamRef.current;
+    }
+  }, [callState]);
+
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -238,11 +245,21 @@ export function VideoSupportSystem() {
                   <div className="flex-1 relative bg-zinc-900 overflow-hidden">
                     {/* Placeholder for Remote Stream */}
                     <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-zinc-800 to-black">
-                      <div className="w-24 h-24 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mb-4">
-                        <User className="w-12 h-12 text-primary" />
+                      <div className="relative">
+                        <motion.div 
+                          animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0, 0.3] }}
+                          transition={{ repeat: Infinity, duration: 2 }}
+                          className="absolute inset-0 bg-primary/20 rounded-full"
+                        />
+                        <div className="w-24 h-24 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center mb-4 relative z-10">
+                          <User className="w-12 h-12 text-primary" />
+                        </div>
                       </div>
                       <p className="text-xs uppercase tracking-[0.2em] text-white/40 font-black">Support Representative</p>
-                      <p className="text-[10px] text-green-500 uppercase tracking-widest font-bold mt-2">Active Agent</p>
+                      <div className="flex items-center gap-2 mt-2">
+                        <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                        <p className="text-[10px] text-green-500 uppercase tracking-widest font-bold">Active Agent</p>
+                      </div>
                     </div>
 
                     {/* Remote Video Element (when integrated with WebRTC/Agora) */}
