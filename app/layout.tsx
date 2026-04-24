@@ -19,6 +19,9 @@ export const metadata: Metadata = {
   title: 'Taling Pangu | Discover Your Next Favorite Movie',
   description: 'Explore trending, popular, and top-rated movies. Watch trailers, check ratings, and find your next cinematic experience.',
   keywords: 'movies, cinema, trailers, tmdb, taling pangu, trending movies',
+  verification: {
+    google: 'WsPfjnR3zKFJ_WBOqopa39wfV-VtnJzercgWVf5eQPY',
+  },
 };
 
 export default function RootLayout({children}: {children: React.ReactNode}) {
