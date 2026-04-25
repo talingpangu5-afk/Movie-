@@ -10,6 +10,7 @@ const SCRIPT_TEXT = "This platform has been created solely for educational and e
 export function AIVoiceBranding() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
+  const isPlayingRef = useRef(false);
   const [typedText, setTypedText] = useState("");
   const [isIdentityVisible, setIsIdentityVisible] = useState(false);
   const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
@@ -63,33 +64,50 @@ export function AIVoiceBranding() {
   };
 
   const playAudio = async (base64: string) => {
-    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
-    const binaryString = atob(base64);
-    const bytes = new Uint8Array(binaryString.length);
-    for (let i = 0; i < binaryString.length; i++) {
-      bytes[i] = binaryString.charCodeAt(i);
-    }
-    
-    const float32Data = new Float32Array(bytes.length / 2);
-    const view = new DataView(bytes.buffer);
-    for (let i = 0; i < float32Data.length; i++) {
-        const s16 = view.getInt16(i * 2, true);
-        float32Data[i] = s16 / 32768;
-    }
+    try {
+      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+      
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
 
-    const audioBuffer = audioContext.createBuffer(1, float32Data.length, 24000);
-    audioBuffer.getChannelData(0).set(float32Data);
+      const binaryString = atob(base64);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      
+      const float32Data = new Float32Array(bytes.length / 2);
+      const view = new DataView(bytes.buffer);
+      for (let i = 0; i < float32Data.length; i++) {
+          // Check if we have enough bytes left for an Int16
+          if (i * 2 + 1 < bytes.length) {
+            const s16 = view.getInt16(i * 2, true);
+            float32Data[i] = s16 / 32768;
+          }
+      }
 
-    const source = audioContext.createBufferSource();
-    source.buffer = audioBuffer;
-    source.connect(audioContext.destination);
-    
-    source.onended = () => {
+      const audioBuffer = audioContext.createBuffer(1, float32Data.length, 24000);
+      audioBuffer.getChannelData(0).set(float32Data);
+
+      const source = audioContext.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(audioContext.destination);
+      
+      source.onended = () => {
+        setIsPlaying(false);
+        isPlayingRef.current = false;
+      };
+
+      source.start();
+      audioSourceRef.current = source;
+      
+      // Sync typing with audio start
+      startTyping();
+    } catch (error) {
+      console.error("Audio Playback Error:", error);
       setIsPlaying(false);
-    };
-
-    source.start();
-    audioSourceRef.current = source;
+    }
   };
 
   const startPlayback = async () => {
@@ -98,20 +116,28 @@ export function AIVoiceBranding() {
       return;
     }
 
+    if (!process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
+      console.error("Gemini API Key missing");
+      return;
+    }
+
     setIsIdentityVisible(true);
     setIsPlaying(true);
+    isPlayingRef.current = true;
     setTypedText("");
-
-    // Start Typing Effect
-    startTyping();
 
     // Fetch and Play Audio
     const base64 = await fetchTTS();
+    
+    // Check if user cancelled while we were fetching
+    if (!isPlayingRef.current) return;
+
     if (base64) {
       playAudio(base64);
     } else {
-        // Fallback or handle error
         console.warn("No audio data received");
+        // Still show text as fallback if still intended to play
+        startTyping();
     }
   };
 
@@ -124,6 +150,7 @@ export function AIVoiceBranding() {
       clearTimeout(typingTimeoutRef.current);
     }
     setIsPlaying(false);
+    isPlayingRef.current = false;
   };
 
   const startTyping = () => {

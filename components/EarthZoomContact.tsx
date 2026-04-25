@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { gsap } from 'gsap';
-import { ArrowLeft, Mail, Copy, Check, MousePointer2 } from 'lucide-react';
+import { ArrowLeft, Mail, Copy, Check, MousePointer2, Globe } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 
@@ -19,6 +19,8 @@ export function EarthZoomContact() {
 
   const [isCopied, setIsCopied] = useState(false);
 
+  const [webglError, setWebglError] = useState(false);
+
   // Three.js refs
   const sceneRef = useRef<THREE.Scene | null>(null);
   const cameraRef = useRef<THREE.PerspectiveCamera | null>(null);
@@ -26,109 +28,168 @@ export function EarthZoomContact() {
   const earthRef = useRef<THREE.Mesh | null>(null);
   const cloudsRef = useRef<THREE.Mesh | null>(null);
   const frameIdRef = useRef<number | null>(null);
+  const resourcesRef = useRef<{
+    geometries: THREE.BufferGeometry[];
+    materials: THREE.Material[];
+    textures: THREE.Texture[];
+  }>({
+    geometries: [],
+    materials: [],
+    textures: []
+  });
 
   useEffect(() => {
-    if (!canvasRef.current) return;
+    // Return early if WebGL is known to be unavailable
+    if (webglError) return;
 
-    // SCENE SETUP
-    const scene = new THREE.Scene();
-    sceneRef.current = scene;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
 
-    const width = canvasRef.current.clientWidth;
-    const height = canvasRef.current.clientHeight;
-    const aspect = width / height;
+    let renderer: THREE.WebGLRenderer | null = null;
+    const resources = resourcesRef.current;
+    
+    try {
+      // SCENE SETUP
+      const scene = new THREE.Scene();
+      sceneRef.current = scene;
 
-    const camera = new THREE.PerspectiveCamera(40, aspect, 0.1, 1000);
-    camera.position.z = 160;
-    cameraRef.current = camera;
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      const aspect = width / height;
 
-    const renderer = new THREE.WebGLRenderer({
-      canvas: canvasRef.current,
-      antialias: true,
-      alpha: true,
-      precision: 'mediump',
-    });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(width, height);
-    rendererRef.current = renderer;
+      const camera = new THREE.PerspectiveCamera(40, aspect, 0.1, 1000);
+      camera.position.z = 160;
+      cameraRef.current = camera;
 
-    const loader = new THREE.TextureLoader();
-    const earthTexture = loader.load('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg');
-    const cloudTexture = loader.load('https://unpkg.com/three-globe/example/img/earth-clouds.png');
+      renderer = new THREE.WebGLRenderer({
+        canvas: canvas,
+        antialias: true,
+        alpha: true,
+        precision: 'mediump',
+        failIfMajorPerformanceCaveat: true,
+      });
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.setSize(width, height);
+      rendererRef.current = renderer;
 
-    // EARTH
-    const earthGeo = new THREE.SphereGeometry(60, 64, 64);
-    const earthMat = new THREE.MeshPhongMaterial({ map: earthTexture, shininess: 5 });
-    const earth = new THREE.Mesh(earthGeo, earthMat);
-    scene.add(earth);
-    earthRef.current = earth;
+      const onContextLost = (event: Event) => {
+        event.preventDefault();
+        console.warn('WebGL Context Lost');
+        if (frameIdRef.current) cancelAnimationFrame(frameIdRef.current);
+      };
 
-    // CLOUDS
-    const cloudGeo = new THREE.SphereGeometry(60.5, 64, 64);
-    const cloudMat = new THREE.MeshPhongMaterial({ map: cloudTexture, transparent: true, opacity: 0.3 });
-    const clouds = new THREE.Mesh(cloudGeo, cloudMat);
-    scene.add(clouds);
-    cloudsRef.current = clouds;
+      const onContextRestored = () => {
+        console.log('WebGL Context Restored');
+        window.location.reload();
+      };
 
-    // GLOW
-    const glowGeo = new THREE.SphereGeometry(62, 64, 64);
-    const glowMat = new THREE.ShaderMaterial({
-      transparent: true,
-      uniforms: { glowColor: { value: new THREE.Color(0x00f2ff) } },
-      vertexShader: `
-        varying vec3 vNormal;
-        void main() {
-          vNormal = normalize( normalMatrix * normal );
-          gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+      canvas.addEventListener('webglcontextlost', onContextLost, false);
+      canvas.addEventListener('webglcontextrestored', onContextRestored, false);
+
+      const loader = new THREE.TextureLoader();
+      const loadTexture = (url: string) => {
+        const tex = loader.load(url);
+        resources.textures.push(tex);
+        return tex;
+      };
+
+      const earthTexture = loadTexture('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg');
+      const cloudTexture = loadTexture('https://unpkg.com/three-globe/example/img/earth-clouds.png');
+
+      // EARTH
+      const earthGeo = new THREE.SphereGeometry(60, 64, 64);
+      resources.geometries.push(earthGeo);
+      const earthMat = new THREE.MeshPhongMaterial({ map: earthTexture, shininess: 5 });
+      resources.materials.push(earthMat);
+      const earth = new THREE.Mesh(earthGeo, earthMat);
+      scene.add(earth);
+      earthRef.current = earth;
+
+      // CLOUDS
+      const cloudGeo = new THREE.SphereGeometry(60.5, 64, 64);
+      resources.geometries.push(cloudGeo);
+      const cloudMat = new THREE.MeshPhongMaterial({ map: cloudTexture, transparent: true, opacity: 0.3 });
+      resources.materials.push(cloudMat);
+      const clouds = new THREE.Mesh(cloudGeo, cloudMat);
+      scene.add(clouds);
+      cloudsRef.current = clouds;
+
+      // GLOW
+      const glowGeo = new THREE.SphereGeometry(62, 64, 64);
+      resources.geometries.push(glowGeo);
+      const glowMat = new THREE.ShaderMaterial({
+        transparent: true,
+        uniforms: { glowColor: { value: new THREE.Color(0x00f2ff) } },
+        vertexShader: `
+          varying vec3 vNormal;
+          void main() {
+            vNormal = normalize( normalMatrix * normal );
+            gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+          }
+        `,
+        fragmentShader: `
+          precision mediump float;
+          uniform vec3 glowColor;
+          varying vec3 vNormal;
+          void main() {
+            float intensity = pow( 0.6 - dot( vNormal, vec3( 0.0, 0.0, 1.0 ) ), 4.0 );
+            gl_FragColor = vec4( glowColor, intensity );
+          }
+        `,
+        side: THREE.BackSide,
+        blending: THREE.AdditiveBlending
+      });
+      resources.materials.push(glowMat);
+      scene.add(new THREE.Mesh(glowGeo, glowMat));
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+      scene.add(ambientLight);
+      const sunLight = new THREE.DirectionalLight(0xffffff, 1);
+      sunLight.position.set(100, 100, 100);
+      scene.add(sunLight);
+
+      const animate = () => {
+        frameIdRef.current = requestAnimationFrame(animate);
+        if (earthRef.current && cloudsRef.current && stageRef.current === 'idle') {
+          earthRef.current.rotation.y += 0.001;
+          cloudsRef.current.rotation.y += 0.0015;
         }
-      `,
-      fragmentShader: `
-        precision mediump float;
-        uniform vec3 glowColor;
-        varying vec3 vNormal;
-        void main() {
-          float intensity = pow( 0.6 - dot( vNormal, vec3( 0.0, 0.0, 1.0 ) ), 4.0 );
-          gl_FragColor = vec4( glowColor, intensity );
+        if (renderer) {
+          renderer.render(scene, camera);
         }
-      `,
-      side: THREE.BackSide,
-      blending: THREE.AdditiveBlending
-    });
-    scene.add(new THREE.Mesh(glowGeo, glowMat));
+      };
+      animate();
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
-    scene.add(ambientLight);
-    const sunLight = new THREE.DirectionalLight(0xffffff, 1);
-    sunLight.position.set(100, 100, 100);
-    scene.add(sunLight);
+      const handleResize = () => {
+        const w = canvas.clientWidth;
+        const h = canvas.clientHeight;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer?.setSize(w, h);
+      };
+      window.addEventListener('resize', handleResize);
 
-    const animate = () => {
-      frameIdRef.current = requestAnimationFrame(animate);
-      if (earthRef.current && cloudsRef.current && stageRef.current === 'idle') {
-        earthRef.current.rotation.y += 0.001;
-        cloudsRef.current.rotation.y += 0.0015;
-      }
-      if (rendererRef.current && sceneRef.current && cameraRef.current) {
-        rendererRef.current.render(sceneRef.current, cameraRef.current);
-      }
-    };
-    animate();
+      return () => {
+        window.removeEventListener('resize', handleResize);
+        if (frameIdRef.current) cancelAnimationFrame(frameIdRef.current);
+        
+        resources.geometries.forEach(g => g.dispose());
+        resources.materials.forEach(m => m.dispose());
+        resources.textures.forEach(t => t.dispose());
+        
+        if (renderer) {
+          renderer.dispose();
+          renderer.forceContextLoss();
+        }
 
-    const handleResize = () => {
-      if (!canvasRef.current || !cameraRef.current || !rendererRef.current) return;
-      const w = canvasRef.current.clientWidth;
-      const h = canvasRef.current.clientHeight;
-      cameraRef.current.aspect = w / h;
-      cameraRef.current.updateProjectionMatrix();
-      rendererRef.current.setSize(w, h);
-    };
-    window.addEventListener('resize', handleResize);
-
-    return () => {
-      window.removeEventListener('resize', handleResize);
-      if (frameIdRef.current) cancelAnimationFrame(frameIdRef.current);
-      if (rendererRef.current) rendererRef.current.dispose();
-    };
+        canvas.removeEventListener('webglcontextlost', onContextLost);
+        canvas.removeEventListener('webglcontextrestored', onContextRestored);
+      };
+    } catch (e) {
+      console.error('Failed to initialize WebGL:', e);
+      setWebglError(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const startZoom = () => {
@@ -180,9 +241,16 @@ export function EarthZoomContact() {
           <motion.div 
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="w-full h-full relative"
+            className="w-full h-full relative flex items-center justify-center"
           >
-            <canvas ref={canvasRef} className={`w-full h-full transition-opacity duration-700 ${stage === 'landed' ? 'opacity-0' : 'opacity-100'}`} />
+            {webglError ? (
+              <div className="flex flex-col items-center justify-center p-8 bg-zinc-900/50 rounded-full border border-white/10 aspect-square">
+                <Globe className="w-12 h-12 text-cyan-500/50 mb-2" />
+                <span className="text-[10px] text-white/40 uppercase font-bold tracking-widest text-center">Interactive Globe<br/>Unavailable</span>
+              </div>
+            ) : (
+              <canvas ref={canvasRef} className={`w-full h-full transition-opacity duration-700 ${stage === 'landed' ? 'opacity-0' : 'opacity-100'}`} />
+            )}
             
             {/* SUBTLE GLOW */}
             <div className="absolute inset-0 rounded-full bg-cyan-500/10 blur-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
