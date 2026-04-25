@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import { motion, AnimatePresence } from 'motion/react';
 import { Volume2, VolumeX, Play, Pause, X, User, Cpu, Sparkles } from 'lucide-react';
 import { GoogleGenAI, Modality } from "@google/genai";
@@ -18,11 +19,21 @@ export function AIVoiceBranding() {
   const [typedText, setTypedText] = useState("");
   const [currentScript, setCurrentScript] = useState(SCRIPTS[0]);
   const [isIdentityVisible, setIsIdentityVisible] = useState(false);
+  const audioContextRef = useRef<AudioContext | null>(null);
   const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [audioCache, setAudioCache] = useState<Record<string, string>>({});
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+
+  // Initialize AudioContext lazily on user interaction
+  const getAudioContext = () => {
+    if (!audioContextRef.current) {
+      const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
+      audioContextRef.current = new AudioContextClass({ sampleRate: 24000 });
+    }
+    return audioContextRef.current;
+  };
 
   // Close when clicking outside
   useEffect(() => {
@@ -85,9 +96,7 @@ export function AIVoiceBranding() {
 
   const playAudio = async (base64: string) => {
     try {
-      // Create a fresh audio context each time to ensure it works across browsers
-      const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
-      const audioContext = new AudioContextClass({ sampleRate: 24000 });
+      const audioContext = getAudioContext();
       
       if (audioContext.state === 'suspended') {
         await audioContext.resume();
@@ -111,13 +120,23 @@ export function AIVoiceBranding() {
       const audioBuffer = audioContext.createBuffer(1, float32Data.length, 24000);
       audioBuffer.getChannelData(0).set(float32Data);
 
+      // Stop any existing source to prevent overlapping sounds
+      if (audioSourceRef.current) {
+        try {
+          audioSourceRef.current.stop();
+        } catch (e) {}
+      }
+
       const source = audioContext.createBufferSource();
       source.buffer = audioBuffer;
       source.connect(audioContext.destination);
       
       source.onended = () => {
-        setIsPlaying(false);
-        isPlayingRef.current = false;
+        // Only set playing false if this was the current active source
+        if (audioSourceRef.current === source) {
+          setIsPlaying(false);
+          isPlayingRef.current = false;
+        }
       };
 
       source.start();
@@ -209,56 +228,57 @@ export function AIVoiceBranding() {
   return (
     <div className="relative" ref={containerRef}>
       {/* Brand Section */}
-      <div 
-        className="flex flex-col cursor-pointer group select-none"
-        onMouseEnter={() => setIsExpanded(true)}
-        onMouseLeave={() => !isIdentityVisible && setIsExpanded(false)}
-        onClick={startPlayback}
-      >
-        <div className="flex items-center gap-2">
-          <motion.div
-            animate={isExpanded ? { scale: 1.1 } : { scale: 1 }}
-            className="relative"
-          >
-            <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-500 ${isIdentityVisible ? 'bg-primary shadow-[0_0_20px_rgba(247,147,26,0.5)]' : 'bg-zinc-900 border border-white/10'}`}>
-                {isIdentityVisible ? <Cpu className="w-5 h-5 text-black" /> : <Sparkles className="w-5 h-5 text-primary" />}
-            </div>
+      <div className="flex items-center gap-2">
+        <motion.div
+          animate={isExpanded ? { scale: 1.1 } : { scale: 1 }}
+          className="relative cursor-pointer"
+          onClick={startPlayback}
+          onMouseEnter={() => setIsExpanded(true)}
+          onMouseLeave={() => !isIdentityVisible && setIsExpanded(false)}
+        >
+          <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-500 ${isIdentityVisible ? 'bg-primary shadow-[0_0_20px_rgba(247,147,26,0.5)]' : 'bg-zinc-900 border border-white/10 hover:border-primary/50'}`}>
+              {isIdentityVisible ? <Cpu className="w-5 h-5 text-black" /> : <Sparkles className="w-5 h-5 text-primary" />}
+          </div>
+          <AnimatePresence>
+            {isPlaying && (
+              <motion.div
+                initial={{ scale: 0.8, opacity: 0 }}
+                animate={{ scale: 1.5, opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ repeat: Infinity, duration: 1.5 }}
+                className="absolute inset-0 bg-primary/20 rounded-full -z-10"
+              />
+            )}
+          </AnimatePresence>
+        </motion.div>
+
+        <Link 
+          href="/" 
+          className="flex flex-col cursor-pointer group select-none"
+          onMouseEnter={() => setIsExpanded(true)}
+          onMouseLeave={() => !isIdentityVisible && setIsExpanded(false)}
+        >
+          <h1 className="text-xl md:text-2xl font-black tracking-tighter text-white transition-all duration-300 group-hover:neon-blue flex items-center gap-2">
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-primary to-white animate-text-shimmer bg-[length:200%_auto]">
+              TALING PANGU
+            </span>
             <AnimatePresence>
-              {isPlaying && (
-                <motion.div
-                  initial={{ scale: 0.8, opacity: 0 }}
-                  animate={{ scale: 1.5, opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ repeat: Infinity, duration: 1.5 }}
-                  className="absolute inset-0 bg-primary/20 rounded-full -z-10"
-                />
+              {isExpanded && (
+                <motion.span
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  className="text-primary font-black ml-1 whitespace-nowrap text-xs md:text-sm"
+                >
+                  – CREATOR
+                </motion.span>
               )}
             </AnimatePresence>
-          </motion.div>
-
-          <div className="flex flex-col">
-            <h1 className="text-xl md:text-2xl font-black tracking-tighter text-white transition-all duration-300 group-hover:neon-blue flex items-center gap-2">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-primary to-white animate-text-shimmer bg-[length:200%_auto]">
-                TALING PANGU
-              </span>
-              <AnimatePresence>
-                {isExpanded && (
-                  <motion.span
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    exit={{ opacity: 0, x: -10 }}
-                    className="text-primary font-black ml-1 whitespace-nowrap"
-                  >
-                    – CREATOR
-                  </motion.span>
-                )}
-              </AnimatePresence>
-            </h1>
-            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40 -mt-1 block group-hover:text-primary/60 transition-colors">
-              Kaying Bazaar HQ
-            </span>
-          </div>
-        </div>
+          </h1>
+          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40 -mt-1 block group-hover:text-primary/60 transition-colors">
+            Kaying Bazaar HQ
+          </span>
+        </Link>
       </div>
 
       {/* AI Script Console (Hologram Style) */}
@@ -268,7 +288,7 @@ export function AIVoiceBranding() {
             initial={{ opacity: 0, y: 20, scale: 0.9, rotateX: 20 }}
             animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
             exit={{ opacity: 0, y: 20, scale: 0.9, rotateX: 20 }}
-            className="absolute top-full left-0 mt-4 w-[320px] md:w-[480px] z-[100] perspective-1000"
+            className="absolute top-full left-0 mt-4 w-[280px] md:w-[480px] z-[100] perspective-1000"
           >
             <div className="relative bg-black/60 backdrop-blur-2xl border border-white/20 rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
               {/* Scanline Effect */}
