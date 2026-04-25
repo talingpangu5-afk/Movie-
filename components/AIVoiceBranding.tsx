@@ -2,16 +2,13 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Volume2, VolumeX, Play, Pause, X, User, Cpu, Sparkles, Terminal } from 'lucide-react';
+import { Volume2, VolumeX, Play, Pause, X, User, Cpu, Sparkles } from 'lucide-react';
 import { GoogleGenAI, Modality } from "@google/genai";
-import { toast } from 'sonner';
 
 const SCRIPTS = [
   "This platform has been created solely for educational and entertainment purposes. It is not intended to harm or cause any inconvenience to anyone. All the content and features provided here are part of commonly available information and practices worldwide.\n\nFor any further information, inquiries, or support, you may contact us via email at arunpangu81125@gmail.com.",
   "Welcome to the next generation of cinematic exploration. Taling Pangu is designed to be your ultimate companion in the world of high-definition entertainment, mining insights, and global connectivity. Experience the future of content consumption with our advanced neural interface.",
-  "Warning: You are now entering the Taling Pangu neural network. All streams are encrypted with 256-bit cosmic security. Our mining algorithms are processing the latest entertainment data to serve you with unparalleled precision. Stay connected, stay informed, and enjoy the show.",
-  "Initialization sequence complete. Entertainment protocols active. Neural mining subsystems engaged. System status: Optimal. Welcome back, agent. Ready to explore the multiverse of content.",
-  "Attention: New streams detected in the entertainment sector. Mining platform is now synchronized with global databases. High-definition data extraction in progress. Prepare for a cinematic experience beyond your imagination."
+  "Warning: You are now entering the Taling Pangu neural network. All streams are encrypted with 256-bit cosmic security. Our mining algorithms are processing the latest entertainment data to serve you with unparalleled precision. Stay connected, stay informed, and enjoy the show."
 ];
 
 export function AIVoiceBranding() {
@@ -31,9 +28,8 @@ export function AIVoiceBranding() {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        if (!isPlayingRef.current) {
-          setIsIdentityVisible(false);
-        }
+        stopPlayback();
+        setIsIdentityVisible(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -89,22 +85,31 @@ export function AIVoiceBranding() {
 
   const playAudio = async (base64: string) => {
     try {
+      // Create a fresh audio context each time to ensure it works across browsers
       const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
-      const audioContext = new AudioContextClass();
+      const audioContext = new AudioContextClass({ sampleRate: 24000 });
       
       if (audioContext.state === 'suspended') {
         await audioContext.resume();
       }
 
-      // Convert base64 to ArrayBuffer
-      const binaryString = window.atob(base64);
+      const binaryString = atob(base64);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
         bytes[i] = binaryString.charCodeAt(i);
       }
       
-      // More robust decoding (handles WAV/MP3 headers)
-      const audioBuffer = await audioContext.decodeAudioData(bytes.buffer.slice(0));
+      const float32Data = new Float32Array(bytes.length / 2);
+      const view = new DataView(bytes.buffer);
+      for (let i = 0; i < float32Data.length; i++) {
+          if (i * 2 + 1 < bytes.length) {
+            const s16 = view.getInt16(i * 2, true);
+            float32Data[i] = s16 / 32768;
+          }
+      }
+
+      const audioBuffer = audioContext.createBuffer(1, float32Data.length, 24000);
+      audioBuffer.getChannelData(0).set(float32Data);
 
       const source = audioContext.createBufferSource();
       source.buffer = audioBuffer;
@@ -120,60 +125,21 @@ export function AIVoiceBranding() {
       
       startTyping();
     } catch (error) {
-      console.error("Audio Processing Error:", error);
-      // Fallback for raw PCM if decodeAudioData fails
-      try {
-        const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
-        const audioContext = new AudioContextClass({ sampleRate: 24000 });
-        const binaryString = window.atob(base64);
-        const bytes = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          bytes[i] = binaryString.charCodeAt(i);
-        }
-        const float32Data = new Float32Array(bytes.length / 2);
-        const view = new DataView(bytes.buffer);
-        for (let i = 0; i < float32Data.length; i++) {
-            if (i * 2 + 1 < bytes.length) {
-              const s16 = view.getInt16(i * 2, true);
-              float32Data[i] = s16 / 32768;
-            }
-        }
-        const audioBuffer = audioContext.createBuffer(1, float32Data.length, 24000);
-        audioBuffer.getChannelData(0).set(float32Data);
-        const source = audioContext.createBufferSource();
-        source.buffer = audioBuffer;
-        source.connect(audioContext.destination);
-        source.onended = () => {
-          setIsPlaying(false);
-          isPlayingRef.current = false;
-        };
-        source.start();
-        audioSourceRef.current = source;
-        startTyping();
-      } catch (innerError) {
-        console.error("PCM Fallback failed:", innerError);
-        setIsPlaying(false);
-        isPlayingRef.current = false;
-        startTyping();
-      }
+      console.error("Audio Playback Error:", error);
+      setIsPlaying(false);
+      isPlayingRef.current = false;
+      startTyping();
     }
   };
 
   const startPlayback = async () => {
-    // If it's already playing, stop it.
     if (isPlaying) {
       stopPlayback();
       return;
     }
 
-    // Toggle off if already shown everything and not playing
-    if (isIdentityVisible && !isPlaying && typedText.length > 0) {
-        setIsIdentityVisible(false);
-        return;
-    }
-
     if (!process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
-      toast.error("AI Neural Interface Key Missing");
+      console.error("Gemini API Key missing");
       return;
     }
 
@@ -194,7 +160,6 @@ export function AIVoiceBranding() {
       if (base64) {
         await playAudio(base64);
       } else {
-          toast.warning("Neural voice server offline, using text protocol.");
           startTyping();
       }
     } catch (error) {
@@ -235,9 +200,6 @@ export function AIVoiceBranding() {
         i++;
         const delay = chars[i-1] === '.' || chars[i-1] === '?' || chars[i-1] === '!' ? 400 : 25;
         typingTimeoutRef.current = setTimeout(type, delay);
-      } else if (i >= chars.length) {
-          setIsPlaying(false);
-          isPlayingRef.current = false;
       }
     };
 
@@ -306,7 +268,7 @@ export function AIVoiceBranding() {
             initial={{ opacity: 0, y: 20, scale: 0.9, rotateX: 20 }}
             animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
             exit={{ opacity: 0, y: 20, scale: 0.9, rotateX: 20 }}
-            className="absolute top-full left-0 mt-4 w-[calc(100vw-2rem)] sm:w-[320px] md:w-[480px] z-[100] perspective-1000"
+            className="absolute top-full left-0 mt-4 w-[320px] md:w-[480px] z-[100] perspective-1000"
           >
             <div className="relative bg-black/60 backdrop-blur-2xl border border-white/20 rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
               {/* Scanline Effect */}
@@ -314,8 +276,8 @@ export function AIVoiceBranding() {
               
               <div className="p-4 border-b border-white/10 flex items-center justify-between bg-white/5">
                 <div className="flex items-center gap-2">
-                  <Terminal className="w-3 h-3 text-primary" />
-                  <span className="text-[10px] uppercase font-black tracking-widest text-primary">Neural Sync Active 3.1</span>
+                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+                  <span className="text-[10px] uppercase font-black tracking-widest text-primary">AI Voice Core Active</span>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="flex gap-1 h-3 items-end">
