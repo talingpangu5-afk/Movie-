@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { motion, AnimatePresence } from 'motion/react';
 import { EntertainmentDropdown } from '@/components/EntertainmentDropdown';
+import { AIVoiceBranding } from './AIVoiceBranding';
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -55,15 +56,7 @@ export function Navbar() {
     >
       <div className="container mx-auto px-4 h-full flex items-center justify-between">
         <div className="flex items-center gap-10">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="relative">
-              <Film className="w-8 h-8 text-primary group-hover:scale-110 transition-transform duration-300" />
-              <div className="absolute -top-1 -right-1 neon-dot glow-pulse" />
-            </div>
-            <span className="text-white font-black text-2xl tracking-tighter group-hover:neon-red transition-all duration-300">
-              TALING PANGU
-            </span>
-          </Link>
+          <AIVoiceBranding />
           
           <div className="hidden lg:flex items-center gap-8 text-sm font-bold uppercase tracking-widest">
             {navLinks.map((link) => (
@@ -126,9 +119,8 @@ export function Navbar() {
             } />
             <SheetContent side="right" className="bg-[#0b0b0b]/95 backdrop-blur-xl border-l border-white/10 w-[300px]">
               <div className="flex flex-col gap-8 mt-12">
-                <div className="flex items-center gap-2 mb-4">
-                  <Film className="w-6 h-6 text-primary" />
-                  <span className="text-white font-black text-xl tracking-tighter">TALING PANGU</span>
+                <div className="mb-4">
+                  <AIVoiceBranding />
                 </div>
                 
                 <div className="flex flex-col gap-6">
