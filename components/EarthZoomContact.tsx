@@ -66,14 +66,8 @@ export function EarthZoomContact() {
         antialias: true,
         alpha: true,
         precision: 'mediump',
-        powerPreference: 'low-power', // Prefer stability over max performance
+        failIfMajorPerformanceCaveat: true,
       });
-      
-      const gl = renderer.getContext();
-      if (!gl) {
-        throw new Error('WebGL context could not be acquired');
-      }
-
       renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       renderer.setSize(width, height);
       rendererRef.current = renderer;
@@ -82,13 +76,11 @@ export function EarthZoomContact() {
         event.preventDefault();
         console.warn('WebGL Context Lost');
         if (frameIdRef.current) cancelAnimationFrame(frameIdRef.current);
-        setWebglError(true);
       };
 
       const onContextRestored = () => {
         console.log('WebGL Context Restored');
-        setWebglError(false);
-        // Do not reload window if possible, but let the effect restart
+        window.location.reload();
       };
 
       canvas.addEventListener('webglcontextlost', onContextLost, false);
@@ -104,8 +96,8 @@ export function EarthZoomContact() {
       const earthTexture = loadTexture('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg');
       const cloudTexture = loadTexture('https://unpkg.com/three-globe/example/img/earth-clouds.png');
 
-      // EARTH - Reduced segments for better stability
-      const earthGeo = new THREE.SphereGeometry(60, 48, 48);
+      // EARTH
+      const earthGeo = new THREE.SphereGeometry(60, 64, 64);
       resources.geometries.push(earthGeo);
       const earthMat = new THREE.MeshPhongMaterial({ map: earthTexture, shininess: 5 });
       resources.materials.push(earthMat);
@@ -113,8 +105,8 @@ export function EarthZoomContact() {
       scene.add(earth);
       earthRef.current = earth;
 
-      // CLOUDS - Reduced segments
-      const cloudGeo = new THREE.SphereGeometry(60.5, 48, 48);
+      // CLOUDS
+      const cloudGeo = new THREE.SphereGeometry(60.5, 64, 64);
       resources.geometries.push(cloudGeo);
       const cloudMat = new THREE.MeshPhongMaterial({ map: cloudTexture, transparent: true, opacity: 0.3 });
       resources.materials.push(cloudMat);
@@ -122,8 +114,8 @@ export function EarthZoomContact() {
       scene.add(clouds);
       cloudsRef.current = clouds;
 
-      // GLOW - Reduced segments
-      const glowGeo = new THREE.SphereGeometry(62, 48, 48);
+      // GLOW
+      const glowGeo = new THREE.SphereGeometry(62, 64, 64);
       resources.geometries.push(glowGeo);
       const glowMat = new THREE.ShaderMaterial({
         transparent: true,
@@ -187,6 +179,7 @@ export function EarthZoomContact() {
         
         if (renderer) {
           renderer.dispose();
+          renderer.forceContextLoss();
         }
 
         canvas.removeEventListener('webglcontextlost', onContextLost);

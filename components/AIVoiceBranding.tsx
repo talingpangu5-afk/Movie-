@@ -1,15 +1,17 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import Link from 'next/link';
 import { motion, AnimatePresence } from 'motion/react';
-import { Volume2, VolumeX, Play, Pause, X, User, Cpu, Sparkles } from 'lucide-react';
+import { Volume2, VolumeX, Play, Pause, X, User, Cpu, Sparkles, Terminal } from 'lucide-react';
 import { GoogleGenAI, Modality } from "@google/genai";
+import { toast } from 'sonner';
 
 const SCRIPTS = [
   "This platform has been created solely for educational and entertainment purposes. It is not intended to harm or cause any inconvenience to anyone. All the content and features provided here are part of commonly available information and practices worldwide.\n\nFor any further information, inquiries, or support, you may contact us via email at arunpangu81125@gmail.com.",
   "Welcome to the next generation of cinematic exploration. Taling Pangu is designed to be your ultimate companion in the world of high-definition entertainment, mining insights, and global connectivity. Experience the future of content consumption with our advanced neural interface.",
-  "Warning: You are now entering the Taling Pangu neural network. All streams are encrypted with 256-bit cosmic security. Our mining algorithms are processing the latest entertainment data to serve you with unparalleled precision. Stay connected, stay informed, and enjoy the show."
+  "Warning: You are now entering the Taling Pangu neural network. All streams are encrypted with 256-bit cosmic security. Our mining algorithms are processing the latest entertainment data to serve you with unparalleled precision. Stay connected, stay informed, and enjoy the show.",
+  "Initialization sequence complete. Entertainment protocols active. Neural mining subsystems engaged. System status: Optimal. Welcome back, agent. Ready to explore the multiverse of content.",
+  "Attention: New streams detected in the entertainment sector. Mining platform is now synchronized with global databases. High-definition data extraction in progress. Prepare for a cinematic experience beyond your imagination."
 ];
 
 export function AIVoiceBranding() {
@@ -19,28 +21,19 @@ export function AIVoiceBranding() {
   const [typedText, setTypedText] = useState("");
   const [currentScript, setCurrentScript] = useState(SCRIPTS[0]);
   const [isIdentityVisible, setIsIdentityVisible] = useState(false);
-  const audioContextRef = useRef<AudioContext | null>(null);
   const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [audioCache, setAudioCache] = useState<Record<string, string>>({});
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
 
-  // Initialize AudioContext lazily on user interaction
-  const getAudioContext = () => {
-    if (!audioContextRef.current) {
-      const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
-      audioContextRef.current = new AudioContextClass({ sampleRate: 24000 });
-    }
-    return audioContextRef.current;
-  };
-
   // Close when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
-        stopPlayback();
-        setIsIdentityVisible(false);
+        if (!isPlayingRef.current) {
+          setIsIdentityVisible(false);
+        }
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -96,47 +89,30 @@ export function AIVoiceBranding() {
 
   const playAudio = async (base64: string) => {
     try {
-      const audioContext = getAudioContext();
+      const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
+      const audioContext = new AudioContextClass();
       
       if (audioContext.state === 'suspended') {
         await audioContext.resume();
       }
 
-      const binaryString = atob(base64);
+      // Convert base64 to ArrayBuffer
+      const binaryString = window.atob(base64);
       const bytes = new Uint8Array(binaryString.length);
       for (let i = 0; i < binaryString.length; i++) {
         bytes[i] = binaryString.charCodeAt(i);
       }
       
-      const float32Data = new Float32Array(bytes.length / 2);
-      const view = new DataView(bytes.buffer);
-      for (let i = 0; i < float32Data.length; i++) {
-          if (i * 2 + 1 < bytes.length) {
-            const s16 = view.getInt16(i * 2, true);
-            float32Data[i] = s16 / 32768;
-          }
-      }
-
-      const audioBuffer = audioContext.createBuffer(1, float32Data.length, 24000);
-      audioBuffer.getChannelData(0).set(float32Data);
-
-      // Stop any existing source to prevent overlapping sounds
-      if (audioSourceRef.current) {
-        try {
-          audioSourceRef.current.stop();
-        } catch (e) {}
-      }
+      // More robust decoding (handles WAV/MP3 headers)
+      const audioBuffer = await audioContext.decodeAudioData(bytes.buffer.slice(0));
 
       const source = audioContext.createBufferSource();
       source.buffer = audioBuffer;
       source.connect(audioContext.destination);
       
       source.onended = () => {
-        // Only set playing false if this was the current active source
-        if (audioSourceRef.current === source) {
-          setIsPlaying(false);
-          isPlayingRef.current = false;
-        }
+        setIsPlaying(false);
+        isPlayingRef.current = false;
       };
 
       source.start();
@@ -144,21 +120,60 @@ export function AIVoiceBranding() {
       
       startTyping();
     } catch (error) {
-      console.error("Audio Playback Error:", error);
-      setIsPlaying(false);
-      isPlayingRef.current = false;
-      startTyping();
+      console.error("Audio Processing Error:", error);
+      // Fallback for raw PCM if decodeAudioData fails
+      try {
+        const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
+        const audioContext = new AudioContextClass({ sampleRate: 24000 });
+        const binaryString = window.atob(base64);
+        const bytes = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          bytes[i] = binaryString.charCodeAt(i);
+        }
+        const float32Data = new Float32Array(bytes.length / 2);
+        const view = new DataView(bytes.buffer);
+        for (let i = 0; i < float32Data.length; i++) {
+            if (i * 2 + 1 < bytes.length) {
+              const s16 = view.getInt16(i * 2, true);
+              float32Data[i] = s16 / 32768;
+            }
+        }
+        const audioBuffer = audioContext.createBuffer(1, float32Data.length, 24000);
+        audioBuffer.getChannelData(0).set(float32Data);
+        const source = audioContext.createBufferSource();
+        source.buffer = audioBuffer;
+        source.connect(audioContext.destination);
+        source.onended = () => {
+          setIsPlaying(false);
+          isPlayingRef.current = false;
+        };
+        source.start();
+        audioSourceRef.current = source;
+        startTyping();
+      } catch (innerError) {
+        console.error("PCM Fallback failed:", innerError);
+        setIsPlaying(false);
+        isPlayingRef.current = false;
+        startTyping();
+      }
     }
   };
 
   const startPlayback = async () => {
+    // If it's already playing, stop it.
     if (isPlaying) {
       stopPlayback();
       return;
     }
 
+    // Toggle off if already shown everything and not playing
+    if (isIdentityVisible && !isPlaying && typedText.length > 0) {
+        setIsIdentityVisible(false);
+        return;
+    }
+
     if (!process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
-      console.error("Gemini API Key missing");
+      toast.error("AI Neural Interface Key Missing");
       return;
     }
 
@@ -179,6 +194,7 @@ export function AIVoiceBranding() {
       if (base64) {
         await playAudio(base64);
       } else {
+          toast.warning("Neural voice server offline, using text protocol.");
           startTyping();
       }
     } catch (error) {
@@ -219,6 +235,9 @@ export function AIVoiceBranding() {
         i++;
         const delay = chars[i-1] === '.' || chars[i-1] === '?' || chars[i-1] === '!' ? 400 : 25;
         typingTimeoutRef.current = setTimeout(type, delay);
+      } else if (i >= chars.length) {
+          setIsPlaying(false);
+          isPlayingRef.current = false;
       }
     };
 
@@ -228,57 +247,56 @@ export function AIVoiceBranding() {
   return (
     <div className="relative" ref={containerRef}>
       {/* Brand Section */}
-      <div className="flex items-center gap-2">
-        <motion.div
-          animate={isExpanded ? { scale: 1.1 } : { scale: 1 }}
-          className="relative cursor-pointer"
-          onClick={startPlayback}
-          onMouseEnter={() => setIsExpanded(true)}
-          onMouseLeave={() => !isIdentityVisible && setIsExpanded(false)}
-        >
-          <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-500 ${isIdentityVisible ? 'bg-primary shadow-[0_0_20px_rgba(247,147,26,0.5)]' : 'bg-zinc-900 border border-white/10 hover:border-primary/50'}`}>
-              {isIdentityVisible ? <Cpu className="w-5 h-5 text-black" /> : <Sparkles className="w-5 h-5 text-primary" />}
-          </div>
-          <AnimatePresence>
-            {isPlaying && (
-              <motion.div
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1.5, opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ repeat: Infinity, duration: 1.5 }}
-                className="absolute inset-0 bg-primary/20 rounded-full -z-10"
-              />
-            )}
-          </AnimatePresence>
-        </motion.div>
-
-        <Link 
-          href="/" 
-          className="flex flex-col cursor-pointer group select-none"
-          onMouseEnter={() => setIsExpanded(true)}
-          onMouseLeave={() => !isIdentityVisible && setIsExpanded(false)}
-        >
-          <h1 className="text-xl md:text-2xl font-black tracking-tighter text-white transition-all duration-300 group-hover:neon-blue flex items-center gap-2">
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-primary to-white animate-text-shimmer bg-[length:200%_auto]">
-              TALING PANGU
-            </span>
+      <div 
+        className="flex flex-col cursor-pointer group select-none"
+        onMouseEnter={() => setIsExpanded(true)}
+        onMouseLeave={() => !isIdentityVisible && setIsExpanded(false)}
+        onClick={startPlayback}
+      >
+        <div className="flex items-center gap-2">
+          <motion.div
+            animate={isExpanded ? { scale: 1.1 } : { scale: 1 }}
+            className="relative"
+          >
+            <div className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-500 ${isIdentityVisible ? 'bg-primary shadow-[0_0_20px_rgba(247,147,26,0.5)]' : 'bg-zinc-900 border border-white/10'}`}>
+                {isIdentityVisible ? <Cpu className="w-5 h-5 text-black" /> : <Sparkles className="w-5 h-5 text-primary" />}
+            </div>
             <AnimatePresence>
-              {isExpanded && (
-                <motion.span
-                  initial={{ opacity: 0, x: -10 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -10 }}
-                  className="text-primary font-black ml-1 whitespace-nowrap text-xs md:text-sm"
-                >
-                  – CREATOR
-                </motion.span>
+              {isPlaying && (
+                <motion.div
+                  initial={{ scale: 0.8, opacity: 0 }}
+                  animate={{ scale: 1.5, opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ repeat: Infinity, duration: 1.5 }}
+                  className="absolute inset-0 bg-primary/20 rounded-full -z-10"
+                />
               )}
             </AnimatePresence>
-          </h1>
-          <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40 -mt-1 block group-hover:text-primary/60 transition-colors">
-            Kaying Bazaar HQ
-          </span>
-        </Link>
+          </motion.div>
+
+          <div className="flex flex-col">
+            <h1 className="text-xl md:text-2xl font-black tracking-tighter text-white transition-all duration-300 group-hover:neon-blue flex items-center gap-2">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-primary to-white animate-text-shimmer bg-[length:200%_auto]">
+                TALING PANGU
+              </span>
+              <AnimatePresence>
+                {isExpanded && (
+                  <motion.span
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: -10 }}
+                    className="text-primary font-black ml-1 whitespace-nowrap"
+                  >
+                    – CREATOR
+                  </motion.span>
+                )}
+              </AnimatePresence>
+            </h1>
+            <span className="text-[9px] font-black uppercase tracking-[0.3em] text-white/40 -mt-1 block group-hover:text-primary/60 transition-colors">
+              Kaying Bazaar HQ
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* AI Script Console (Hologram Style) */}
@@ -288,7 +306,7 @@ export function AIVoiceBranding() {
             initial={{ opacity: 0, y: 20, scale: 0.9, rotateX: 20 }}
             animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
             exit={{ opacity: 0, y: 20, scale: 0.9, rotateX: 20 }}
-            className="absolute top-full left-0 mt-4 w-[280px] md:w-[480px] z-[100] perspective-1000"
+            className="absolute top-full left-0 mt-4 w-[calc(100vw-2rem)] sm:w-[320px] md:w-[480px] z-[100] perspective-1000"
           >
             <div className="relative bg-black/60 backdrop-blur-2xl border border-white/20 rounded-2xl overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
               {/* Scanline Effect */}
@@ -296,8 +314,8 @@ export function AIVoiceBranding() {
               
               <div className="p-4 border-b border-white/10 flex items-center justify-between bg-white/5">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-                  <span className="text-[10px] uppercase font-black tracking-widest text-primary">AI Voice Core Active</span>
+                  <Terminal className="w-3 h-3 text-primary" />
+                  <span className="text-[10px] uppercase font-black tracking-widest text-primary">Neural Sync Active 3.1</span>
                 </div>
                 <div className="flex items-center gap-3">
                     <div className="flex gap-1 h-3 items-end">
