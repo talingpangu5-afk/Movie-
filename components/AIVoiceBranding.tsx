@@ -5,23 +5,17 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Volume2, VolumeX, Play, Pause, X, User, Cpu, Sparkles } from 'lucide-react';
 import { GoogleGenAI, Modality } from "@google/genai";
 
-const SCRIPTS = [
-  "This platform has been created solely for educational and entertainment purposes. It is not intended to harm or cause any inconvenience to anyone. All the content and features provided here are part of commonly available information and practices worldwide.\n\nFor any further information, inquiries, or support, you may contact us via email at arunpangu81125@gmail.com.",
-  "Welcome to the next generation of cinematic exploration. Taling Pangu is designed to be your ultimate companion in the world of high-definition entertainment, mining insights, and global connectivity. Experience the future of content consumption with our advanced neural interface.",
-  "Warning: You are now entering the Taling Pangu neural network. All streams are encrypted with 256-bit cosmic security. Our mining algorithms are processing the latest entertainment data to serve you with unparalleled precision. Stay connected, stay informed, and enjoy the show."
-];
+const SCRIPT_TEXT = "This platform has been created solely for educational and entertainment purposes. It is not intended to harm or cause any inconvenience to anyone. All the content and features provided here are part of commonly available information and practices worldwide.\n\nFor any further information, inquiries, or support, you may contact us via email at arunpangu81125@gmail.com.";
 
 export function AIVoiceBranding() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
-  const isPlayingRef = useRef(false);
   const [typedText, setTypedText] = useState("");
-  const [currentScript, setCurrentScript] = useState(SCRIPTS[0]);
   const [isIdentityVisible, setIsIdentityVisible] = useState(false);
   const audioSourceRef = useRef<AudioBufferSourceNode | null>(null);
   const typingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [audioCache, setAudioCache] = useState<Record<string, string>>({});
+  const [audioBase64, setAudioBase64] = useState<string | null>(null);
   const [isLoadingAudio, setIsLoadingAudio] = useState(false);
 
   // Close when clicking outside
@@ -36,20 +30,20 @@ export function AIVoiceBranding() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const fetchTTS = async (text: string) => {
-    if (audioCache[text]) return audioCache[text];
+  const fetchTTS = async () => {
+    if (audioBase64) return audioBase64;
     
     setIsLoadingAudio(true);
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY! });
       const response = await ai.models.generateContent({
         model: "gemini-3.1-flash-tts-preview",
-        contents: [{ parts: [{ text: `Say this script in a deep, futuristic, slightly robotic male voice: ${text}` }] }],
+        contents: [{ parts: [{ text: `Say calmly and robotically in a futuristic male voice: ${SCRIPT_TEXT}` }] }],
         config: {
           responseModalities: [Modality.AUDIO],
           speechConfig: {
             voiceConfig: {
-              prebuiltVoiceConfig: { voiceName: 'Charon' },
+              prebuiltVoiceConfig: { voiceName: 'Charon' }, // Charon is a deep male voice
             },
           },
         },
@@ -57,26 +51,11 @@ export function AIVoiceBranding() {
 
       const base64 = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
       if (base64) {
-        setAudioCache(prev => ({ ...prev, [text]: base64 }));
+        setAudioBase64(base64);
         return base64;
       }
     } catch (error) {
       console.error("TTS Fetch failed:", error);
-      // Fallback
-      try {
-        const aiFallback = new GoogleGenAI({ apiKey: process.env.NEXT_PUBLIC_GEMINI_API_KEY! });
-        const response = await aiFallback.models.generateContent({
-          model: "gemini-1.5-flash",
-          contents: [{ parts: [{ text: `Read this script: ${text}` }] }],
-          config: {
-            responseModalities: [Modality.AUDIO] as any,
-          }
-        });
-        const altBase64 = response.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
-        if (altBase64) return altBase64;
-      } catch (e) {
-        console.error("Fallback TTS failed:", e);
-      }
     } finally {
       setIsLoadingAudio(false);
     }
@@ -84,52 +63,33 @@ export function AIVoiceBranding() {
   };
 
   const playAudio = async (base64: string) => {
-    try {
-      // Create a fresh audio context each time to ensure it works across browsers
-      const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
-      const audioContext = new AudioContextClass({ sampleRate: 24000 });
-      
-      if (audioContext.state === 'suspended') {
-        await audioContext.resume();
-      }
-
-      const binaryString = atob(base64);
-      const bytes = new Uint8Array(binaryString.length);
-      for (let i = 0; i < binaryString.length; i++) {
-        bytes[i] = binaryString.charCodeAt(i);
-      }
-      
-      const float32Data = new Float32Array(bytes.length / 2);
-      const view = new DataView(bytes.buffer);
-      for (let i = 0; i < float32Data.length; i++) {
-          if (i * 2 + 1 < bytes.length) {
-            const s16 = view.getInt16(i * 2, true);
-            float32Data[i] = s16 / 32768;
-          }
-      }
-
-      const audioBuffer = audioContext.createBuffer(1, float32Data.length, 24000);
-      audioBuffer.getChannelData(0).set(float32Data);
-
-      const source = audioContext.createBufferSource();
-      source.buffer = audioBuffer;
-      source.connect(audioContext.destination);
-      
-      source.onended = () => {
-        setIsPlaying(false);
-        isPlayingRef.current = false;
-      };
-
-      source.start();
-      audioSourceRef.current = source;
-      
-      startTyping();
-    } catch (error) {
-      console.error("Audio Playback Error:", error);
-      setIsPlaying(false);
-      isPlayingRef.current = false;
-      startTyping();
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)({ sampleRate: 24000 });
+    const binaryString = atob(base64);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
     }
+    
+    const float32Data = new Float32Array(bytes.length / 2);
+    const view = new DataView(bytes.buffer);
+    for (let i = 0; i < float32Data.length; i++) {
+        const s16 = view.getInt16(i * 2, true);
+        float32Data[i] = s16 / 32768;
+    }
+
+    const audioBuffer = audioContext.createBuffer(1, float32Data.length, 24000);
+    audioBuffer.getChannelData(0).set(float32Data);
+
+    const source = audioContext.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(audioContext.destination);
+    
+    source.onended = () => {
+      setIsPlaying(false);
+    };
+
+    source.start();
+    audioSourceRef.current = source;
   };
 
   const startPlayback = async () => {
@@ -138,68 +98,46 @@ export function AIVoiceBranding() {
       return;
     }
 
-    if (!process.env.NEXT_PUBLIC_GEMINI_API_KEY) {
-      console.error("Gemini API Key missing");
-      return;
-    }
-
-    // Select random script
-    const randomScript = SCRIPTS[Math.floor(Math.random() * SCRIPTS.length)];
-    setCurrentScript(randomScript);
-
     setIsIdentityVisible(true);
     setIsPlaying(true);
-    isPlayingRef.current = true;
     setTypedText("");
 
-    try {
-      const base64 = await fetchTTS(randomScript);
-      
-      if (!isPlayingRef.current) return;
+    // Start Typing Effect
+    startTyping();
 
-      if (base64) {
-        await playAudio(base64);
-      } else {
-          startTyping();
-      }
-    } catch (error) {
-      console.error("Playback sequence failed:", error);
-      setIsPlaying(false);
-      isPlayingRef.current = false;
-      startTyping();
+    // Fetch and Play Audio
+    const base64 = await fetchTTS();
+    if (base64) {
+      playAudio(base64);
+    } else {
+        // Fallback or handle error
+        console.warn("No audio data received");
     }
   };
 
   const stopPlayback = () => {
     if (audioSourceRef.current) {
-      try {
-        audioSourceRef.current.stop();
-      } catch (e) {}
+      audioSourceRef.current.stop();
       audioSourceRef.current = null;
     }
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
     }
     setIsPlaying(false);
-    isPlayingRef.current = false;
   };
 
   const startTyping = () => {
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-    
     let currentText = "";
-    const chars = currentScript.split("");
+    const words = SCRIPT_TEXT.split("");
     let i = 0;
 
     const type = () => {
-      if (isPlayingRef.current && i < chars.length) {
-        currentText += chars[i];
+      if (i < words.length) {
+        currentText += words[i];
         setTypedText(currentText);
         i++;
-        const delay = chars[i-1] === '.' || chars[i-1] === '?' || chars[i-1] === '!' ? 400 : 25;
-        typingTimeoutRef.current = setTimeout(type, delay);
+        // Adjust typing speed to roughly match audio length if possible, or just standard fast pace
+        typingTimeoutRef.current = setTimeout(type, 30);
       }
     };
 
