@@ -11,7 +11,7 @@ import { AdultTrigger } from '@/components/AdultTrigger';
 const inter = Inter({ subsets: ['latin'] });
 
 export const viewport: Viewport = {
-  width: 'device-width',
+  width: 1200,
   initialScale: 1,
 };
 
