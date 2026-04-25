@@ -55,59 +55,122 @@ export function EarthZoomContact() {
     const loader = new THREE.TextureLoader();
     const earthTexture = loader.load('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg');
     const cloudTexture = loader.load('https://unpkg.com/three-globe/example/img/earth-clouds.png');
+    const nightTexture = loader.load('https://unpkg.com/three-globe/example/img/earth-night.jpg');
 
     // EARTH
     const earthGeo = new THREE.SphereGeometry(60, 64, 64);
-    const earthMat = new THREE.MeshPhongMaterial({ map: earthTexture, shininess: 5 });
+    const earthMat = new THREE.MeshPhongMaterial({ 
+      map: earthTexture, 
+      specular: new THREE.Color(0x333333),
+      shininess: 15,
+      bumpScale: 1
+    });
     const earth = new THREE.Mesh(earthGeo, earthMat);
     scene.add(earth);
     earthRef.current = earth;
 
     // CLOUDS
-    const cloudGeo = new THREE.SphereGeometry(60.5, 64, 64);
-    const cloudMat = new THREE.MeshPhongMaterial({ map: cloudTexture, transparent: true, opacity: 0.3 });
+    const cloudGeo = new THREE.SphereGeometry(60.6, 64, 64);
+    const cloudMat = new THREE.MeshPhongMaterial({ map: cloudTexture, transparent: true, opacity: 0.45 });
     const clouds = new THREE.Mesh(cloudGeo, cloudMat);
     scene.add(clouds);
     cloudsRef.current = clouds;
 
-    // GLOW
-    const glowGeo = new THREE.SphereGeometry(62, 64, 64);
-    const glowMat = new THREE.ShaderMaterial({
+    // ATMOSPHERE (Realistic Glow)
+    const atmosGeo = new THREE.SphereGeometry(66, 64, 64);
+    const atmosMat = new THREE.ShaderMaterial({
       transparent: true,
-      uniforms: { glowColor: { value: new THREE.Color(0x00f2ff) } },
+      uniforms: {
+        glowColor: { value: new THREE.Color(0x00f2ff) },
+        viewVector: { value: camera.position }
+      },
       vertexShader: `
         varying vec3 vNormal;
+        varying vec3 vViewPosition;
         void main() {
           vNormal = normalize( normalMatrix * normal );
-          gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+          vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
+          vViewPosition = -mvPosition.xyz;
+          gl_Position = projectionMatrix * mvPosition;
         }
       `,
       fragmentShader: `
-        precision mediump float;
         uniform vec3 glowColor;
         varying vec3 vNormal;
+        varying vec3 vViewPosition;
         void main() {
-          float intensity = pow( 0.6 - dot( vNormal, vec3( 0.0, 0.0, 1.0 ) ), 4.0 );
+          float intensity = pow( 0.7 - dot( vNormal, normalize( vViewPosition ) ), 3.0 );
           gl_FragColor = vec4( glowColor, intensity );
         }
       `,
       side: THREE.BackSide,
       blending: THREE.AdditiveBlending
     });
-    scene.add(new THREE.Mesh(glowGeo, glowMat));
+    const atmosphere = new THREE.Mesh(atmosGeo, atmosMat);
+    scene.add(atmosphere);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.8);
+    // 8 SURROUNDING PLANETS
+    const planets: THREE.Mesh[] = [];
+    const planetData = [
+      { size: 8, color: 0x888888, dist: 120, speed: 0.005, offset: 0 }, // Mercury-like
+      { size: 12, color: 0xffcc99, dist: 150, speed: 0.003, offset: 1.2 }, // Venus-like
+      { size: 10, color: 0xff6633, dist: 180, speed: 0.002, offset: 2.5 }, // Mars-like
+      { size: 25, color: 0xeeb882, dist: 240, speed: 0.001, offset: 3.8 }, // Jupiter-like
+      { size: 20, color: 0xe3d4a4, dist: 300, speed: 0.0008, offset: 4.5 }, // Saturn-like
+      { size: 15, color: 0xace5ee, dist: 350, speed: 0.0006, offset: 5.2 }, // Uranus-like
+      { size: 14, color: 0x4b70dd, dist: 400, speed: 0.0005, offset: 0.8 }, // Neptune-like
+      { size: 6, color: 0xcccccc, dist: 450, speed: 0.0004, offset: 2.0 }, // Pluto-like
+    ];
+
+    planetData.forEach(data => {
+      const geo = new THREE.SphereGeometry(data.size, 32, 32);
+      const mat = new THREE.MeshPhongMaterial({ color: data.color, shininess: 10 });
+      const planet = new THREE.Mesh(geo, mat);
+      
+      // Initial position
+      const angle = data.offset;
+      planet.position.set(Math.cos(angle) * data.dist, (Math.random() - 0.5) * 50, Math.sin(angle) * data.dist);
+      
+      scene.add(planet);
+      planets.push(planet);
+    });
+
+    // STARFIELD
+    const starGeo = new THREE.BufferGeometry();
+    const starCount = 2000;
+    const posArray = new Float32Array(starCount * 3);
+    for(let i=0; i<starCount * 3; i++) {
+        posArray[i] = (Math.random() - 0.5) * 1500;
+    }
+    starGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
+    const starMat = new THREE.PointsMaterial({ size: 1, color: 0xffffff, transparent: true, opacity: 0.8 });
+    const stars = new THREE.Points(starGeo, starMat);
+    scene.add(stars);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
     scene.add(ambientLight);
-    const sunLight = new THREE.DirectionalLight(0xffffff, 1);
+    const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
     sunLight.position.set(100, 100, 100);
     scene.add(sunLight);
 
     const animate = () => {
       frameIdRef.current = requestAnimationFrame(animate);
-      if (earthRef.current && cloudsRef.current && stageRef.current === 'idle') {
-        earthRef.current.rotation.y += 0.001;
-        cloudsRef.current.rotation.y += 0.0015;
+      
+      if (stageRef.current === 'idle') {
+        if (earthRef.current) earthRef.current.rotation.y += 0.001;
+        if (cloudsRef.current) cloudsRef.current.rotation.y += 0.0015;
+        
+        stars.rotation.y += 0.0002;
+
+        planets.forEach((planet, idx) => {
+          const data = planetData[idx];
+          const time = Date.now() * data.speed * 0.1 + data.offset;
+          planet.position.x = Math.cos(time) * data.dist;
+          planet.position.z = Math.sin(time) * data.dist;
+          planet.rotation.y += 0.01;
+        });
       }
+
       if (rendererRef.current && sceneRef.current && cameraRef.current) {
         rendererRef.current.render(sceneRef.current, cameraRef.current);
       }
