@@ -3,16 +3,26 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { gsap } from 'gsap';
-import { ArrowLeft, Mail, Copy, Check, MousePointer2 } from 'lucide-react';
+import { ArrowLeft, Mail, Copy, Check, MousePointer2, Radio, Terminal, ExternalLink } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
+import { SecretPlatform } from './SecretPlatform';
 
 export function EarthZoomContact() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [stage, setStage] = useState<'idle' | 'zooming' | 'landed'>('idle');
+  const [stage, setStage] = useState<'idle' | 'zooming' | 'landed' | 'secret'>('idle');
   const stageRef = useRef(stage);
 
+  // Mars interaction states
+  const [marsAligned, setMarsAligned] = useState(false);
+  const [showMarsUI, setShowMarsUI] = useState(false);
+  const marsRef = useRef<THREE.Mesh | null>(null);
+  const speedScale = useRef(1.0);
+  const alignmentTimer = useRef<NodeJS.Timeout | null>(null);
+  
+  const audioCtx = useRef<AudioContext | null>(null);
+  
   useEffect(() => {
     stageRef.current = stage;
   }, [stage]);
@@ -26,6 +36,84 @@ export function EarthZoomContact() {
   const earthRef = useRef<THREE.Mesh | null>(null);
   const cloudsRef = useRef<THREE.Mesh | null>(null);
   const frameIdRef = useRef<number | null>(null);
+
+  const playAlignmentSound = () => {
+    try {
+      if (!audioCtx.current) audioCtx.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const ctx = audioCtx.current;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(60, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(80, ctx.currentTime + 5);
+      
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 1);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 5);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.start();
+      osc.stop(ctx.currentTime + 5);
+    } catch (e) { console.error(e); }
+  };
+
+  const playWarpSound = () => {
+    try {
+      if (!audioCtx.current) return;
+      const ctx = audioCtx.current;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      
+      osc.type = 'sawtooth';
+      osc.frequency.setValueAtTime(120, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(20, ctx.currentTime + 1.5);
+      
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 1.5);
+      
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.start();
+      osc.stop(ctx.currentTime + 1.5);
+    } catch (e) { console.error(e); }
+  };
+
+  const triggerMarsAlignment = () => {
+    setMarsAligned(true);
+    setShowMarsUI(true);
+    playAlignmentSound();
+
+    // Cinematic pause: slow down time
+    gsap.to(speedScale, {
+      current: 0.1,
+      duration: 1,
+      ease: "power2.out"
+    });
+
+    if (marsRef.current) {
+      gsap.to(marsRef.current.material as any, {
+        emissiveIntensity: 5.0,
+        duration: 1,
+        repeat: 5,
+        yoyo: true
+      });
+    }
+
+    // Auto-reset after 5 seconds if not clicked
+    alignmentTimer.current = setTimeout(() => {
+      setMarsAligned(false);
+      setShowMarsUI(false);
+      gsap.to(speedScale, {
+        current: 1.0,
+        duration: 1.5,
+        ease: "power2.in"
+      });
+    }, 5000);
+  };
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -57,8 +145,46 @@ export function EarthZoomContact() {
     const cloudTexture = loader.load('https://unpkg.com/three-globe/example/img/earth-clouds.png');
     const nightTexture = loader.load('https://unpkg.com/three-globe/example/img/earth-night.jpg');
 
-    // EARTH
-    const earthGeo = new THREE.SphereGeometry(60, 64, 64);
+    // SUN (Central Hub)
+    const sunGeo = new THREE.SphereGeometry(30, 32, 32);
+    const sunMat = new THREE.MeshBasicMaterial({ 
+      color: 0xffcc33,
+      transparent: true,
+      opacity: 0.8
+    });
+    const sun = new THREE.Mesh(sunGeo, sunMat);
+    scene.add(sun);
+
+    // Add Sun Glow
+    const sunGlowGeo = new THREE.SphereGeometry(45, 32, 32);
+    const sunGlowMat = new THREE.ShaderMaterial({
+      transparent: true,
+      side: THREE.BackSide,
+      blending: THREE.AdditiveBlending,
+      uniforms: { glowColor: { value: new THREE.Color(0xffaa00) } },
+      vertexShader: `
+        varying vec3 vNormal;
+        void main() {
+          vNormal = normalize( normalMatrix * normal );
+          gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 glowColor;
+        varying vec3 vNormal;
+        void main() {
+          float intensity = pow( 0.7 - dot( vNormal, vec3( 0, 0, 1.0 ) ), 4.0 );
+          gl_FragColor = vec4( glowColor, intensity );
+        }
+      `
+    });
+    scene.add(new THREE.Mesh(sunGlowGeo, sunGlowMat));
+
+    // EARTH (Now an orbiting planet)
+    const earthGroup = new THREE.Group();
+    scene.add(earthGroup);
+    
+    const earthGeo = new THREE.SphereGeometry(15, 64, 64);
     const earthMat = new THREE.MeshPhongMaterial({ 
       map: earthTexture, 
       specular: new THREE.Color(0x333333),
@@ -66,18 +192,18 @@ export function EarthZoomContact() {
       bumpScale: 1
     });
     const earth = new THREE.Mesh(earthGeo, earthMat);
-    scene.add(earth);
+    earthGroup.add(earth);
     earthRef.current = earth;
 
     // CLOUDS
-    const cloudGeo = new THREE.SphereGeometry(60.6, 64, 64);
+    const cloudGeo = new THREE.SphereGeometry(15.2, 64, 64);
     const cloudMat = new THREE.MeshPhongMaterial({ map: cloudTexture, transparent: true, opacity: 0.45 });
     const clouds = new THREE.Mesh(cloudGeo, cloudMat);
-    scene.add(clouds);
+    earthGroup.add(clouds);
     cloudsRef.current = clouds;
 
-    // ATMOSPHERE (Realistic Glow)
-    const atmosGeo = new THREE.SphereGeometry(66, 64, 64);
+    // ATMOSPHERE
+    const atmosGeo = new THREE.SphereGeometry(17, 64, 64);
     const atmosMat = new THREE.ShaderMaterial({
       transparent: true,
       uniforms: {
@@ -107,25 +233,31 @@ export function EarthZoomContact() {
       blending: THREE.AdditiveBlending
     });
     const atmosphere = new THREE.Mesh(atmosGeo, atmosMat);
-    scene.add(atmosphere);
+    earthGroup.add(atmosphere);
 
     // 8 SURROUNDING PLANETS
     const planets: THREE.Mesh[] = [];
     const planetData = [
-      { size: 8, color: 0x888888, dist: 120, speed: 0.005, offset: 0 }, // Mercury-like
-      { size: 12, color: 0xffcc99, dist: 150, speed: 0.003, offset: 1.2 }, // Venus-like
-      { size: 10, color: 0xff6633, dist: 180, speed: 0.002, offset: 2.5 }, // Mars-like
-      { size: 25, color: 0xeeb882, dist: 240, speed: 0.001, offset: 3.8 }, // Jupiter-like
-      { size: 20, color: 0xe3d4a4, dist: 300, speed: 0.0008, offset: 4.5 }, // Saturn-like
-      { size: 15, color: 0xace5ee, dist: 350, speed: 0.0006, offset: 5.2 }, // Uranus-like
-      { size: 14, color: 0x4b70dd, dist: 400, speed: 0.0005, offset: 0.8 }, // Neptune-like
-      { size: 6, color: 0xcccccc, dist: 450, speed: 0.0004, offset: 2.0 }, // Pluto-like
+      { size: 6, color: 0x888888, dist: 50, speed: 0.005, offset: 0 }, // Mercury
+      { size: 10, color: 0xffcc99, dist: 80, speed: 0.003, offset: 1.2 }, // Venus
+      { size: 8, color: 0xff6633, dist: 140, speed: 0.002, offset: 2.5, isMars: true }, // Mars
+      { size: 20, color: 0xeeb882, dist: 200, speed: 0.001, offset: 3.8 }, // Jupiter
+      { size: 18, color: 0xe3d4a4, dist: 260, speed: 0.0008, offset: 4.5 }, // Saturn
+      { size: 12, color: 0xace5ee, dist: 320, speed: 0.0006, offset: 5.2 }, // Uranus
+      { size: 11, color: 0x4b70dd, dist: 380, speed: 0.0005, offset: 0.8 }, // Neptune
+      { size: 5, color: 0xcccccc, dist: 440, speed: 0.0004, offset: 2.0 }, // Pluto
     ];
 
-    planetData.forEach(data => {
+    planetData.forEach((data, i) => {
       const geo = new THREE.SphereGeometry(data.size, 32, 32);
-      const mat = new THREE.MeshPhongMaterial({ color: data.color, shininess: 10 });
+      const mat = new THREE.MeshPhongMaterial({ 
+        color: data.color, 
+        shininess: 10,
+        emissive: data.isMars ? 0x330000 : 0x000000 
+      });
       const planet = new THREE.Mesh(geo, mat);
+      
+      if (data.isMars) marsRef.current = planet;
       
       // Initial position
       const angle = data.offset;
@@ -157,17 +289,35 @@ export function EarthZoomContact() {
       frameIdRef.current = requestAnimationFrame(animate);
       
       if (stageRef.current === 'idle') {
-        if (earthRef.current) earthRef.current.rotation.y += 0.001;
-        if (cloudsRef.current) cloudsRef.current.rotation.y += 0.0015;
+        const delta = 0.016; // Approx 60fps
         
-        stars.rotation.y += 0.0002;
+        // Move Earth
+        const earthTime = Date.now() * 0.0005 * speedScale.current;
+        earthGroup.position.x = Math.cos(earthTime) * 110;
+        earthGroup.position.z = Math.sin(earthTime) * 110;
+
+        if (earthRef.current) earthRef.current.rotation.y += 0.001 * speedScale.current;
+        if (cloudsRef.current) cloudsRef.current.rotation.y += 0.0015 * speedScale.current;
+        
+        stars.rotation.y += 0.0002 * speedScale.current;
 
         planets.forEach((planet, idx) => {
           const data = planetData[idx];
-          const time = Date.now() * data.speed * 0.1 + data.offset;
+          const time = Date.now() * data.speed * 0.1 * speedScale.current + data.offset;
           planet.position.x = Math.cos(time) * data.dist;
           planet.position.z = Math.sin(time) * data.dist;
-          planet.rotation.y += 0.01;
+          planet.rotation.y += 0.01 * speedScale.current;
+
+          // Mars alignment detection
+          if (data.isMars && speedScale.current > 0.3) {
+            // Check if Mars is between camera and Earth
+            const isNearCenter = Math.abs(planet.position.x) < 15;
+            const isPositiveZ = planet.position.z > 40; // Closer to camera than Earth
+            
+            if (isNearCenter && isPositiveZ && !marsAligned) {
+              triggerMarsAlignment();
+            }
+          }
         });
       }
 
@@ -190,18 +340,98 @@ export function EarthZoomContact() {
     return () => {
       window.removeEventListener('resize', handleResize);
       if (frameIdRef.current) cancelAnimationFrame(frameIdRef.current);
-      if (rendererRef.current) rendererRef.current.dispose();
+      
+      // Rigorous cleanup to prevent WebGL context loss
+      if (sceneRef.current) {
+        sceneRef.current.traverse((object: any) => {
+          if (!object.isMesh) return;
+
+          object.geometry.dispose();
+
+          if (object.material.isMaterial) {
+            cleanMaterial(object.material);
+          } else {
+            // Material is an array
+            for (const material of object.material) cleanMaterial(material);
+          }
+        });
+      }
+
+      if (rendererRef.current) {
+        rendererRef.current.dispose();
+        rendererRef.current.forceContextLoss();
+        rendererRef.current.domElement.remove();
+        rendererRef.current = null;
+      }
     };
+
+    function cleanMaterial(material: any) {
+      material.dispose();
+      // Dispose textures
+      for (const key of Object.keys(material)) {
+        const value = material[key];
+        if (value && typeof value === 'object' && 'minFilter' in value) {
+          value.dispose();
+        }
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const enterSecretWorld = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (alignmentTimer.current) clearTimeout(alignmentTimer.current);
+    
+    playWarpSound();
+    setStage('zooming');
+    
+    // Smooth zoom into Mars
+    const marsPos = marsRef.current?.position.clone() || new THREE.Vector3(0,0,0);
+    
+    gsap.to(cameraRef.current!.position, {
+      x: marsPos.x,
+      y: marsPos.y,
+      z: marsPos.z + 10,
+      duration: 1.5,
+      ease: "power3.inOut",
+      onComplete: () => {
+        setStage('secret');
+      }
+    });
+
+    // Fade out everything else
+    if (sceneRef.current) {
+      sceneRef.current.children.forEach(child => {
+        if (child !== marsRef.current && (child as any).material) {
+          gsap.to((child as any).material, { opacity: 0, duration: 1 });
+        }
+      });
+    }
+  };
 
   const startZoom = () => {
     if (stage !== 'idle') return;
     setStage('zooming');
     document.body.style.overflow = 'hidden';
+    
+    // Get earth's current position to target it
+    const targetPos = earthRef.current!.parent!.position.clone();
+    
     const tl = gsap.timeline({ onComplete: () => { setStage('landed'); document.body.style.overflow = 'auto'; } });
-    tl.to(cameraRef.current!.position, { z: 400, duration: 0.6 });
+    tl.to(cameraRef.current!.position, { 
+      x: targetPos.x,
+      y: targetPos.y,
+      z: targetPos.z + 200, 
+      duration: 0.6 
+    });
     tl.to(earthRef.current!.rotation, { y: THREE.MathUtils.degToRad(-94.6), x: THREE.MathUtils.degToRad(28.4), duration: 2, ease: 'expo.inOut' }, "-=0.1");
-    tl.to(cameraRef.current!.position, { z: 65, duration: 2.2, ease: 'expo.inOut' }, "<");
+    tl.to(cameraRef.current!.position, { 
+      x: targetPos.x,
+      y: targetPos.y,
+      z: targetPos.z + 40, 
+      duration: 2.2, 
+      ease: 'expo.inOut' 
+    }, "<");
   };
 
   const copyEmail = () => {
@@ -245,12 +475,12 @@ export function EarthZoomContact() {
             whileTap={{ scale: 0.95 }}
             className="w-full h-full relative"
           >
-            <canvas ref={canvasRef} className={`w-full h-full transition-opacity duration-700 ${stage === 'landed' ? 'opacity-0' : 'opacity-100'}`} />
+            <canvas ref={canvasRef} className={`w-full h-full transition-opacity duration-700 ${['landed', 'secret'].includes(stage) ? 'opacity-0' : 'opacity-100'}`} />
             
             {/* SUBTLE GLOW */}
             <div className="absolute inset-0 rounded-full bg-cyan-500/10 blur-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
             
-            {stage === 'idle' && (
+            {stage === 'idle' && !showMarsUI && (
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <motion.div
                   animate={{ opacity: [0.3, 0.7, 0.3] }}
@@ -262,11 +492,71 @@ export function EarthZoomContact() {
                 </motion.div>
               </div>
             )}
+
+            {/* MARS UI OVERLAY */}
+            <AnimatePresence>
+              {showMarsUI && stage === 'idle' && (
+                <motion.div 
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 1.2 }}
+                  className="absolute inset-0 flex flex-col items-center justify-center z-50"
+                  onClick={enterSecretWorld}
+                >
+                  <div className="relative">
+                    {/* Pulsing Hotspot */}
+                    <motion.div 
+                      animate={{ scale: [1, 1.5, 1], opacity: [0.5, 0.2, 0.5] }}
+                      transition={{ repeat: Infinity, duration: 1.5 }}
+                      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 rounded-full border-2 border-red-500/50"
+                    />
+                    
+                    <div className="bg-black/60 backdrop-blur-md border border-red-500/30 p-4 rounded-lg text-center shadow-[0_0_20px_rgba(239,68,68,0.2)]">
+                      <div className="flex items-center justify-center gap-2 mb-2">
+                        <Radio className="w-4 h-4 text-red-500 animate-pulse" />
+                        <span className="text-[10px] font-black text-red-500 tracking-[0.2em] uppercase">Access Signal Detected</span>
+                      </div>
+                      <p className="text-white font-black text-xs tracking-widest uppercase mb-3 px-4 italic">Warning: Unknown Sector Ahead</p>
+                      <motion.button
+                        whileHover={{ scale: 1.05, backgroundColor: "rgba(239, 68, 68, 0.2)" }}
+                        whileTap={{ scale: 0.95 }}
+                        className="w-full py-2 bg-red-500/10 border border-red-500/50 text-[10px] font-black uppercase tracking-[0.3em] text-red-400 flex items-center justify-center gap-2 group"
+                      >
+                        <Terminal className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+                        Click to Enter
+                      </motion.button>
+                    </div>
+                    
+                    {/* Visual markers */}
+                    <div className="absolute -top-10 -left-10 w-20 h-[1px] bg-red-500/30 rotate-45" />
+                    <div className="absolute -bottom-10 -right-10 w-20 h-[1px] bg-red-500/30 rotate-45" />
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         </div>
       </div>
 
       <AnimatePresence>
+        {stage === 'secret' && (
+          <SecretPlatform onExit={() => {
+            setStage('idle');
+            setMarsAligned(false);
+            setShowMarsUI(false);
+            speedScale.current = 1.0;
+            // Restore visibility
+            if (sceneRef.current) {
+              sceneRef.current.children.forEach(child => {
+                if ((child as any).material) {
+                  gsap.to((child as any).material, { opacity: 1, duration: 1 });
+                }
+              });
+            }
+            if (cameraRef.current) cameraRef.current.position.z = 160;
+          }} />
+        )}
+
         {stage === 'landed' && (
           <motion.div 
             initial={{ opacity: 0 }} 
