@@ -292,40 +292,65 @@ export function EarthZoomContact() {
     scene.add(stars);
     starsRef.current = stars;
 
-    // MILKY WAY DISC (Large point cloud)
+    // MILKY WAY DISC (Large point cloud with spiral structure)
     const galaxyDiscGeo = new THREE.BufferGeometry();
-    const galaxyDiscCount = 30000;
+    const galaxyDiscCount = 50000;
     const galaxyDiscPos = new Float32Array(galaxyDiscCount * 3);
     const galaxyDiscColors = new Float32Array(galaxyDiscCount * 3);
+    
     for (let i = 0; i < galaxyDiscCount; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const radius = 2000 + Math.random() * 12000;
-      const x = Math.cos(angle) * radius;
-      const y = (Math.random() - 0.5) * 800;
-      const z = Math.sin(angle) * (radius * 0.8) - 20000; // Elliptical disc
+      // Bulge vs Arms
+      const isBulge = Math.random() > 0.8;
+      let radius, angle, x, y, z;
+      
+      if (isBulge) {
+        radius = Math.random() * 800;
+        angle = Math.random() * Math.PI * 2;
+        x = Math.cos(angle) * radius;
+        y = (Math.random() - 0.5) * radius * 0.8;
+        z = Math.sin(angle) * radius;
+      } else {
+        // Spiral Arms
+        const armIndex = i % 4;
+        radius = 1000 + Math.random() * 10000;
+        angle = (radius / 2000) * 1.5 + (armIndex * (Math.PI / 2)) + (Math.random() - 0.5) * 0.5;
+        x = Math.cos(angle) * radius;
+        y = (Math.random() - 0.5) * 400 * (1 - radius / 10000);
+        z = Math.sin(angle) * radius;
+      }
+
+      // Offset far into deep space
+      z -= 20000;
       
       galaxyDiscPos[i * 3] = x;
       galaxyDiscPos[i * 3 + 1] = y;
       galaxyDiscPos[i * 3 + 2] = z;
 
-      const mixedColor = new THREE.Color().setHSL(0.5 + Math.random() * 0.2, 0.7, 0.8);
+      const innerColor = new THREE.Color(0xffaa88);
+      const outerColor = new THREE.Color(0x88ccff);
+      const mixedColor = innerColor.clone().lerp(outerColor, radius / 10000);
+      
       galaxyDiscColors[i * 3] = mixedColor.r;
       galaxyDiscColors[i * 3 + 1] = mixedColor.g;
       galaxyDiscColors[i * 3 + 2] = mixedColor.b;
     }
+    
     galaxyDiscGeo.setAttribute('position', new THREE.BufferAttribute(galaxyDiscPos, 3));
     galaxyDiscGeo.setAttribute('color', new THREE.BufferAttribute(galaxyDiscColors, 3));
+    
     const galaxyDiscMat = new THREE.PointsMaterial({ 
-      size: 3, 
+      size: 4, 
       vertexColors: true, 
       transparent: true, 
       opacity: 0,
       blending: THREE.AdditiveBlending 
     });
+    
     const galaxyDisc = new THREE.Points(galaxyDiscGeo, galaxyDiscMat);
-    scene.add(galaxyDisc);
-    galaxyGroupRef.current = new THREE.Group(); // Re-init group for consistency
+    
+    galaxyGroupRef.current = new THREE.Group();
     galaxyGroupRef.current.add(galaxyDisc);
+    galaxyGroupRef.current.visible = false;
     scene.add(galaxyGroupRef.current);
 
     // TARGET STAR - Multi-layered for realistic glow
@@ -448,11 +473,11 @@ export function EarthZoomContact() {
     const animate = () => {
       frameIdRef.current = requestAnimationFrame(animate);
       
+      const currentTime = Date.now();
+
       if (stageRef.current === 'idle') {
-        const delta = 0.016; // Approx 60fps
-        
         // Move Earth
-        const earthTime = Date.now() * 0.0005 * speedScale.current;
+        const earthTime = currentTime * 0.0005 * speedScale.current;
         earthGroup.position.x = Math.cos(earthTime) * 110;
         earthGroup.position.z = Math.sin(earthTime) * 110;
 
@@ -463,16 +488,15 @@ export function EarthZoomContact() {
 
         planets.forEach((planet, idx) => {
           const data = planetData[idx];
-          const time = Date.now() * data.speed * 0.1 * speedScale.current + data.offset;
+          const time = currentTime * data.speed * 0.1 * speedScale.current + data.offset;
           planet.position.x = Math.cos(time) * data.dist;
           planet.position.z = Math.sin(time) * data.dist;
           planet.rotation.y += 0.01 * speedScale.current;
 
           // Mars alignment detection
           if (data.isMars && speedScale.current > 0.3) {
-            // Check if Mars is between camera and Earth
             const isNearCenter = Math.abs(planet.position.x) < 15;
-            const isPositiveZ = planet.position.z > 40; // Closer to camera than Earth
+            const isPositiveZ = planet.position.z > 40; 
             
             if (isNearCenter && isPositiveZ && !marsAligned) {
               triggerMarsAlignment();
@@ -482,6 +506,28 @@ export function EarthZoomContact() {
 
         // Rotate Asteroid Belt
         asteroidGroup.rotation.y += 0.0005 * speedScale.current;
+      }
+
+      // GALAXY ANIMATION (Active during voyage)
+      if (galaxyGroupRef.current && (stageRef.current === 'deepSpace' || stageRef.current === 'starFocus' || stageRef.current === 'zooming')) {
+        galaxyGroupRef.current.rotation.y += 0.0001;
+        galaxyGroupRef.current.children.forEach((child: any) => {
+          if (child.isMesh && child.geometry && child.geometry.type === 'PlaneGeometry') {
+            child.rotation.z += 0.00005;
+            // Pulsing nebula intensity
+            if (child.material && child.material.opacity > 0) {
+              child.material.opacity = 0.4 + Math.sin(currentTime * 0.0005 + child.position.x * 0.01) * 0.2;
+            }
+          }
+        });
+      }
+
+      // CAMERA SWAY FOR REALISM
+      if (cameraRef.current && (stageRef.current === 'idle' || stageRef.current === 'deepSpace' || stageRef.current === 'starFocus')) {
+        const swayX = Math.sin(currentTime * 0.0005) * 1.5;
+        const swayY = Math.cos(currentTime * 0.0007) * 1.5;
+        cameraRef.current.position.x += (swayX * 0.1 - cameraRef.current.position.x) * 0.01;
+        cameraRef.current.position.y += (swayY * 0.1 - cameraRef.current.position.y) * 0.01;
       }
 
       if (rendererRef.current && sceneRef.current && cameraRef.current) {
@@ -595,20 +641,27 @@ export function EarthZoomContact() {
 
     const tl = gsap.timeline();
     
-    // 1. Slow zoom out from Earth (10s)
+    // 1. Slow zoom out from Earth (10s), passing through the system
     tl.to(cameraRef.current!.position, {
-      z: 1500,
-      duration: 10,
+      x: 300,
+      y: 100,
+      z: 2000,
+      duration: 12,
       ease: "power2.inOut",
       onStart: () => {
         // Stop Mars alignment during voyage
         setMarsAligned(true); 
+      },
+      onUpdate: () => {
+        if (cameraRef.current) cameraRef.current.lookAt(0, 0, 0); // Keep looking at Sun/Center during local exit
       }
     });
 
-    // 2. Galaxy transition (20s)
+    // 2. Galaxy transition (15s) - Tilt and dive into deep space
     tl.to(cameraRef.current!.position, {
-      z: 12000,
+      x: 2000,
+      y: 1000,
+      z: 15000,
       duration: 15,
       ease: "power2.in",
       onStart: () => {
@@ -616,47 +669,32 @@ export function EarthZoomContact() {
           galaxyGroupRef.current.visible = true;
           galaxyGroupRef.current.children.forEach(child => {
             if ((child as any).material) {
-              gsap.to((child as any).material, { opacity: 0.8, duration: 8 });
+              gsap.to((child as any).material, { opacity: 0.9, duration: 8 });
             }
           });
         }
         if (starsRef.current) {
-          gsap.to(starsRef.current.material, { opacity: 0, duration: 5 });
+          gsap.to(starsRef.current.material, { opacity: 0, duration: 6 });
         }
       }
     });
 
-    // 3. Galactic sweep - more dramatic curves
-    tl.to(cameraRef.current!.position, {
-      x: 1500,
-      y: 800,
-      z: 22000,
-      duration: 10,
-      ease: "power1.inOut"
-    }, "-=5");
-
-    // 4. Focus Target Star
-    const targetWorldPos = new THREE.Vector3(0, 0, -25000); // Set star further away
+    // 3. Focus Target Star (Wait/Glide)
+    const targetWorldPos = new THREE.Vector3(0, 0, -25000); 
     if (targetStarRef.current) {
       targetStarRef.current.position.set(0, 0, -25000);
+      gsap.to((targetStarRef.current.material as any), { opacity: 1, duration: 10, delay: 10 });
     }
 
     tl.to(cameraRef.current!.position, {
       x: targetWorldPos.x,
       y: targetWorldPos.y,
-      z: targetWorldPos.z + 500,
-      duration: 8,
+      z: targetWorldPos.z + 800,
+      duration: 15,
       ease: "power3.out",
       onComplete: () => {
         setStage('starFocus');
       }
-    });
-
-    // Fade up star opacity
-    gsap.to(targetStarRef.current!.material as any, {
-      opacity: 1,
-      duration: 5,
-      delay: 25
     });
   };
 
@@ -686,13 +724,13 @@ export function EarthZoomContact() {
     gsap.to(cameraRef.current!.position, {
       x: targetPos.x,
       y: targetPos.y,
-      z: targetPos.z - 50,
-      duration: 2,
+      z: targetPos.z - 400,
+      duration: 2.5,
       ease: "power4.in",
       onUpdate: () => {
-        // Vibration effect
-        cameraRef.current!.position.x += (Math.random() - 0.5) * 2;
-        cameraRef.current!.position.y += (Math.random() - 0.5) * 2;
+        // Intensive Vibration effect
+        cameraRef.current!.position.x += (Math.random() - 0.5) * 5;
+        cameraRef.current!.position.y += (Math.random() - 0.5) * 5;
       },
       onComplete: () => {
         setStage('secret');
