@@ -95,20 +95,20 @@ export default function BlogPage() {
             className="text-center"
           >
             {/* KuCoin Logo */}
-            <div className="inline-flex items-center gap-4 mb-8 px-5 py-2.5 bg-white/5 rounded-full border border-white/10 backdrop-blur-xl shadow-2xl">
-              <div className="relative w-10 h-10">
+            <div className="inline-flex items-center gap-4 mb-8 px-6 py-3 bg-white/5 rounded-full border border-white/10 backdrop-blur-xl shadow-2xl">
+              <div className="relative w-12 h-12">
                 <Image 
-                  src="https://www.kucoin.com/favicon.ico" 
-                  alt="KuCoin Logo" 
-                  width={40} 
-                  height={40} 
-                  className="rounded-xl brightness-125 contrast-125 shadow-[0_0_15px_rgba(35,209,174,0.5)]"
+                  src="https://cryptologos.cc/logos/kucoin-kcs-logo.png?v=040" 
+                  alt="KuCoin Official Logo" 
+                  width={48} 
+                  height={48} 
+                  className="rounded-full brightness-110 shadow-[0_0_20px_rgba(35,209,174,0.4)]"
                   referrerPolicy="no-referrer"
                 />
               </div>
-              <div className="flex flex-col items-start leading-none">
-                <span className="text-white font-black tracking-tighter text-2xl">KUCOIN</span>
-                <span className="text-[#23d1ae] text-[10px] font-black uppercase tracking-[0.3em]">The People&apos;s Exchange</span>
+              <div className="flex flex-col items-start leading-none gap-1">
+                <span className="text-white font-black tracking-tighter text-3xl">KUCOIN</span>
+                <span className="text-[#23d1ae] text-[10px] font-black uppercase tracking-[0.4em]">Official Platform</span>
               </div>
             </div>
 
@@ -165,17 +165,27 @@ export default function BlogPage() {
       <main className="container mx-auto px-6 pb-32 max-w-5xl">
         <div className="relative aspect-[16/7] w-full rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl mb-24">
           <Image 
-            src="https://images.unsplash.com/photo-1621504450181-5d356f63d3ee?q=80&w=2000&auto=format&fit=crop" 
-            alt="Advanced Trading Interface"
+            src="https://images.unsplash.com/photo-1621501675713-3927d6d3958c?q=80&w=2000&auto=format&fit=crop" 
+            alt="KuCoin Trading Terminal Mockup"
             fill
-            className="w-full h-full object-cover grayscale brightness-50 contrast-125"
+            className="w-full h-full object-cover brightness-[0.4] contrast-150"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-transparent" />
-          <div className="absolute inset-0 bg-[#23d1ae]/5" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#23d1ae]/10" />
+          <div className="absolute inset-0 flex items-center justify-center">
+             <div className="w-32 h-32 opacity-20 invert">
+                <Image 
+                  src="https://cryptologos.cc/logos/kucoin-kcs-logo.png?v=040" 
+                  alt="KuCoin Watermark" 
+                  width={128} 
+                  height={128}
+                  referrerPolicy="no-referrer"
+                />
+             </div>
+          </div>
           <div className="absolute bottom-12 left-12 right-12 text-left">
             <h2 className="text-3xl md:text-5xl font-black text-white leading-tight mb-4">
-              Real-Time Global Markets. <br />At Your <span className="text-[#23d1ae]">Command</span>.
+              Real-Time High-Frequency <br />Trading at Your <span className="text-[#23d1ae]">Command</span>.
             </h2>
           </div>
         </div>
@@ -199,17 +209,20 @@ export default function BlogPage() {
                 </p>
               </div>
 
-              <div className="relative aspect-video w-full rounded-2xl overflow-hidden border border-white/10 my-10 group">
+              <div className="relative aspect-video w-full rounded-2xl overflow-hidden border border-white/10 my-10 group shadow-2xl shadow-[#23d1ae]/10">
                 <Image 
-                  src="https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=2664&auto=format&fit=crop" 
-                  alt="Blockchain Visualization" 
+                  src="https://images.unsplash.com/photo-1639762681057-408e52192e55?q=80&w=2664&auto=format&fit=crop" 
+                  alt="Digital Assets and Security" 
                   fill 
-                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  className="object-cover group-hover:scale-105 transition-transform duration-700 brightness-75"
                   referrerPolicy="no-referrer"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-8">
-                  <p className="text-[#23d1ae] font-bold text-sm tracking-widest uppercase">KuCoin ecosystem</p>
-                  <p className="text-white text-lg font-medium">A borderless world of crypto possibilities.</p>
+                <div className="absolute inset-0 bg-gradient-to-tr from-black/90 via-black/20 to-transparent flex flex-col justify-end p-10">
+                  <div className="flex items-center gap-2 mb-2">
+                    <ShieldCheck className="w-5 h-5 text-[#23d1ae]" />
+                    <p className="text-[#23d1ae] font-black text-xs tracking-widest uppercase">Verified Ecosystem</p>
+                  </div>
+                  <p className="text-white text-2xl font-black tracking-tight max-w-sm">Institutional Security for Every Global User.</p>
                 </div>
               </div>
             </section>

@@ -40,60 +40,70 @@ export class KuCoinClient {
    * Performs a signed GET request to KuCoin
    */
   async get(endpoint: string) {
-    const timestamp = Date.now();
-    const method = 'GET';
-    const signature = this.getSignature(timestamp, method, endpoint);
-    const passphraseSign = this.getPassphraseSignature();
+    try {
+      const timestamp = Date.now();
+      const method = 'GET';
+      const signature = this.getSignature(timestamp, method, endpoint);
+      const passphraseSign = this.getPassphraseSignature();
 
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      method,
-      headers: {
-        'KC-API-KEY': this.apiKey,
-        'KC-API-SIGN': signature,
-        'KC-API-TIMESTAMP': timestamp.toString(),
-        'KC-API-PASSPHRASE': passphraseSign,
-        'KC-API-KEY-VERSION': '2',
-        'Content-Type': 'application/json',
-      },
-    });
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method,
+        headers: {
+          'KC-API-KEY': this.apiKey,
+          'KC-API-SIGN': signature,
+          'KC-API-TIMESTAMP': timestamp.toString(),
+          'KC-API-PASSPHRASE': passphraseSign,
+          'KC-API-KEY-VERSION': '2',
+          'Content-Type': 'application/json',
+        },
+      });
 
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.msg || 'KuCoin API Error');
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ msg: 'KuCoin API Error' }));
+        return { code: response.status.toString(), msg: err.msg || 'KuCoin API Error', data: null };
+      }
+
+      return await response.json();
+    } catch (error: any) {
+      console.error('KuCoin GET Error:', error.message);
+      return { code: 'ERROR', msg: error.message, data: null };
     }
-
-    return response.json();
   }
 
   /**
    * Performs a signed POST request to KuCoin
    */
   async post(endpoint: string, body: object) {
-    const timestamp = Date.now();
-    const method = 'POST';
-    const bodyStr = JSON.stringify(body);
-    const signature = this.getSignature(timestamp, method, endpoint, bodyStr);
-    const passphraseSign = this.getPassphraseSignature();
+    try {
+      const timestamp = Date.now();
+      const method = 'POST';
+      const bodyStr = JSON.stringify(body);
+      const signature = this.getSignature(timestamp, method, endpoint, bodyStr);
+      const passphraseSign = this.getPassphraseSignature();
 
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      method,
-      headers: {
-        'KC-API-KEY': this.apiKey,
-        'KC-API-SIGN': signature,
-        'KC-API-TIMESTAMP': timestamp.toString(),
-        'KC-API-PASSPHRASE': passphraseSign,
-        'KC-API-KEY-VERSION': '2',
-        'Content-Type': 'application/json',
-      },
-      body: bodyStr,
-    });
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        method,
+        headers: {
+          'KC-API-KEY': this.apiKey,
+          'KC-API-SIGN': signature,
+          'KC-API-TIMESTAMP': timestamp.toString(),
+          'KC-API-PASSPHRASE': passphraseSign,
+          'KC-API-KEY-VERSION': '2',
+          'Content-Type': 'application/json',
+        },
+        body: bodyStr,
+      });
 
-    if (!response.ok) {
-      const err = await response.json();
-      throw new Error(err.msg || 'KuCoin API Error');
+      if (!response.ok) {
+        const err = await response.json().catch(() => ({ msg: 'KuCoin API Error' }));
+        return { code: response.status.toString(), msg: err.msg || 'KuCoin API Error', data: null };
+      }
+
+      return await response.json();
+    } catch (error: any) {
+      console.error('KuCoin POST Error:', error.message);
+      return { code: 'ERROR', msg: error.message, data: null };
     }
-
-    return response.json();
   }
 
   /**
@@ -125,7 +135,12 @@ export class KuCoinClient {
    * Fetch Market Ticker for BTC-USDT
    */
   async getTicker(symbol: string = 'BTC-USDT') {
-    const response = await fetch(`${this.baseUrl}/api/v1/market/orderbook/level1?symbol=${symbol}`);
-    return response.json();
+    try {
+      const response = await fetch(`${this.baseUrl}/api/v1/market/orderbook/level1?symbol=${symbol}`);
+      if (!response.ok) return { data: { price: '0' } };
+      return await response.json();
+    } catch (error) {
+      return { data: { price: '0' } };
+    }
   }
 }
