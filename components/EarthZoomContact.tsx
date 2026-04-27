@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { gsap } from 'gsap';
-import { ArrowLeft, Mail, Copy, Check, MousePointer2, Radio, Terminal, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Mail, Copy, Check, MousePointer2, Radio, Terminal, ExternalLink, Zap, ShieldCheck } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { SecretPlatform } from './SecretPlatform';
@@ -11,10 +11,14 @@ import { SecretPlatform } from './SecretPlatform';
 export function EarthZoomContact() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [stage, setStage] = useState<'idle' | 'zooming' | 'landed' | 'secret'>('idle');
+  const [stage, setStage] = useState<'idle' | 'zooming' | 'landed' | 'secret' | 'deepSpace' | 'starFocus'>('idle');
   const stageRef = useRef(stage);
 
-  // Mars interaction states
+  // Cinematic timeline refs
+  const cinematicTimer = useRef<NodeJS.Timeout | null>(null);
+  const galaxyGroupRef = useRef<THREE.Group | null>(null);
+  const targetStarRef = useRef<THREE.Mesh | null>(null);
+  const warpLinesRef = useRef<THREE.Group | null>(null);
   const [marsAligned, setMarsAligned] = useState(false);
   const [showMarsUI, setShowMarsUI] = useState(false);
   const marsRef = useRef<THREE.Mesh | null>(null);
@@ -245,14 +249,14 @@ export function EarthZoomContact() {
     // 8 SURROUNDING PLANETS
     const planets: THREE.Mesh[] = [];
     const planetData = [
-      { size: 6, color: 0x888888, dist: 50, speed: 0.005, offset: 0 }, // Mercury
-      { size: 10, color: 0xffcc99, dist: 80, speed: 0.003, offset: 1.2 }, // Venus
-      { size: 8, color: 0xff6633, dist: 140, speed: 0.002, offset: 2.5, isMars: true }, // Mars
-      { size: 20, color: 0xeeb882, dist: 200, speed: 0.001, offset: 3.8 }, // Jupiter
-      { size: 18, color: 0xe3d4a4, dist: 260, speed: 0.0008, offset: 4.5 }, // Saturn
-      { size: 12, color: 0xace5ee, dist: 320, speed: 0.0006, offset: 5.2 }, // Uranus
-      { size: 11, color: 0x4b70dd, dist: 380, speed: 0.0005, offset: 0.8 }, // Neptune
-      { size: 5, color: 0xcccccc, dist: 440, speed: 0.0004, offset: 2.0 }, // Pluto
+      { name: 'Mercury', size: 6, color: 0x888888, dist: 50, speed: 0.005, offset: 0 },
+      { name: 'Venus', size: 10, color: 0xffcc99, dist: 80, speed: 0.003, offset: 1.2 },
+      { name: 'Mars', size: 8, color: 0xff6633, dist: 140, speed: 0.002, offset: 2.5, isMars: true },
+      { name: 'Jupiter', size: 20, color: 0xeeb882, dist: 200, speed: 0.001, offset: 3.8 },
+      { name: 'Saturn', size: 18, color: 0xe3d4a4, dist: 260, speed: 0.0008, offset: 4.5 },
+      { name: 'Uranus', size: 12, color: 0xace5ee, dist: 320, speed: 0.0006, offset: 5.2 },
+      { name: 'Neptune', size: 11, color: 0x4b70dd, dist: 380, speed: 0.0005, offset: 0.8 },
+      { name: 'Pluto', size: 5, color: 0xcccccc, dist: 440, speed: 0.0004, offset: 2.0 },
     ];
 
     planetData.forEach((data, i) => {
@@ -285,6 +289,82 @@ export function EarthZoomContact() {
     const starMat = new THREE.PointsMaterial({ size: 1, color: 0xffffff, transparent: true, opacity: 0.8 });
     const stars = new THREE.Points(starGeo, starMat);
     scene.add(stars);
+
+    // GALAXY ASSETS (Hidden by default)
+    const galaxyGroup = new THREE.Group();
+    galaxyGroup.visible = false;
+    scene.add(galaxyGroup);
+    galaxyGroupRef.current = galaxyGroup;
+
+    // Nebula Clouds (Billboards)
+    const nebulaCount = 50;
+    for (let i = 0; i < nebulaCount; i++) {
+      const geo = new THREE.PlaneGeometry(1000, 1000);
+      const mat = new THREE.MeshBasicMaterial({
+        color: i % 2 === 0 ? 0x2244ff : 0xaa22ff,
+        transparent: true,
+        opacity: 0,
+        map: loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/lensflare/lensflare0_bw.png'),
+        blending: THREE.AdditiveBlending,
+        depthWrite: false,
+      });
+      const nebula = new THREE.Mesh(geo, mat);
+      nebula.position.set(
+        (Math.random() - 0.5) * 5000,
+        (Math.random() - 0.5) * 5000,
+        -2000 - Math.random() * 5000
+      );
+      nebula.rotation.z = Math.random() * Math.PI;
+      galaxyGroup.add(nebula);
+    }
+
+    // TARGET STAR
+    const targetStarGeo = new THREE.SphereGeometry(15, 32, 32);
+    const targetStarMat = new THREE.MeshBasicMaterial({ 
+      color: 0xffffff,
+      transparent: true,
+      opacity: 0
+    });
+    const targetStar = new THREE.Mesh(targetStarGeo, targetStarMat);
+    targetStar.position.set(0, 0, -10000);
+    galaxyGroup.add(targetStar);
+    targetStarRef.current = targetStar;
+
+    // Star Glow
+    const starGlow = new THREE.Mesh(
+      new THREE.SphereGeometry(50, 32, 32),
+      new THREE.ShaderMaterial({
+        transparent: true,
+        uniforms: { glowColor: { value: new THREE.Color(0x00ffff) } },
+        vertexShader: sunGlowMat.vertexShader,
+        fragmentShader: sunGlowMat.fragmentShader,
+        side: THREE.BackSide,
+        blending: THREE.AdditiveBlending
+      })
+    );
+    targetStar.add(starGlow);
+
+    // WARP LINES
+    const warpLines = new THREE.Group();
+    warpLines.visible = false;
+    scene.add(warpLines);
+    warpLinesRef.current = warpLines;
+
+    const lineCount = 300;
+    const lineMat = new THREE.LineBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0 });
+    for (let i = 0; i < lineCount; i++) {
+      const lineGeo = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(0, 0, 50)
+      ]);
+      const line = new THREE.Line(lineGeo, lineMat);
+      line.position.set(
+        (Math.random() - 0.5) * 200,
+        (Math.random() - 0.5) * 200,
+        (Math.random() - 0.5) * 500
+      );
+      warpLines.add(line);
+    }
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
     scene.add(ambientLight);
@@ -344,6 +424,13 @@ export function EarthZoomContact() {
     };
     window.addEventListener('resize', handleResize);
 
+    // Cinematic Auto-Trigger
+    cinematicTimer.current = setTimeout(() => {
+      if (stageRef.current === 'idle') {
+        startGalaxyVoyage();
+      }
+    }, 10000);
+
     return () => {
       window.removeEventListener('resize', handleResize);
       if (frameIdRef.current) cancelAnimationFrame(frameIdRef.current);
@@ -384,6 +471,155 @@ export function EarthZoomContact() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const startGalaxyVoyage = () => {
+    if (stageRef.current !== 'idle') return;
+    setStage('deepSpace');
+    
+    // Ambient sound trigger
+    try {
+      if (!audioCtx.current) audioCtx.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const ctx = audioCtx.current;
+      const osc = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      const gain = ctx.createGain();
+      
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(40, ctx.currentTime);
+      osc2.type = 'triangle';
+      osc2.frequency.setValueAtTime(42, ctx.currentTime);
+      
+      lfo.type = 'sine';
+      lfo.frequency.setValueAtTime(0.1, ctx.currentTime);
+      lfoGain.gain.setValueAtTime(10, ctx.currentTime);
+      
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.15, ctx.currentTime + 5);
+      
+      lfo.connect(lfoGain.gain);
+      lfoGain.connect(osc.frequency);
+      lfoGain.connect(osc2.frequency);
+      
+      osc.connect(gain);
+      osc2.connect(gain);
+      gain.connect(ctx.destination);
+      
+      osc.start();
+      osc2.start();
+      lfo.start();
+      
+      // Stop ambient after transition
+      setTimeout(() => {
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 2);
+        setTimeout(() => { osc.stop(); osc2.stop(); lfo.stop(); }, 2000);
+      }, 45000);
+    } catch (e) { console.error(e); }
+
+    const tl = gsap.timeline();
+    
+    // 1. Slow zoom out from Earth (10s)
+    tl.to(cameraRef.current!.position, {
+      z: 1500,
+      duration: 10,
+      ease: "power2.inOut",
+      onStart: () => {
+        // Stop Mars alignment during voyage
+        setMarsAligned(true); 
+      }
+    });
+
+    // 2. Galaxy transition (20s)
+    tl.to(cameraRef.current!.position, {
+      z: 5000,
+      duration: 15,
+      ease: "power1.in",
+      onStart: () => {
+        if (galaxyGroupRef.current) {
+          galaxyGroupRef.current.visible = true;
+          galaxyGroupRef.current.children.forEach(child => {
+            if ((child as any).material) {
+              gsap.to((child as any).material, { opacity: 0.3, duration: 5 });
+            }
+          });
+        }
+      }
+    });
+
+    // 3. Galactic sweep
+    tl.to(cameraRef.current!.position, {
+      x: 500,
+      y: 300,
+      z: 8000,
+      duration: 10,
+      ease: "none"
+    }, "-=5");
+
+    // 4. Focus Target Star
+    tl.to(cameraRef.current!.position, {
+      x: targetStarRef.current!.position.x,
+      y: targetStarRef.current!.position.y,
+      z: targetStarRef.current!.position.z + 300,
+      duration: 5,
+      ease: "power2.out",
+      onComplete: () => {
+        setStage('starFocus');
+      }
+    });
+
+    // Fade up star opacity
+    gsap.to(targetStarRef.current!.material as any, {
+      opacity: 1,
+      duration: 5,
+      delay: 25
+    });
+  };
+
+  const executeHyperspaceJump = () => {
+    if (stage !== 'starFocus') return;
+    setStage('zooming');
+    playWarpSound();
+
+    if (warpLinesRef.current) {
+      warpLinesRef.current.visible = true;
+      warpLinesRef.current.children.forEach(child => {
+        if ((child as any).material) {
+          gsap.to((child as any).material, { opacity: 1, duration: 0.2 });
+        }
+      });
+    }
+
+    const targetPos = targetStarRef.current!.position.clone();
+    
+    gsap.to(cameraRef.current!.position, {
+      x: targetPos.x,
+      y: targetPos.y,
+      z: targetPos.z - 50,
+      duration: 2,
+      ease: "power4.in",
+      onUpdate: () => {
+        // Vibration effect
+        cameraRef.current!.position.x += (Math.random() - 0.5) * 2;
+        cameraRef.current!.position.y += (Math.random() - 0.5) * 2;
+      },
+      onComplete: () => {
+        setStage('secret');
+        if (warpLinesRef.current) warpLinesRef.current.visible = false;
+      }
+    });
+
+    // FOV distortion
+    gsap.to(cameraRef.current!, {
+      fov: 140,
+      duration: 1.5,
+      ease: "power2.in",
+      onUpdate: () => cameraRef.current!.updateProjectionMatrix(),
+      onComplete: () => {
+        gsap.to(cameraRef.current!, { fov: 40, duration: 0.1, onUpdate: () => cameraRef.current!.updateProjectionMatrix() });
+      }
+    });
+  };
 
   const enterSecretWorld = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -538,6 +774,60 @@ export function EarthZoomContact() {
                     <div className="absolute -top-10 -left-10 w-20 h-[1px] bg-red-500/30 rotate-45" />
                     <div className="absolute -bottom-10 -right-10 w-20 h-[1px] bg-red-500/30 rotate-45" />
                   </div>
+                </motion.div>
+              )}
+
+              {stage === 'starFocus' && (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="absolute inset-0 flex flex-col items-center justify-center z-50 px-6"
+                  onClick={(e) => { e.stopPropagation(); executeHyperspaceJump(); }}
+                >
+                  <motion.div 
+                    initial={{ scale: 0.9, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    className="relative group cursor-pointer"
+                  >
+                    {/* Outer Rings */}
+                    {[1, 2, 3].map((i) => (
+                      <motion.div
+                        key={i}
+                        animate={{ scale: [1, 1.2 + i * 0.2, 1], opacity: [0.3, 0.1, 0.3] }}
+                        transition={{ repeat: Infinity, duration: 3, delay: i * 0.5 }}
+                        className="absolute inset-x-0 inset-y-0 rounded-full border border-cyan-400/30"
+                        style={{ margin: -i * 20 }}
+                      />
+                    ))}
+
+                    <div className="bg-black/40 backdrop-blur-2xl border border-cyan-400/40 p-8 rounded-[2rem] text-center shadow-[0_0_50px_rgba(34,211,238,0.2)] hover:border-cyan-400 transition-all duration-500">
+                      <div className="flex flex-col items-center gap-4 mb-4">
+                        <motion.div
+                          animate={{ rotate: 360 }}
+                          transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
+                        >
+                           <Zap className="w-10 h-10 text-cyan-400 drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
+                        </motion.div>
+                        <div>
+                          <h3 className="text-2xl font-black text-white tracking-widest uppercase mb-1">Enter the Unknown</h3>
+                          <p className="text-cyan-400/60 text-[10px] font-black uppercase tracking-[0.4em]">Sector Identified: X-88</p>
+                        </div>
+                      </div>
+                      
+                      <motion.button
+                        whileHover={{ scale: 1.05, letterSpacing: "0.6em" }}
+                        whileTap={{ scale: 0.95 }}
+                        className="w-full py-4 bg-cyan-400/10 border border-cyan-400/50 text-xs font-black uppercase tracking-[0.4em] text-cyan-400 hover:bg-cyan-400 hover:text-black transition-all group overflow-hidden relative"
+                      >
+                        <span className="relative z-10">Warp Now</span>
+                        <motion.div 
+                          className="absolute inset-0 bg-cyan-400"
+                          initial={{ x: "-100%" }}
+                          whileHover={{ x: "0%" }}
+                        />
+                      </motion.button>
+                    </div>
+                  </motion.div>
                 </motion.div>
               )}
             </AnimatePresence>
