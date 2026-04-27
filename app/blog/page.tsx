@@ -27,8 +27,6 @@ import {
   ExternalLink,
   ChevronDown
 } from 'lucide-react';
-import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/Footer';
 import Image from 'next/image';
 
 export default function BlogPage() {
@@ -60,7 +58,6 @@ export default function BlogPage() {
 
   return (
     <div className="min-h-screen bg-[#050505] text-gray-200 font-sans selection:bg-[#23d1ae] selection:text-black">
-      <Navbar />
       
       {/* Scroll Progress Bar */}
       <motion.div
@@ -97,10 +94,22 @@ export default function BlogPage() {
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="text-center"
           >
-            {/* KuCoin Logo Placeholder */}
-            <div className="inline-flex items-center gap-3 mb-8 px-4 py-2 bg-white/5 rounded-full border border-white/10 backdrop-blur-md">
-              <div className="w-8 h-8 rounded-lg bg-[#23d1ae] flex items-center justify-center font-black text-black">K</div>
-              <span className="text-white font-black tracking-tighter text-xl">KUCOIN <span className="text-[#23d1ae]">EXCHANGE</span></span>
+            {/* KuCoin Logo */}
+            <div className="inline-flex items-center gap-4 mb-8 px-5 py-2.5 bg-white/5 rounded-full border border-white/10 backdrop-blur-xl shadow-2xl">
+              <div className="relative w-10 h-10">
+                <Image 
+                  src="https://www.kucoin.com/favicon.ico" 
+                  alt="KuCoin Logo" 
+                  width={40} 
+                  height={40} 
+                  className="rounded-xl brightness-125 contrast-125 shadow-[0_0_15px_rgba(35,209,174,0.5)]"
+                  referrerPolicy="no-referrer"
+                />
+              </div>
+              <div className="flex flex-col items-start leading-none">
+                <span className="text-white font-black tracking-tighter text-2xl">KUCOIN</span>
+                <span className="text-[#23d1ae] text-[10px] font-black uppercase tracking-[0.3em]">The People&apos;s Exchange</span>
+              </div>
             </div>
 
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-black text-white leading-[1.1] mb-8 tracking-tighter">
@@ -181,13 +190,27 @@ export default function BlogPage() {
 
             <section className="mb-12">
               <h2 id="what-is-kucoin" className="text-3xl font-black text-white mb-6 tracking-tighter">What is KuCoin? The 2026 Perspective</h2>
-              <div className="space-y-4 text-gray-400 text-lg leading-relaxed">
+              <div className="space-y-4 text-gray-400 text-lg leading-relaxed mb-8">
                 <p>
                   Launched on September 15, 2017, KuCoin has grown from a humble trading platform into a massive global conglomerate known as the &quot;People&apos;s Exchange.&quot; With over 20 million users globally, it is consistently ranked as a top-3 exchange by volume and trust scores.
                 </p>
                 <p>
                   What sets KuCoin apart in 2026 is its unique balance of professional-grade tools and beginner-friendly passive income streams. It&apos;s the only platform where you can find early-stage &quot;moon shots&quot; alongside institutional-grade liquidity.
                 </p>
+              </div>
+
+              <div className="relative aspect-video w-full rounded-2xl overflow-hidden border border-white/10 my-10 group">
+                <Image 
+                  src="https://images.unsplash.com/photo-1639762681485-074b7f938ba0?q=80&w=2664&auto=format&fit=crop" 
+                  alt="Blockchain Visualization" 
+                  fill 
+                  className="object-cover group-hover:scale-105 transition-transform duration-500"
+                  referrerPolicy="no-referrer"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent flex flex-col justify-end p-8">
+                  <p className="text-[#23d1ae] font-bold text-sm tracking-widest uppercase">KuCoin ecosystem</p>
+                  <p className="text-white text-lg font-medium">A borderless world of crypto possibilities.</p>
+                </div>
               </div>
             </section>
 
@@ -398,7 +421,6 @@ export default function BlogPage() {
         </div>
       </main>
 
-      <Footer />
     </div>
   );
 }
