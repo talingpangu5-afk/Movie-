@@ -131,7 +131,7 @@ export function EarthZoomContact() {
     const height = canvasRef.current.clientHeight;
     const aspect = width / height;
 
-    const camera = new THREE.PerspectiveCamera(40, aspect, 0.1, 1000);
+    const camera = new THREE.PerspectiveCamera(40, aspect, 0.1, 50000);
     camera.position.z = 160;
     cameraRef.current = camera;
 
@@ -279,95 +279,76 @@ export function EarthZoomContact() {
       planets.push(planet);
     });
 
-    // STARFIELD
+    // STARFIELD (Initial)
     const starGeo = new THREE.BufferGeometry();
-    const starCount = 2000;
+    const starCount = 3000;
     const posArray = new Float32Array(starCount * 3);
     for(let i=0; i<starCount * 3; i++) {
-        posArray[i] = (Math.random() - 0.5) * 1500;
+        posArray[i] = (Math.random() - 0.5) * 4000;
     }
     starGeo.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-    const starMat = new THREE.PointsMaterial({ size: 1, color: 0xffffff, transparent: true, opacity: 0.8 });
+    const starMat = new THREE.PointsMaterial({ size: 1.5, color: 0xffffff, transparent: true, opacity: 0.8 });
     const stars = new THREE.Points(starGeo, starMat);
     scene.add(stars);
     starsRef.current = stars;
 
-    // GALAXY ASSETS (Hidden by default)
-    const galaxyGroup = new THREE.Group();
-    galaxyGroup.visible = false;
-    scene.add(galaxyGroup);
-    galaxyGroupRef.current = galaxyGroup;
+    // MILKY WAY DISC (Large point cloud)
+    const galaxyDiscGeo = new THREE.BufferGeometry();
+    const galaxyDiscCount = 30000;
+    const galaxyDiscPos = new Float32Array(galaxyDiscCount * 3);
+    const galaxyDiscColors = new Float32Array(galaxyDiscCount * 3);
+    for (let i = 0; i < galaxyDiscCount; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const radius = 2000 + Math.random() * 12000;
+      const x = Math.cos(angle) * radius;
+      const y = (Math.random() - 0.5) * 800;
+      const z = Math.sin(angle) * (radius * 0.8) - 20000; // Elliptical disc
+      
+      galaxyDiscPos[i * 3] = x;
+      galaxyDiscPos[i * 3 + 1] = y;
+      galaxyDiscPos[i * 3 + 2] = z;
 
-    // Nebula Clouds (Billboards) - Enhanced with better colors and distribution
-    const nebulaCount = 60;
-    const nebulaColors = [0x2244ff, 0xaa22ff, 0x00ffff, 0xff00ff, 0x112244];
-    for (let i = 0; i < nebulaCount; i++) {
-      const size = 1500 + Math.random() * 2000;
-      const geo = new THREE.PlaneGeometry(size, size);
-      const mat = new THREE.MeshBasicMaterial({
-        color: nebulaColors[i % nebulaColors.length],
-        transparent: true,
-        opacity: 0,
-        map: loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/lensflare/lensflare0_bw.png'),
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-      });
-      const nebula = new THREE.Mesh(geo, mat);
-      nebula.position.set(
-        (Math.random() - 0.5) * 10000,
-        (Math.random() - 0.5) * 10000,
-        -5000 - Math.random() * 10000
-      );
-      nebula.rotation.z = Math.random() * Math.PI;
-      galaxyGroup.add(nebula);
+      const mixedColor = new THREE.Color().setHSL(0.5 + Math.random() * 0.2, 0.7, 0.8);
+      galaxyDiscColors[i * 3] = mixedColor.r;
+      galaxyDiscColors[i * 3 + 1] = mixedColor.g;
+      galaxyDiscColors[i * 3 + 2] = mixedColor.b;
     }
-
-    // COSMIC DUST / STARFIELD 2 (Deeper stars)
-    const deepStarGeo = new THREE.BufferGeometry();
-    const deepStarCount = 5000;
-    const deepStarPos = new Float32Array(deepStarCount * 3);
-    for(let i=0; i<deepStarCount * 3; i++) {
-        deepStarPos[i] = (Math.random() - 0.5) * 15000;
-    }
-    deepStarGeo.setAttribute('position', new THREE.BufferAttribute(deepStarPos, 3));
-    const deepStarMat = new THREE.PointsMaterial({ 
-      size: 1.5, 
-      color: 0xffffff, 
+    galaxyDiscGeo.setAttribute('position', new THREE.BufferAttribute(galaxyDiscPos, 3));
+    galaxyDiscGeo.setAttribute('color', new THREE.BufferAttribute(galaxyDiscColors, 3));
+    const galaxyDiscMat = new THREE.PointsMaterial({ 
+      size: 3, 
+      vertexColors: true, 
       transparent: true, 
       opacity: 0,
       blending: THREE.AdditiveBlending 
     });
-    const deepStars = new THREE.Points(deepStarGeo, deepStarMat);
-    galaxyGroup.add(deepStars);
+    const galaxyDisc = new THREE.Points(galaxyDiscGeo, galaxyDiscMat);
+    scene.add(galaxyDisc);
+    galaxyGroupRef.current = new THREE.Group(); // Re-init group for consistency
+    galaxyGroupRef.current.add(galaxyDisc);
+    scene.add(galaxyGroupRef.current);
 
-    // TARGET STAR (The Destination)
+    // TARGET STAR - Multi-layered for realistic glow
     const targetStarContainer = new THREE.Group();
-    targetStarContainer.position.set(0, 0, -18000); // Further away for better zoom
-    galaxyGroup.add(targetStarContainer);
+    targetStarContainer.position.set(0, 0, -25000);
+    galaxyGroupRef.current.add(targetStarContainer);
 
-    const targetStarGeo = new THREE.SphereGeometry(25, 64, 64);
+    const targetStarGeo = new THREE.SphereGeometry(30, 64, 64);
     const targetStarMat = new THREE.MeshBasicMaterial({ 
       color: 0xffffff,
       transparent: true,
-      opacity: 0
+      opacity: 1
     });
     const targetStar = new THREE.Mesh(targetStarGeo, targetStarMat);
     targetStarContainer.add(targetStar);
     targetStarRef.current = targetStar;
 
-    // Multi-layered Atmosphere for Realistic Star Glow
-    const glowLayers = [
-      { size: 50, color: 0x00ffff, opacity: 0.8, pow: 4.0 },
-      { size: 120, color: 0x0088ff, opacity: 0.4, pow: 3.0 },
-      { size: 300, color: 0x0044ff, opacity: 0.15, pow: 2.0 }
-    ];
-
-    glowLayers.forEach(layer => {
+    // Intense Glow Layers
+    const glowColors = [0x00ffff, 0x0088ff, 0x0044ff];
+    glowColors.forEach((color, i) => {
+      const glowGeo = new THREE.SphereGeometry(40 + i * 20, 32, 32);
       const glowMat = new THREE.ShaderMaterial({
-        transparent: true,
-        side: THREE.BackSide,
-        blending: THREE.AdditiveBlending,
-        uniforms: { glowColor: { value: new THREE.Color(layer.color) } },
+        uniforms: { glowColor: { value: new THREE.Color(color) } },
         vertexShader: `
           varying vec3 vNormal;
           void main() {
@@ -379,30 +360,39 @@ export function EarthZoomContact() {
           uniform vec3 glowColor;
           varying vec3 vNormal;
           void main() {
-            float intensity = pow( 0.7 - dot( vNormal, vec3( 0, 0, 1.0 ) ), ${layer.pow.toFixed(1)} );
+            float intensity = pow( 0.6 - dot( vNormal, vec3( 0, 0, 1.0 ) ), ${3.0 + i}.0 );
             gl_FragColor = vec4( glowColor, intensity );
           }
-        `
+        `,
+        side: THREE.BackSide,
+        blending: THREE.AdditiveBlending,
+        transparent: true
       });
-      const glowMesh = new THREE.Mesh(new THREE.SphereGeometry(layer.size, 64, 64), glowMat);
-      targetStar.add(glowMesh);
+      targetStar.add(new THREE.Mesh(glowGeo, glowMat));
     });
 
-    // Lens Flare Mockup (Planes orbiting the star)
-    const flareCount = 5;
-    for (let i = 0; i < flareCount; i++) {
-      const flareGeo = new THREE.PlaneGeometry(100 + i * 50, 100 + i * 50);
-      const flareMat = new THREE.MeshBasicMaterial({
-        map: loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/lensflare/lensflare0_bw.png'),
-        transparent: true,
-        opacity: 0,
-        blending: THREE.AdditiveBlending,
-        depthWrite: false,
-        color: i % 2 === 0 ? 0x00ffff : 0x0088ff
-      });
-      const flare = new THREE.Mesh(flareGeo, flareMat);
-      flare.position.z = 100 + i * 100;
-      targetStar.add(flare);
+    // MILKY WAY NEBULAE (Concentrated in the disc)
+    for (let i = 0; i < 40; i++) {
+        const size = 3000 + Math.random() * 2000;
+        const nebGeo = new THREE.PlaneGeometry(size, size);
+        const nebMat = new THREE.MeshBasicMaterial({
+            color: i % 2 === 0 ? 0x2244ff : 0xaa22ff,
+            transparent: true,
+            opacity: 0,
+            map: loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/lensflare/lensflare0_bw.png'),
+            blending: THREE.AdditiveBlending,
+            depthWrite: false,
+        });
+        const nebula = new THREE.Mesh(nebGeo, nebMat);
+        const angle = Math.random() * Math.PI * 2;
+        const radius = 5000 + Math.random() * 5000;
+        nebula.position.set(
+            Math.cos(angle) * radius,
+            (Math.random() - 0.5) * 1000,
+            Math.sin(angle) * radius - 15000
+        );
+        nebula.rotation.z = Math.random() * Math.PI;
+        galaxyGroupRef.current.add(nebula);
     }
 
     // WARP LINES
@@ -410,59 +400,43 @@ export function EarthZoomContact() {
     warpLines.visible = false;
     scene.add(warpLines);
     warpLinesRef.current = warpLines;
--
--    const lineCount = 300;
--    const lineMat = new THREE.LineBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0 });
--    for (let i = 0; i < lineCount; i++) {
--      const lineGeo = new THREE.BufferGeometry().setFromPoints([
--        new THREE.Vector3(0, 0, 0),
--        new THREE.Vector3(0, 0, 50)
--      ]);
--      const line = new THREE.Line(lineGeo, lineMat);
--      line.position.set(
--        (Math.random() - 0.5) * 200,
--        (Math.random() - 0.5) * 200,
--        (Math.random() - 0.5) * 500
--      );
--      warpLines.add(line);
--    }
-+
-+    const lineCount = 800;
-+    const lineMat = new THREE.LineBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0 });
-+    for (let i = 0; i < lineCount; i++) {
-+      const length = 50 + Math.random() * 200;
-+      const lineGeo = new THREE.BufferGeometry().setFromPoints([
-+        new THREE.Vector3(0, 0, 0),
-+        new THREE.Vector3(0, 0, length)
-+      ]);
-+      const line = new THREE.Line(lineGeo, lineMat);
-+      const radius = 50 + Math.random() * 400;
-+      const angle = Math.random() * Math.PI * 2;
-+      line.position.set(
-+        Math.cos(angle) * radius,
-+        Math.sin(angle) * radius,
-+        (Math.random() - 0.5) * 2000
-+      );
-+      warpLines.add(line);
-+    }
 
-    // ASTEROID BELT (Between Mars and Jupiter)
+    const lineCount = 800;
+    const lineMat = new THREE.LineBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0 });
+    for (let i = 0; i < lineCount; i++) {
+      const length = 50 + Math.random() * 200;
+      const lineGeo = new THREE.BufferGeometry().setFromPoints([
+        new THREE.Vector3(0, 0, 0),
+        new THREE.Vector3(0, 0, length)
+      ]);
+      const line = new THREE.Line(lineGeo, lineMat);
+      const radius = 50 + Math.random() * 400;
+      const angle = Math.random() * Math.PI * 2;
+      line.position.set(
+        Math.cos(angle) * radius,
+        Math.sin(angle) * radius,
+        (Math.random() - 0.5) * 5000
+      );
+      warpLines.add(line);
+    }
+
+    // Asteroid Belt (Between Mars and Jupiter)
     const asteroidGroup = new THREE.Group();
     scene.add(asteroidGroup);
-    const asteroidCount = 400;
-    const asteroidGeo = new THREE.IcosahedronGeometry(0.8, 0);
+    const asteroidCount = 1000;
+    const asteroidGeo = new THREE.IcosahedronGeometry(0.5, 0);
     const asteroidMat = new THREE.MeshPhongMaterial({ color: 0x888888 });
     for (let i = 0; i < asteroidCount; i++) {
-      const asteroid = new THREE.Mesh(asteroidGeo, asteroidMat);
-      const dist = 160 + Math.random() * 20;
-      const angle = Math.random() * Math.PI * 2;
-      asteroid.position.set(
-        Math.cos(angle) * dist,
-        (Math.random() - 0.5) * 10,
-        Math.sin(angle) * dist
-      );
-      asteroid.rotation.set(Math.random(), Math.random(), Math.random());
-      asteroidGroup.add(asteroid);
+        const asteroid = new THREE.Mesh(asteroidGeo, asteroidMat);
+        const radius = 160 + Math.random() * 30;
+        const angle = Math.random() * Math.PI * 2;
+        asteroid.position.set(
+            Math.cos(angle) * radius,
+            (Math.random() - 0.5) * 10,
+            Math.sin(angle) * radius
+        );
+        asteroid.rotation.set(Math.random(), Math.random(), Math.random());
+        asteroidGroup.add(asteroid);
     }
 
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
@@ -474,11 +448,11 @@ export function EarthZoomContact() {
     const animate = () => {
       frameIdRef.current = requestAnimationFrame(animate);
       
-      const currentTime = Date.now();
-
       if (stageRef.current === 'idle') {
+        const delta = 0.016; // Approx 60fps
+        
         // Move Earth
-        const earthTime = currentTime * 0.0005 * speedScale.current;
+        const earthTime = Date.now() * 0.0005 * speedScale.current;
         earthGroup.position.x = Math.cos(earthTime) * 110;
         earthGroup.position.z = Math.sin(earthTime) * 110;
 
@@ -489,15 +463,16 @@ export function EarthZoomContact() {
 
         planets.forEach((planet, idx) => {
           const data = planetData[idx];
-          const time = currentTime * data.speed * 0.1 * speedScale.current + data.offset;
+          const time = Date.now() * data.speed * 0.1 * speedScale.current + data.offset;
           planet.position.x = Math.cos(time) * data.dist;
           planet.position.z = Math.sin(time) * data.dist;
           planet.rotation.y += 0.01 * speedScale.current;
 
           // Mars alignment detection
           if (data.isMars && speedScale.current > 0.3) {
+            // Check if Mars is between camera and Earth
             const isNearCenter = Math.abs(planet.position.x) < 15;
-            const isPositiveZ = planet.position.z > 40; 
+            const isPositiveZ = planet.position.z > 40; // Closer to camera than Earth
             
             if (isNearCenter && isPositiveZ && !marsAligned) {
               triggerMarsAlignment();
@@ -505,33 +480,8 @@ export function EarthZoomContact() {
           }
         });
 
-        // Asteroids
+        // Rotate Asteroid Belt
         asteroidGroup.rotation.y += 0.0005 * speedScale.current;
-      }
-
-      // GALAXY ANIMATION
-      if (galaxyGroupRef.current && galaxyGroupRef.current.visible) {
-        galaxyGroupRef.current.rotation.y += 0.0002;
-        galaxyGroupRef.current.children.forEach((child: any) => {
-          if (child.isMesh && child.geometry.type === 'PlaneGeometry') {
-            child.rotation.z += 0.0001;
-            // Pulsing nebula intensity
-            if (child.material && child.material.opacity > 0) {
-              child.material.opacity = 0.5 + Math.sin(currentTime * 0.001 + child.position.x) * 0.2;
-            }
-          }
-          if (child.isGroup) {
-            child.rotation.y += 0.001; // Spin the star system
-          }
-        });
-      }
-
-      // CAMERA SWAY FOR REALISM (Always active)
-      if (cameraRef.current) {
-        const swayX = Math.sin(currentTime * 0.0005) * 2;
-        const swayY = Math.cos(currentTime * 0.0007) * 2;
-        cameraRef.current.position.x += (swayX - cameraRef.current.position.x) * 0.01;
-        cameraRef.current.position.y += (swayY - cameraRef.current.position.y) * 0.01;
       }
 
       if (rendererRef.current && sceneRef.current && cameraRef.current) {
@@ -653,14 +603,12 @@ export function EarthZoomContact() {
       onStart: () => {
         // Stop Mars alignment during voyage
         setMarsAligned(true); 
-        // Fade out initial starfield
-        if (starsRef.current) gsap.to(starsRef.current.material, { opacity: 0, duration: 5 });
       }
     });
 
     // 2. Galaxy transition (20s)
     tl.to(cameraRef.current!.position, {
-      z: 10000,
+      z: 12000,
       duration: 15,
       ease: "power2.in",
       onStart: () => {
@@ -670,33 +618,33 @@ export function EarthZoomContact() {
             if ((child as any).material) {
               gsap.to((child as any).material, { opacity: 0.8, duration: 8 });
             }
-            if ((child as THREE.Group).isGroup) {
-              (child as THREE.Group).children.forEach(gc => {
-                if ((gc as any).material) gsap.to((gc as any).material, { opacity: 0.8, duration: 8 });
-              });
-            }
           });
+        }
+        if (starsRef.current) {
+          gsap.to(starsRef.current.material, { opacity: 0, duration: 5 });
         }
       }
     });
 
     // 3. Galactic sweep - more dramatic curves
     tl.to(cameraRef.current!.position, {
-      x: 1000,
-      y: 500,
-      z: 15000,
+      x: 1500,
+      y: 800,
+      z: 22000,
       duration: 10,
       ease: "power1.inOut"
     }, "-=5");
 
     // 4. Focus Target Star
-    const targetWorldPos = new THREE.Vector3();
-    targetStarRef.current!.getWorldPosition(targetWorldPos);
+    const targetWorldPos = new THREE.Vector3(0, 0, -25000); // Set star further away
+    if (targetStarRef.current) {
+      targetStarRef.current.position.set(0, 0, -25000);
+    }
 
     tl.to(cameraRef.current!.position, {
       x: targetWorldPos.x,
       y: targetWorldPos.y,
-      z: targetWorldPos.z + 400,
+      z: targetWorldPos.z + 500,
       duration: 8,
       ease: "power3.out",
       onComplete: () => {
@@ -704,14 +652,12 @@ export function EarthZoomContact() {
       }
     });
 
-    // Intensify star bloom as we arrive
-    tl.to(targetStarRef.current!.scale, {
-      x: 1.2,
-      y: 1.2,
-      z: 1.2,
+    // Fade up star opacity
+    gsap.to(targetStarRef.current!.material as any, {
+      opacity: 1,
       duration: 5,
-      ease: "sine.inOut"
-    }, "-=8");
+      delay: 25
+    });
   };
 
   const executeHyperspaceJump = () => {
@@ -723,24 +669,30 @@ export function EarthZoomContact() {
       warpLinesRef.current.visible = true;
       warpLinesRef.current.children.forEach(child => {
         if ((child as any).material) {
-          gsap.to((child as any).material, { opacity: 1, duration: 0.4 });
+          gsap.to((child as any).material, { opacity: 1, duration: 0.2 });
         }
       });
     }
 
-    const targetWorldPos = new THREE.Vector3();
-    targetStarRef.current!.getWorldPosition(targetWorldPos);
+    const targetPos = targetStarRef.current!.position.clone();
     
+    // Stretch warp lines for motion blur feel
+    gsap.to(warpLinesRef.current.scale, {
+      z: 10,
+      duration: 1.5,
+      ease: "power2.in"
+    });
+
     gsap.to(cameraRef.current!.position, {
-      x: targetWorldPos.x,
-      y: targetWorldPos.y,
-      z: targetWorldPos.z - 200, // Zoom THROUGH the star
-      duration: 2.5,
+      x: targetPos.x,
+      y: targetPos.y,
+      z: targetPos.z - 50,
+      duration: 2,
       ease: "power4.in",
       onUpdate: () => {
-        // Massive vibration
-        cameraRef.current!.position.x += (Math.random() - 0.5) * 5;
-        cameraRef.current!.position.y += (Math.random() - 0.5) * 5;
+        // Vibration effect
+        cameraRef.current!.position.x += (Math.random() - 0.5) * 2;
+        cameraRef.current!.position.y += (Math.random() - 0.5) * 2;
       },
       onComplete: () => {
         setStage('secret');
