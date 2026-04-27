@@ -130,12 +130,19 @@ export function EarthZoomContact() {
     camera.position.z = 160;
     cameraRef.current = camera;
 
-    const renderer = new THREE.WebGLRenderer({
-      canvas: canvasRef.current,
-      antialias: true,
-      alpha: true,
-      precision: 'mediump',
-    });
+    let renderer: THREE.WebGLRenderer;
+    try {
+      if (!canvasRef.current) return;
+      renderer = new THREE.WebGLRenderer({
+        canvas: canvasRef.current,
+        antialias: true,
+        alpha: true,
+        precision: 'mediump',
+      });
+    } catch (e) {
+      console.error('Failed to initialize WebGLRenderer:', e);
+      return;
+    }
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(width, height);
     rendererRef.current = renderer;
