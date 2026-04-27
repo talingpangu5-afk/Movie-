@@ -18,6 +18,7 @@ export function EarthZoomContact() {
   const cinematicTimer = useRef<NodeJS.Timeout | null>(null);
   const galaxyGroupRef = useRef<THREE.Group | null>(null);
   const starsRef = useRef<THREE.Points | null>(null);
+  const [statusText, setStatusText] = useState('');
   const targetStarRef = useRef<THREE.Mesh | null>(null);
   const warpLinesRef = useRef<THREE.Group | null>(null);
   const [marsAligned, setMarsAligned] = useState(false);
@@ -326,9 +327,9 @@ export function EarthZoomContact() {
       galaxyDiscPos[i * 3 + 1] = y;
       galaxyDiscPos[i * 3 + 2] = z;
 
-      const innerColor = new THREE.Color(0xffaa88);
-      const outerColor = new THREE.Color(0x88ccff);
-      const mixedColor = innerColor.clone().lerp(outerColor, radius / 10000);
+      const innerColor = new THREE.Color(0xffccaa); // Warm bulge
+      const outerColor = new THREE.Color(0x77aaff); // Cool blue arms
+      const mixedColor = innerColor.clone().lerp(outerColor, radius / 12000);
       
       galaxyDiscColors[i * 3] = mixedColor.r;
       galaxyDiscColors[i * 3 + 1] = mixedColor.g;
@@ -474,6 +475,11 @@ export function EarthZoomContact() {
       frameIdRef.current = requestAnimationFrame(animate);
       
       const currentTime = Date.now();
+
+      // Twinkle initial stars
+      if (starsRef.current && starsRef.current.material) {
+        (starsRef.current.material as THREE.PointsMaterial).opacity = 0.5 + Math.sin(currentTime * 0.002) * 0.3;
+      }
 
       if (stageRef.current === 'idle') {
         // Move Earth
@@ -651,6 +657,7 @@ export function EarthZoomContact() {
       onStart: () => {
         // Stop Mars alignment during voyage
         setMarsAligned(true); 
+        setStatusText('INITIATING GALACTIC VOYAGE');
       },
       onUpdate: () => {
         if (cameraRef.current) cameraRef.current.lookAt(0, 0, 0); // Keep looking at Sun/Center during local exit
@@ -665,6 +672,7 @@ export function EarthZoomContact() {
       duration: 15,
       ease: "power2.in",
       onStart: () => {
+        setStatusText('LEAVING SOLAR SYSTEM');
         if (galaxyGroupRef.current) {
           galaxyGroupRef.current.visible = true;
           galaxyGroupRef.current.children.forEach(child => {
@@ -692,8 +700,12 @@ export function EarthZoomContact() {
       z: targetWorldPos.z + 800,
       duration: 15,
       ease: "power3.out",
+      onStart: () => {
+        setStatusText('TARGETING V-CORE SIGNAL');
+      },
       onComplete: () => {
         setStage('starFocus');
+        setStatusText('HYPERSPACE LINK READY');
       }
     });
   };
@@ -734,6 +746,7 @@ export function EarthZoomContact() {
       },
       onComplete: () => {
         setStage('secret');
+        setStatusText('');
         if (warpLinesRef.current) warpLinesRef.current.visible = false;
       }
     });
@@ -823,7 +836,26 @@ export function EarthZoomContact() {
       <div className="flex flex-col items-center">
         {/* TEXT ABOVE EARTH */}
         <AnimatePresence>
-          {stage === 'idle' && (
+          {/* Status Overlay */}
+      <AnimatePresence>
+        {statusText && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="absolute bottom-32 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
+          >
+            <div className="bg-black/80 backdrop-blur-md px-6 py-3 border border-primary/30 rounded-full">
+              <span className="text-primary font-mono text-sm tracking-[0.3em] uppercase animate-pulse">
+                {statusText}
+              </span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Existing stage elements */}
+      {stage === 'idle' && (
             <motion.div 
               initial={{ opacity: 0, y: -4 }} 
               animate={{ opacity: 1, y: 0 }}
