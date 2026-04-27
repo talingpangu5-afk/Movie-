@@ -710,27 +710,30 @@ export function EarthZoomContact() {
           gsap.to((child as any).material, { opacity: 1, duration: 0.2 });
         }
       });
+
+      // Stretch warp lines for motion blur feel
+      gsap.to(warpLinesRef.current.scale, {
+        z: 10,
+        duration: 1.5,
+        ease: "power2.in"
+      });
     }
 
-    const targetPos = targetStarRef.current!.position.clone();
+    if (!targetStarRef.current || !cameraRef.current) return;
+    const targetPos = targetStarRef.current.position.clone();
     
-    // Stretch warp lines for motion blur feel
-    gsap.to(warpLinesRef.current.scale, {
-      z: 10,
-      duration: 1.5,
-      ease: "power2.in"
-    });
-
-    gsap.to(cameraRef.current!.position, {
+    gsap.to(cameraRef.current.position, {
       x: targetPos.x,
       y: targetPos.y,
       z: targetPos.z - 400,
       duration: 2.5,
       ease: "power4.in",
       onUpdate: () => {
-        // Intensive Vibration effect
-        cameraRef.current!.position.x += (Math.random() - 0.5) * 5;
-        cameraRef.current!.position.y += (Math.random() - 0.5) * 5;
+        if (cameraRef.current) {
+          // Intensive Vibration effect
+          cameraRef.current.position.x += (Math.random() - 0.5) * 5;
+          cameraRef.current.position.y += (Math.random() - 0.5) * 5;
+        }
       },
       onComplete: () => {
         setStage('secret');
@@ -739,15 +742,22 @@ export function EarthZoomContact() {
     });
 
     // FOV distortion
-    gsap.to(cameraRef.current!, {
-      fov: 140,
-      duration: 1.5,
-      ease: "power2.in",
-      onUpdate: () => cameraRef.current!.updateProjectionMatrix(),
-      onComplete: () => {
-        gsap.to(cameraRef.current!, { fov: 40, duration: 0.1, onUpdate: () => cameraRef.current!.updateProjectionMatrix() });
-      }
-    });
+    if (cameraRef.current) {
+      const camera = cameraRef.current;
+      gsap.to(camera, {
+        fov: 140,
+        duration: 1.5,
+        ease: "power2.in",
+        onUpdate: () => camera.updateProjectionMatrix(),
+        onComplete: () => {
+          gsap.to(camera, { 
+            fov: 40, 
+            duration: 0.1, 
+            onUpdate: () => camera.updateProjectionMatrix() 
+          });
+        }
+      });
+    }
   };
 
   const enterSecretWorld = (e: React.MouseEvent) => {
