@@ -157,7 +157,9 @@ export function EarthZoomContact() {
     const earthTexture = loader.load('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg');
     const cloudTexture = loader.load('https://unpkg.com/three-globe/example/img/earth-clouds.png');
     const nightTexture = loader.load('https://unpkg.com/three-globe/example/img/earth-night.jpg');
-    const marsTexture = loader.load('https://unpkg.com/three-globe/example/img/earth-topology.png'); // Using topology for mars-like detail
+    const marsTexture = loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/mars_1k_color.jpg');
+    const jupiterTexture = loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/jupiter_1k_color.jpg');
+    const venusTexture = loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/venus_atm_1k_color.jpg');
 
     // SUN (Central Hub)
     const sunGeo = new THREE.SphereGeometry(30, 32, 32);
@@ -206,6 +208,7 @@ export function EarthZoomContact() {
         nightTexture: { value: nightTexture }
       },
       vertexShader: `
+        uniform vec3 sunDirection;
         varying vec2 vUv;
         varying vec3 vNormal;
         varying vec3 vSunDirection;
@@ -278,24 +281,64 @@ export function EarthZoomContact() {
     // 8 SURROUNDING PLANETS
     const planets: THREE.Mesh[] = [];
     const planetData = [
-      { name: 'Mercury', size: 6, color: 0x888888, dist: 50, speed: 0.005, offset: 0 },
-      { name: 'Venus', size: 10, color: 0xffcc99, dist: 80, speed: 0.003, offset: 1.2 },
-      { name: 'Mars', size: 8, color: 0xff6633, dist: 140, speed: 0.002, offset: 2.5, isMars: true },
-      { name: 'Jupiter', size: 20, color: 0xeeb882, dist: 200, speed: 0.001, offset: 3.8 },
-      { name: 'Saturn', size: 18, color: 0xe3d4a4, dist: 260, speed: 0.0008, offset: 4.5 },
-      { name: 'Uranus', size: 12, color: 0xace5ee, dist: 320, speed: 0.0006, offset: 5.2 },
-      { name: 'Neptune', size: 11, color: 0x4b70dd, dist: 380, speed: 0.0005, offset: 0.8 },
-      { name: 'Pluto', size: 5, color: 0xcccccc, dist: 440, speed: 0.0004, offset: 2.0 },
+      { name: 'Mercury', size: 6, color: 0x888888, dist: 50, speed: 0.005, offset: 0, texture: null },
+      { name: 'Venus', size: 10, color: 0xffcc99, dist: 80, speed: 0.003, offset: 1.2, texture: venusTexture },
+      { name: 'Mars', size: 8, color: 0xff4400, dist: 140, speed: 0.002, offset: 2.5, isMars: true, texture: marsTexture },
+      { name: 'Jupiter', size: 20, color: 0xeeb882, dist: 200, speed: 0.001, offset: 3.8, texture: jupiterTexture },
+      { name: 'Saturn', size: 18, color: 0xe3d4a4, dist: 260, speed: 0.0008, offset: 4.5, texture: null },
+      { name: 'Uranus', size: 12, color: 0xace5ee, dist: 320, speed: 0.0006, offset: 5.2, texture: null },
+      { name: 'Neptune', size: 11, color: 0x4b70dd, dist: 380, speed: 0.0005, offset: 0.8, texture: null },
+      { name: 'Pluto', size: 5, color: 0xcccccc, dist: 440, speed: 0.0004, offset: 2.0, texture: null },
     ];
 
     planetData.forEach((data, i) => {
       const geo = new THREE.SphereGeometry(data.size, 32, 32);
-      const mat = new THREE.MeshPhongMaterial({ 
-        color: data.color, 
-        map: data.isMars ? marsTexture : null,
-        shininess: data.isMars ? 5 : 10,
-        emissive: data.isMars ? 0x220000 : 0x000000 
-      });
+      let mat: THREE.Material;
+      
+      if (data.isMars) {
+        mat = new THREE.ShaderMaterial({
+          uniforms: {
+            sunDirection: { value: new THREE.Vector3(1, 1, 1).normalize() },
+            marsTexture: { value: marsTexture },
+            emissiveColor: { value: new THREE.Color(0xff4400) },
+            emissiveIntensity: { value: 0.0 }
+          },
+          vertexShader: `
+            varying vec2 vUv;
+            varying vec3 vNormal;
+            varying vec3 vSunDirection;
+            uniform vec3 sunDirection;
+            void main() {
+              vUv = uv;
+              vNormal = normalize(normalMatrix * normal);
+              vSunDirection = sunDirection;
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+          `,
+          fragmentShader: `
+            uniform sampler2D marsTexture;
+            uniform vec3 emissiveColor;
+            uniform float emissiveIntensity;
+            varying vec2 vUv;
+            varying vec3 vNormal;
+            varying vec3 vSunDirection;
+            void main() {
+              float intensity = dot(vNormal, vSunDirection);
+              vec4 texColor = texture2D(marsTexture, vUv);
+              vec3 color = texColor.rgb * smoothstep(-0.2, 0.5, intensity);
+              color += emissiveColor * emissiveIntensity;
+              gl_FragColor = vec4(color, 1.0);
+            }
+          `
+        });
+      } else {
+        mat = new THREE.MeshPhongMaterial({ 
+          color: data.color, 
+          map: data.texture,
+          shininess: 10
+        });
+      }
+      
       const planet = new THREE.Mesh(geo, mat);
       
       if (data.isMars) marsRef.current = planet;
@@ -546,6 +589,15 @@ export function EarthZoomContact() {
           planet.position.z = Math.sin(time) * data.dist;
           planet.rotation.y += 0.01 * speedScale.current;
 
+          // Update Mars sun direction if using shader
+          if (data.isMars && (planet.material as THREE.ShaderMaterial).uniforms) {
+            const worldPos = new THREE.Vector3();
+            planet.getWorldPosition(worldPos);
+            (planet.material as THREE.ShaderMaterial).uniforms.sunDirection.value.copy(
+              new THREE.Vector3(0,0,0).clone().sub(worldPos).normalize()
+            );
+          }
+
           // Mars alignment detection
           if (data.isMars && speedScale.current > 0.3) {
             const isNearCenter = Math.abs(planet.position.x) < 15;
@@ -706,18 +758,16 @@ export function EarthZoomContact() {
 
     // 2. Transition to Mars
     tl.to(cameraRef.current!.position, {
-      x: 0,
-      y: 0,
-      z: 160,
       duration: 3,
-      ease: "power2.inOut",
       onStart: () => {
         setScanStatus('COORDINATING MARS TRAJECTORY...');
         const marsPos = marsRef.current!.position.clone();
+        
+        // Dynamic lookAt
         gsap.to(cameraRef.current!.position, {
           x: marsPos.x,
           y: marsPos.y,
-          z: marsPos.z + 50,
+          z: marsPos.z + 60,
           duration: 3,
           ease: "power2.inOut",
           onUpdate: () => {
@@ -732,9 +782,9 @@ export function EarthZoomContact() {
       duration: 5,
       onStart: () => {
         setScanStatus('ESTABLISHING MARS LINK...');
-        if (marsRef.current) {
-          gsap.to((marsRef.current.material as any), {
-            emissiveIntensity: 5.0,
+        if (marsRef.current && (marsRef.current.material as any).uniforms) {
+          gsap.to((marsRef.current.material as any).uniforms.emissiveIntensity, {
+            value: 2.0,
             duration: 0.5,
             repeat: 9,
             yoyo: true
