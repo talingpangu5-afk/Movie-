@@ -12,6 +12,7 @@ import { AdManager } from '@/components/AdManager';
 import { CinematicBanner } from '@/components/CinematicBanner';
 import { HologramTrailers } from '@/components/HologramTrailers';
 import { EarthZoomContact } from '@/components/EarthZoomContact';
+import { JarvisBackground } from '@/components/JarvisBackground';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 300; // Refresh every 5 minutes
@@ -65,7 +66,8 @@ export default async function HomePage() {
     const heroMovies: MovieDetails[] = await tmdb.getMultipleMovieDetails(trendingMovies.map((m: Movie) => m.id));
 
     return (
-      <div className="flex flex-col pt-20">
+      <div className="flex flex-col pt-20 relative">
+        <JarvisBackground />
         <AutoRefresh />
         <AdManager />
         <EarthZoomContact />

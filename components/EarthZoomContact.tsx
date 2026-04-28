@@ -1063,7 +1063,7 @@ export function EarthZoomContact() {
   };
 
   return (
-    <div className="w-full bg-gradient-to-b from-black via-[#000814] to-black pt-0 pb-5 relative z-40 overflow-hidden select-none">
+    <div className="w-full bg-transparent pt-0 pb-5 relative z-40 overflow-hidden select-none">
       <div className="flex flex-col items-center">
         {/* TEXT ABOVE EARTH */}
         <AnimatePresence>
