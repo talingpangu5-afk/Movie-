@@ -286,7 +286,16 @@ export function EarthZoomContact() {
     const planetData = [
       { name: 'Mercury', size: 6, texture: 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/mercury_1024.jpg', dist: 50, speed: 0.005, offset: 0 },
       { name: 'Venus', size: 10, texture: 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/venus_surface.jpg', dist: 80, speed: 0.003, offset: 1.2 },
-      { name: 'Mars', size: 8, texture: 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/mars_1k_color.jpg', dist: 140, speed: 0.002, offset: 2.5, isMars: true },
+      { 
+        name: 'Mars', 
+        size: 8, 
+        texture: 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/mars_1k_color.jpg', 
+        bump: 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/mars_1k_topo.jpg',
+        dist: 140, 
+        speed: 0.002, 
+        offset: 2.5, 
+        isMars: true 
+      },
       { name: 'Jupiter', size: 20, texture: 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/jupiter.jpg', dist: 200, speed: 0.001, offset: 3.8 },
       { name: 'Saturn', size: 18, texture: 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/saturn_1k_color.jpg', dist: 260, speed: 0.0008, offset: 4.5 },
       { name: 'Uranus', size: 12, color: 0xace5ee, dist: 320, speed: 0.0006, offset: 5.2 },
@@ -298,12 +307,18 @@ export function EarthZoomContact() {
       const geo = new THREE.SphereGeometry(data.size, 64, 64);
       let mat;
       if (data.texture) {
-        mat = new THREE.MeshPhongMaterial({ map: loader.load(data.texture), shininess: 10 });
+        mat = new THREE.MeshPhongMaterial({ 
+          map: loader.load(data.texture), 
+          shininess: data.isMars ? 5 : 10,
+          specular: data.isMars ? new THREE.Color(0x332211) : new THREE.Color(0x111111),
+          bumpMap: data.bump ? loader.load(data.bump) : null,
+          bumpScale: data.isMars ? 0.05 : 0
+        });
       } else {
         mat = new THREE.MeshPhongMaterial({ 
           color: (data as any).color, 
           shininess: 10,
-          emissive: data.isMars ? 0x330000 : 0x000000 
+          emissive: data.isMars ? 0x220500 : 0x000000 
         });
       }
       
@@ -332,7 +347,7 @@ export function EarthZoomContact() {
         side: THREE.BackSide,
         blending: THREE.AdditiveBlending,
         uniforms: {
-          glowColor: { value: new THREE.Color(data.name === 'Mars' ? 0xff4400 : 0x88ccff) }
+          glowColor: { value: new THREE.Color(data.name === 'Mars' ? 0xe27b58 : 0x88ccff) }
         },
         vertexShader: `
           varying vec3 vNormal;
