@@ -11,10 +11,7 @@ import { SecretPlatform } from './SecretPlatform';
 export function EarthZoomContact() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [stage, setStage] = useState<'idle' | 'zooming' | 'landed' | 'secret' | 'deepSpace' | 'starFocus' | 'preparing'>('idle');
-  const [scanStatus, setScanStatus] = useState<string | null>(null);
-  const [earthClickable, setEarthClickable] = useState(false);
-  const [marsClickable, setMarsClickable] = useState(false);
+  const [stage, setStage] = useState<'idle' | 'zooming' | 'landed' | 'secret' | 'deepSpace' | 'starFocus'>('idle');
   const stageRef = useRef(stage);
 
   // Cinematic timeline refs
@@ -44,34 +41,6 @@ export function EarthZoomContact() {
   const earthRef = useRef<THREE.Mesh | null>(null);
   const cloudsRef = useRef<THREE.Mesh | null>(null);
   const frameIdRef = useRef<number | null>(null);
-  const mouse = useRef(new THREE.Vector2());
-
-  const handleCanvasClick = (event: React.MouseEvent) => {
-    if (!canvasRef.current || !cameraRef.current || !sceneRef.current) return;
-    if (!earthClickable && !marsClickable) return;
-
-    const rect = canvasRef.current.getBoundingClientRect();
-    mouse.current.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-    mouse.current.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
-
-    const raycaster = new THREE.Raycaster();
-    raycaster.setFromCamera(mouse.current, cameraRef.current);
-
-    const targets = [];
-    if (earthClickable && earthRef.current) targets.push(earthRef.current);
-    if (marsClickable && marsRef.current) targets.push(marsRef.current);
-
-    const intersects = raycaster.intersectObjects(targets);
-
-    if (intersects.length > 0) {
-      const hit = intersects[0].object;
-      if (hit === earthRef.current) {
-        startZoom();
-      } else if (hit === marsRef.current) {
-        enterSecretWorld(event);
-      }
-    }
-  };
 
   const playAlignmentSound = () => {
     try {
@@ -123,9 +92,9 @@ export function EarthZoomContact() {
     setShowMarsUI(true);
     playAlignmentSound();
 
-    // Cinematic pause: stop time
+    // Cinematic pause: slow down time
     gsap.to(speedScale, {
-      current: 0,
+      current: 0.1,
       duration: 1,
       ease: "power2.out"
     });
@@ -187,9 +156,6 @@ export function EarthZoomContact() {
     const earthTexture = loader.load('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg');
     const cloudTexture = loader.load('https://unpkg.com/three-globe/example/img/earth-clouds.png');
     const nightTexture = loader.load('https://unpkg.com/three-globe/example/img/earth-night.jpg');
-    const marsTexture = loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/mars_1k_color.jpg');
-    const jupiterTexture = loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/jupiter_1k_color.jpg');
-    const venusTexture = loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/venus_atm_1k_color.jpg');
 
     // SUN (Central Hub)
     const sunGeo = new THREE.SphereGeometry(30, 32, 32);
@@ -231,38 +197,11 @@ export function EarthZoomContact() {
     scene.add(earthGroup);
     
     const earthGeo = new THREE.SphereGeometry(15, 64, 64);
-    const earthMat = new THREE.ShaderMaterial({
-      uniforms: {
-        sunDirection: { value: new THREE.Vector3(100, 100, 100).normalize() },
-        dayTexture: { value: earthTexture },
-        nightTexture: { value: nightTexture }
-      },
-      vertexShader: `
-        uniform vec3 sunDirection;
-        varying vec2 vUv;
-        varying vec3 vNormal;
-        varying vec3 vSunDirection;
-        void main() {
-          vUv = uv;
-          vNormal = normalize(normalMatrix * normal);
-          vSunDirection = sunDirection;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }
-      `,
-      fragmentShader: `
-        uniform sampler2D dayTexture;
-        uniform sampler2D nightTexture;
-        varying vec2 vUv;
-        varying vec3 vNormal;
-        varying vec3 vSunDirection;
-        void main() {
-          float intensity = dot(vNormal, vSunDirection);
-          vec3 dayColor = texture2D(dayTexture, vUv).rgb;
-          vec3 nightColor = texture2D(nightTexture, vUv).rgb;
-          vec3 color = mix(nightColor, dayColor, smoothstep(-0.2, 0.5, intensity));
-          gl_FragColor = vec4(color, 1.0);
-        }
-      `
+    const earthMat = new THREE.MeshPhongMaterial({ 
+      map: earthTexture, 
+      specular: new THREE.Color(0x333333),
+      shininess: 15,
+      bumpScale: 1
     });
     const earth = new THREE.Mesh(earthGeo, earthMat);
     earthGroup.add(earth);
@@ -311,81 +250,26 @@ export function EarthZoomContact() {
     // 8 SURROUNDING PLANETS
     const planets: THREE.Mesh[] = [];
     const planetData = [
-      { name: 'Mercury', size: 6, color: 0x888888, dist: 50, speed: 0.005, offset: 0, texture: null },
-      { name: 'Venus', size: 10, color: 0xffcc99, dist: 80, speed: 0.003, offset: 1.2, texture: venusTexture },
-      { name: 'Mars', size: 8, color: 0xff4400, dist: 140, speed: 0.002, offset: 2.5, isMars: true, texture: marsTexture },
-      { name: 'Jupiter', size: 20, color: 0xeeb882, dist: 200, speed: 0.001, offset: 3.8, texture: jupiterTexture },
-      { name: 'Saturn', size: 18, color: 0xe3d4a4, dist: 260, speed: 0.0008, offset: 4.5, texture: null },
-      { name: 'Uranus', size: 12, color: 0xace5ee, dist: 320, speed: 0.0006, offset: 5.2, texture: null },
-      { name: 'Neptune', size: 11, color: 0x4b70dd, dist: 380, speed: 0.0005, offset: 0.8, texture: null },
-      { name: 'Pluto', size: 5, color: 0xcccccc, dist: 440, speed: 0.0004, offset: 2.0, texture: null },
+      { name: 'Mercury', size: 6, color: 0x888888, dist: 50, speed: 0.005, offset: 0 },
+      { name: 'Venus', size: 10, color: 0xffcc99, dist: 80, speed: 0.003, offset: 1.2 },
+      { name: 'Mars', size: 8, color: 0xff6633, dist: 140, speed: 0.002, offset: 2.5, isMars: true },
+      { name: 'Jupiter', size: 20, color: 0xeeb882, dist: 200, speed: 0.001, offset: 3.8 },
+      { name: 'Saturn', size: 18, color: 0xe3d4a4, dist: 260, speed: 0.0008, offset: 4.5 },
+      { name: 'Uranus', size: 12, color: 0xace5ee, dist: 320, speed: 0.0006, offset: 5.2 },
+      { name: 'Neptune', size: 11, color: 0x4b70dd, dist: 380, speed: 0.0005, offset: 0.8 },
+      { name: 'Pluto', size: 5, color: 0xcccccc, dist: 440, speed: 0.0004, offset: 2.0 },
     ];
 
     planetData.forEach((data, i) => {
       const geo = new THREE.SphereGeometry(data.size, 32, 32);
-      let mat: THREE.Material;
-      
-      if (data.isMars) {
-        mat = new THREE.ShaderMaterial({
-          uniforms: {
-            sunDirection: { value: new THREE.Vector3(1, 1, 1).normalize() },
-            marsTexture: { value: marsTexture },
-            emissiveColor: { value: new THREE.Color(0xff4400) },
-            emissiveIntensity: { value: 0.0 }
-          },
-          vertexShader: `
-            varying vec2 vUv;
-            varying vec3 vNormal;
-            varying vec3 vSunDirection;
-            uniform vec3 sunDirection;
-            void main() {
-              vUv = uv;
-              vNormal = normalize(normalMatrix * normal);
-              vSunDirection = sunDirection;
-              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-            }
-          `,
-          fragmentShader: `
-            uniform sampler2D marsTexture;
-            uniform vec3 emissiveColor;
-            uniform float emissiveIntensity;
-            varying vec2 vUv;
-            varying vec3 vNormal;
-            varying vec3 vSunDirection;
-            void main() {
-              float intensity = dot(vNormal, vSunDirection);
-              vec4 texColor = texture2D(marsTexture, vUv);
-              vec3 color = texColor.rgb * smoothstep(-0.2, 0.5, intensity);
-              color += emissiveColor * emissiveIntensity;
-              gl_FragColor = vec4(color, 1.0);
-            }
-          `
-        });
-      } else {
-        mat = new THREE.MeshPhongMaterial({ 
-          color: data.color, 
-          map: data.texture,
-          shininess: 10
-        });
-      }
-      
+      const mat = new THREE.MeshPhongMaterial({ 
+        color: data.color, 
+        shininess: 10,
+        emissive: data.isMars ? 0x330000 : 0x000000 
+      });
       const planet = new THREE.Mesh(geo, mat);
       
       if (data.isMars) marsRef.current = planet;
-      
-      // Saturn Rings
-      if (data.name === 'Saturn') {
-        const ringGeo = new THREE.RingGeometry(data.size + 4, data.size + 12, 64);
-        const ringMat = new THREE.MeshBasicMaterial({ 
-          color: 0x887755, 
-          side: THREE.DoubleSide, 
-          transparent: true, 
-          opacity: 0.5 
-        });
-        const rings = new THREE.Mesh(ringGeo, ringMat);
-        rings.rotation.x = Math.PI / 2;
-        planet.add(rings);
-      }
       
       // Initial position
       const angle = data.offset;
@@ -597,17 +481,7 @@ export function EarthZoomContact() {
         earthGroup.position.x = Math.cos(earthTime) * 110;
         earthGroup.position.z = Math.sin(earthTime) * 110;
 
-        if (earthRef.current) {
-          earthRef.current.rotation.y += 0.001 * speedScale.current;
-          // Update sun direction relative to earth position
-          if ((earthRef.current.material as THREE.ShaderMaterial).uniforms) {
-            const worldPos = new THREE.Vector3();
-            earthRef.current.getWorldPosition(worldPos);
-            (earthRef.current.material as THREE.ShaderMaterial).uniforms.sunDirection.value.copy(
-              new THREE.Vector3(0,0,0).clone().sub(worldPos).normalize()
-            );
-          }
-        }
+        if (earthRef.current) earthRef.current.rotation.y += 0.001 * speedScale.current;
         if (cloudsRef.current) cloudsRef.current.rotation.y += 0.0015 * speedScale.current;
         
         stars.rotation.y += 0.0002 * speedScale.current;
@@ -618,15 +492,6 @@ export function EarthZoomContact() {
           planet.position.x = Math.cos(time) * data.dist;
           planet.position.z = Math.sin(time) * data.dist;
           planet.rotation.y += 0.01 * speedScale.current;
-
-          // Update Mars sun direction if using shader
-          if (data.isMars && (planet.material as THREE.ShaderMaterial).uniforms) {
-            const worldPos = new THREE.Vector3();
-            planet.getWorldPosition(worldPos);
-            (planet.material as THREE.ShaderMaterial).uniforms.sunDirection.value.copy(
-              new THREE.Vector3(0,0,0).clone().sub(worldPos).normalize()
-            );
-          }
 
           // Mars alignment detection
           if (data.isMars && speedScale.current > 0.3) {
@@ -776,67 +641,6 @@ export function EarthZoomContact() {
 
     const tl = gsap.timeline();
     
-    // 1. Earth Focus & Scan (5s)
-    tl.to({}, { 
-      duration: 5,
-      onStart: () => {
-        setStage('preparing');
-        setScanStatus('ANALYZING EARTH HABITABILITY...');
-        setEarthClickable(true);
-        gsap.to(speedScale, { current: 0, duration: 2 });
-      },
-      onComplete: () => {
-        setEarthClickable(false);
-      }
-    });
-
-    // 2. Transition to Mars
-    tl.to(cameraRef.current!.position, {
-      duration: 3,
-      onStart: () => {
-        setScanStatus('COORDINATING MARS TRAJECTORY...');
-        const marsPos = marsRef.current!.position.clone();
-        
-        // Dynamic lookAt
-        gsap.to(cameraRef.current!.position, {
-          x: marsPos.x,
-          y: marsPos.y,
-          z: marsPos.z + 60,
-          duration: 3,
-          ease: "power2.inOut",
-          onUpdate: () => {
-             if (cameraRef.current && marsRef.current) cameraRef.current.lookAt(marsRef.current.position);
-          }
-        });
-      }
-    });
-
-    // 3. Mars Scan (5s)
-    tl.to({}, {
-      duration: 5,
-      onStart: () => {
-        setScanStatus('ESTABLISHING MARS LINK...');
-        setMarsClickable(true);
-        if (marsRef.current && (marsRef.current.material as any).uniforms) {
-          gsap.to((marsRef.current.material as any).uniforms.emissiveIntensity, {
-            value: 2.0,
-            duration: 0.5,
-            repeat: 9,
-            yoyo: true
-          });
-        }
-      },
-      onComplete: () => {
-        setMarsClickable(false);
-      }
-    });
-
-    // 4. Start Voyage
-    tl.add(() => {
-      setScanStatus('INITIATING INTERSTELLAR JUMP...');
-      setStage('deepSpace');
-    });
-
     // 1. Slow zoom out from Earth (10s), passing through the system
     tl.to(cameraRef.current!.position, {
       x: 300,
@@ -1046,13 +850,7 @@ export function EarthZoomContact() {
         {/* EARTH INTERACTION */}
         <div 
           className="relative w-[280px] md:w-[340px] h-[160px] md:h-[200px] flex items-center justify-center cursor-pointer overflow-visible"
-          onClick={(e) => {
-            if (earthClickable || marsClickable) {
-              handleCanvasClick(e);
-            } else {
-              startZoom();
-            }
-          }}
+          onClick={startZoom}
         >
           <motion.div 
             whileHover={{ scale: 1.05 }}
@@ -1061,89 +859,6 @@ export function EarthZoomContact() {
           >
             <canvas ref={canvasRef} className={`w-full h-full transition-opacity duration-700 ${['landed', 'secret'].includes(stage) ? 'opacity-0' : 'opacity-100'}`} />
             
-            {/* NASA STYLE SCANNING UI */}
-            <AnimatePresence mode="wait">
-              {stage === 'preparing' && (
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="absolute inset-0 flex flex-col items-center justify-center z-[60] pointer-events-none"
-                >
-                  <div className="w-full max-w-lg px-2 shadow-[0_0_100px_rgba(0,0,0,0.8)]">
-                    <div className="flex justify-between items-end mb-2">
-                      <div className="flex flex-col">
-                        <span className="text-[10px] font-black text-cyan-400 tracking-[0.2em] mb-1">NASA DATA LINK: ACTIVE</span>
-                        <div className="flex gap-1">
-                          {[1, 2, 3, 4, 5].map(i => (
-                            <motion.div 
-                              key={i}
-                              animate={{ height: [4, 12, 4] }}
-                              transition={{ repeat: Infinity, duration: 0.5, delay: i * 0.1 }}
-                              className="w-1 bg-cyan-400"
-                            />
-                          ))}
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <span className="text-[10px] font-black text-white/40 tracking-[0.1em]">ENCRYPTION: 4096-BIT</span>
-                      </div>
-                    </div>
-
-                    <div className="relative h-1 w-full bg-white/5 overflow-hidden border border-white/10">
-                      <motion.div 
-                        initial={{ x: "-100%" }}
-                        animate={{ x: "0%" }}
-                        transition={{ duration: 5, ease: "linear" }}
-                        className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-400 to-transparent"
-                      />
-                    </div>
-
-                    <div className="mt-4 flex flex-col gap-1">
-                      <motion.p 
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="text-[11px] font-black text-cyan-400 tracking-[0.3em] uppercase drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]"
-                      >
-                        {scanStatus}
-                      </motion.p>
-                      <div className="flex justify-between">
-                        <span className="text-[8px] font-mono text-white/30 italic">SENSOR DEPTH: 1,200KM</span>
-                        <span className="text-[8px] font-mono text-white/30 italic">VIRTUAL SIMULATION: ON</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <motion.div 
-                    animate={{ y: ["-120%", "120%"] }}
-                    transition={{ repeat: Infinity, duration: 2.5, ease: "linear" }}
-                    className="absolute inset-x-0 h-[2px] bg-cyan-400/30 shadow-[0_0_20px_rgba(34,211,238,0.5)] z-50"
-                  />
-
-                  {/* CLICKABLE INDICATOR */}
-                  <AnimatePresence>
-                    {(earthClickable || marsClickable) && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.5 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 1.5 }}
-                        className="absolute flex flex-col items-center gap-2 z-[70] bottom-4"
-                      >
-                        <motion.div
-                          animate={{ scale: [1, 1.2, 1], borderColor: ['rgba(34,211,238,0.5)', 'rgba(34,211,238,1)', 'rgba(34,211,238,0.5)'] }}
-                          transition={{ repeat: Infinity, duration: 1 }}
-                          className="w-12 h-12 rounded-full border-2 flex items-center justify-center bg-cyan-400/10 backdrop-blur-sm"
-                        >
-                          <MousePointer2 className="w-5 h-5 text-cyan-400" />
-                        </motion.div>
-                        <span className="text-[10px] font-black text-cyan-400 tracking-[0.4em] uppercase drop-shadow-sm">Click to Analyze</span>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
             {/* SUBTLE GLOW */}
             <div className="absolute inset-0 rounded-full bg-cyan-500/10 blur-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
             
