@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Play, Plus, Volume2, VolumeX, Info, Sparkles, Loader2 } from 'lucide-react';
+import { Play, Plus, Volume2, VolumeX, Info, Sparkles, Loader2, AlertCircle, ChevronLeft, ChevronRight, Monitor, Compass } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { tmdb, Movie } from '@/lib/tmdb';
@@ -84,120 +84,174 @@ function TrailerCard({ movie, isActive, onPlay, onEnded }: TrailerCardProps) {
   }, [onEnded]);
 
   return (
-    <motion.div
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={handleInteraction}
-      whileHover={{ scale: 1.05, rotateY: 10, rotateX: 5 }}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
-      className={`relative group min-w-[280px] md:min-w-[320px] aspect-[2/3] rounded-xl overflow-hidden cursor-pointer bg-black/40 border transition-all duration-500 ${
-        isActive ? 'border-cyan-400 shadow-[0_0_30px_rgba(34,211,238,0.4)]' : 'border-cyan-500/30 hologram-glow'
-      }`}
-    >
-      {/* Hologram Flicker Overlay */}
-      <div className="absolute inset-0 z-20 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <div className="absolute inset-0 bg-cyan-500/5 animate-flicker" />
-        <div className="scanline" />
-      </div>
+    <div className="relative pt-10 pb-20 px-4 group/card">
+      {/* Holographic Projector Base */}
+      <div className="absolute bottom-16 left-1/2 -translate-x-1/2 w-48 h-8 bg-cyan-500/10 blur-xl rounded-full animate-pulse z-0" />
+      <motion.div 
+        animate={{ 
+          opacity: isHovered || isActive ? 0.8 : 0.3,
+          scaleX: isHovered || isActive ? 1.2 : 1
+        }}
+        className="absolute bottom-18 left-1/2 -translate-x-1/2 w-40 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent z-0"
+      />
+      
+      {/* Light Projection Beam */}
+      <motion.div 
+        animate={{ 
+          opacity: isHovered || isActive ? 0.2 : 0,
+          scale: isHovered || isActive ? 1 : 0.8
+        }}
+        className="absolute bottom-20 left-1/2 -translate-x-1/2 w-64 h-96 bg-[conic-gradient(from_0deg_at_50%_100%,transparent_160deg,rgba(34,211,238,0.2)_180deg,transparent_200deg)] mix-blend-screen overflow-hidden pointer-events-none z-0 origin-bottom blur-2xl"
+      />
 
-      {/* Poster Image */}
-      <div className={`absolute inset-0 z-10 transition-opacity duration-500 ${isActive ? 'opacity-0' : 'opacity-100'}`}>
-        <Image
-          src={tmdb.getImageUrl(movie.poster_path, 'w500')}
-          alt={movie.title}
-          fill
-          className="object-cover"
-          referrerPolicy="no-referrer"
-        />
-        {/* Light Beam Projection Effect */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-cyan-500/20 to-transparent z-10 pointer-events-none" />
-      </div>
-
-      {/* Video Preview / Iframe */}
-      <div className={`absolute inset-0 z-10 transition-opacity duration-500 ${isActive ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-        {isActive && trailerKey && (
-          <iframe
-            ref={iframeRef}
-            src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=${isMuted ? 1 : 0}&controls=1&rel=0&enablejsapi=1&origin=${window.location.origin}`}
-            className="w-full h-full border-0"
-            allow="autoplay; encrypted-media"
-            allowFullScreen
+      <motion.div
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+        onClick={handleInteraction}
+        whileHover={{ 
+          scale: 1.05, 
+          rotateY: 15, 
+          rotateX: 5,
+          y: -20,
+          boxShadow: "0 20px 50px rgba(6,182,212,0.3)"
+        }}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        className={`relative z-10 min-w-[300px] md:min-w-[340px] aspect-[2/3] rounded-2xl overflow-hidden cursor-pointer bg-black/40 border-2 transition-all duration-700 select-none ${
+          isActive 
+            ? 'border-cyan-400 shadow-[0_0_50px_rgba(34,211,238,0.5)]' 
+            : 'border-cyan-500/20 backdrop-blur-sm'
+        }`}
+      >
+        {/* Holographic Glitch Mask */}
+        <div className="absolute inset-0 z-20 pointer-events-none">
+          <div className="absolute inset-0 bg-cyan-500/0 group-hover/card:bg-cyan-500/5 transition-colors" />
+          <motion.div 
+            animate={{ y: ["0%", "100%", "0%"] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+            className="absolute inset-x-0 h-[2px] bg-cyan-400/20 shadow-[0_0_15px_rgba(34,211,238,0.5)]"
           />
-        )}
-        
-        {/* Loading / Error States */}
-        {isLoading && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-40">
-            <Loader2 className="w-10 h-10 text-cyan-400 animate-spin mb-2" />
-            <p className="text-cyan-400 text-xs font-mono uppercase tracking-widest">Initializing Hologram...</p>
+          {/* Digital Noise Grid */}
+          <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'linear-gradient(rgba(0,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,255,0.1) 1px, transparent 1px)', backgroundSize: '15px 15px' }} />
+        </div>
+
+        {/* Poster Image */}
+        <div className={`absolute inset-0 z-10 transition-transform duration-700 ${isActive ? 'opacity-0 scale-110' : 'opacity-100 scale-100'}`}>
+          <Image
+            src={tmdb.getImageUrl(movie.poster_path, 'w500')}
+            alt={movie.title}
+            fill
+            className="object-cover"
+            referrerPolicy="no-referrer"
+          />
+          {/* Gradient Reveal */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+        </div>
+
+        {/* Video Preview / Iframe */}
+        <div className={`absolute inset-0 z-10 transition-all duration-700 ${isActive ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none'}`}>
+          {isActive && trailerKey && (
+            <iframe
+              ref={iframeRef}
+              src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=${isMuted ? 1 : 0}&controls=1&rel=0&enablejsapi=1&origin=${window.location.origin}`}
+              className="w-full h-full border-0 brightness-110 contrast-125"
+              allow="autoplay; encrypted-media"
+              allowFullScreen
+            />
+          )}
+          
+          {/* Loading / Error States */}
+          {isLoading && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 z-40">
+              <div className="relative">
+                <Loader2 className="w-16 h-16 text-cyan-400 animate-spin mb-4" />
+                <div className="absolute inset-0 w-16 h-16 border-2 border-cyan-500/20 rounded-full animate-ping" />
+              </div>
+              <p className="text-cyan-400 text-sm font-black uppercase tracking-[0.2em] animate-pulse">Initializing Stream</p>
+            </div>
+          )}
+          {error && (
+            <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 z-40 p-10 text-center">
+              <AlertCircle className="w-12 h-12 text-red-500 mb-4" />
+              <p className="text-red-500 font-black mb-4 uppercase tracking-widest">{error}</p>
+              <Button size="sm" className="bg-red-500 hover:bg-red-600 text-white" onClick={(e) => { e.stopPropagation(); setTrailerKey(null); setError(null); fetchTrailer(); }}>
+                Retry Uplink
+              </Button>
+            </div>
+          )}
+
+          {/* Sound Wave Animation (Only when active) */}
+          <div className="absolute bottom-6 left-6 right-6 h-12 flex items-end gap-1.5 pointer-events-none z-30 opacity-60">
+            {[...Array(16)].map((_, i) => (
+              <motion.div
+                key={i}
+                animate={{ height: isActive ? [4, 24, 12, 32, 4] : 4 }}
+                transition={{ duration: 0.4, repeat: Infinity, delay: i * 0.04 }}
+                className="flex-1 bg-gradient-to-t from-cyan-500 to-blue-400 rounded-t-full shadow-[0_0_10px_rgba(34,211,238,0.5)]"
+              />
+            ))}
           </div>
-        )}
-        {error && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 z-40 p-4 text-center">
-            <p className="text-red-500 font-bold mb-2 uppercase tracking-tighter">{error}</p>
-            <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); setTrailerKey(null); setError(null); fetchTrailer(); }}>
-              Retry
+
+          {/* HUD Overlay Text */}
+          <div className="absolute top-6 left-6 z-30 font-mono text-[8px] text-cyan-500/80 uppercase tracking-widest pointer-events-none">
+            <div className="flex items-center gap-2 mb-1">
+              <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
+              <span>Recording: 00:0{Math.floor(Math.random()*9)}:45</span>
+            </div>
+            <div>Bitrate: 15.4 Mbps</div>
+          </div>
+
+          {/* Mute Toggle Overlay */}
+          <div className="absolute top-6 right-6 z-30">
+            <Button 
+              size="icon" 
+              variant="ghost" 
+              className="w-10 h-10 bg-black/60 backdrop-blur-xl border border-white/10 text-white hover:bg-cyan-500 hover:text-black transition-all rounded-xl"
+              onClick={(e) => { e.stopPropagation(); setIsMuted(!isMuted); }}
+            >
+              {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
             </Button>
           </div>
-        )}
+        </div>
 
-        {/* Sound Wave Animation (Only when active) */}
-        <div className="absolute bottom-4 left-4 right-4 h-8 flex items-end gap-1 pointer-events-none z-30">
-          {[...Array(12)].map((_, i) => (
+        {/* Content Overlay */}
+        <div className="absolute inset-0 z-30 flex flex-col justify-end p-8 bg-gradient-to-t from-black via-black/20 to-transparent opacity-0 group-hover/card:opacity-100 transition-all duration-500 translate-y-4 group-hover/card:translate-y-0">
+          <div className="flex gap-2 mb-3">
+             <span className="px-2 py-0.5 bg-cyan-500 text-black text-[9px] font-black uppercase rounded shadow-[0_0_10px_rgba(34,211,238,0.5)]">Archive_{movie.id.toString().slice(-4)}</span>
+             <span className="px-2 py-0.5 bg-white/10 border border-white/20 text-white text-[9px] font-bold uppercase rounded">Protocol_Active</span>
+          </div>
+          <h3 className="text-xl font-black text-white mb-2 drop-shadow-2xl line-clamp-2 tracking-tighter uppercase">{movie.title}</h3>
+          
+          <div className="flex gap-3 mt-4">
+            <Button size="sm" className="bg-cyan-500 hover:bg-white text-black font-black flex-1 h-12 rounded-xl transition-all shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+              <Play className="w-4 h-4 mr-2 fill-black" />
+              {isActive ? 'INITIALIZED' : 'SYNC TRAILER'}
+            </Button>
+            <Button size="sm" variant="outline" className="border-white/10 bg-white/5 hover:bg-white/20 text-white w-12 h-12 rounded-xl p-0">
+              <Plus className="w-5 h-5" />
+            </Button>
+          </div>
+        </div>
+
+        {/* Play Button Center (Glows on hover, hides when active) */}
+        {!isActive && (
+          <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
             <motion.div
-              key={i}
-              animate={{ height: isActive ? [4, 16, 8, 20, 4] : 4 }}
-              transition={{ duration: 0.5, repeat: Infinity, delay: i * 0.05 }}
-              className="flex-1 bg-cyan-400/60 rounded-full"
-            />
-          ))}
-        </div>
-
-        {/* Mute Toggle Overlay */}
-        <div className="absolute top-4 right-4 z-30">
-          <Button 
-            size="icon" 
-            variant="ghost" 
-            className="bg-black/40 backdrop-blur-md text-white hover:bg-black/60"
-            onClick={(e) => { e.stopPropagation(); setIsMuted(!isMuted); }}
-          >
-            {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
-          </Button>
-        </div>
-      </div>
-
-      {/* Content Overlay */}
-      <div className="absolute inset-0 z-30 flex flex-col justify-end p-6 bg-gradient-to-t from-black/90 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <h3 className="text-lg font-bold text-white mb-1 drop-shadow-lg line-clamp-1">{movie.title}</h3>
-        <p className="text-cyan-400 text-sm font-medium mb-4">{movie.release_date?.split('-')[0]}</p>
-        
-        <div className="flex gap-2">
-          <Button size="sm" className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold flex-1">
-            <Play className="w-4 h-4 mr-1 fill-black" />
-            {isActive ? 'Playing' : 'Watch Trailer'}
-          </Button>
-          <Button size="sm" variant="outline" className="border-white/20 bg-white/5 hover:bg-white/10 text-white p-2">
-            <Plus className="w-4 h-4" />
-          </Button>
-        </div>
-      </div>
-
-      {/* Play Button Center (Glows on hover, hides when active) */}
-      {!isActive && (
-        <div className="absolute inset-0 flex items-center justify-center z-20 pointer-events-none">
-          <motion.div
-            animate={{ 
-              scale: isHovered ? 1.2 : 1, 
-              opacity: isHovered ? 1 : 0.6,
-              boxShadow: isHovered ? "0 0 20px rgba(34,211,238,0.6)" : "0 0 0px rgba(34,211,238,0)"
-            }}
-            className="w-16 h-16 rounded-full bg-cyan-500/20 border-2 border-cyan-500/50 flex items-center justify-center backdrop-blur-sm transition-shadow duration-300"
-          >
-            <Play className="w-8 h-8 text-cyan-400 fill-cyan-400" />
-          </motion.div>
-        </div>
-      )}
-    </motion.div>
+              animate={{ 
+                scale: isHovered ? 1.3 : 1, 
+                opacity: isHovered ? 1 : 0.4,
+                boxShadow: isHovered ? "0 0 40px rgba(34,211,238,0.5)" : "0 0 0px rgba(34,211,238,0)"
+              }}
+              className="w-20 h-20 rounded-full bg-cyan-500/10 border-2 border-cyan-500/50 flex items-center justify-center backdrop-blur-md transition-all duration-500"
+            >
+              <div className="relative">
+                <Play className="w-10 h-10 text-cyan-400 fill-cyan-400" />
+                <div className="absolute inset-0 bg-cyan-400 blur-xl opacity-20 animate-pulse" />
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </motion.div>
+    </div>
   );
 }
 
@@ -218,16 +272,23 @@ export function HologramTrailers() {
     fetchMovies();
   }, []);
 
+  const scroll = (direction: 'left' | 'right') => {
+    if (scrollRef.current) {
+      const scrollAmount = direction === 'left' ? -400 : 400;
+      scrollRef.current.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+    }
+  };
+
   const handleTrailerEnd = useCallback(() => {
     if (activeIndex !== null && activeIndex < movies.length - 1) {
-      setActiveIndex(activeIndex + 1);
-      // Scroll to the next card
+      const nextIndex = activeIndex + 1;
+      setActiveIndex(nextIndex);
+      
       if (scrollRef.current) {
-        const cardWidth = 320 + 32; // width + gap
-        scrollRef.current.scrollTo({
-          left: (activeIndex + 1) * cardWidth,
-          behavior: 'smooth'
-        });
+        const cardElements = scrollRef.current.children;
+        if (cardElements[nextIndex]) {
+          cardElements[nextIndex].scrollIntoView({ behavior: 'smooth', inline: 'center' });
+        }
       }
     } else {
       setActiveIndex(null);
@@ -235,12 +296,35 @@ export function HologramTrailers() {
   }, [activeIndex, movies.length]);
 
   return (
-    <section className="relative py-20 overflow-hidden bg-black">
-      {/* Animated Background Gradients */}
+    <section className="relative py-32 overflow-hidden bg-[#02050a]">
+      {/* JARVIS STYLE BACKGROUND */}
       <div className="absolute inset-0 z-0">
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-blue-600/10 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_center,rgba(0,255,255,0.05)_0%,transparent_70%)]" />
+        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(6,182,212,0.05)_0%,transparent_70%)]" />
+        
+        {/* Animated Digital Grid */}
+        <div 
+          className="absolute inset-0 opacity-10" 
+          style={{ 
+            backgroundImage: 'linear-gradient(rgba(0,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(0,255,255,0.1) 1px, transparent 1px)', 
+            backgroundSize: '80px 80px',
+            transform: 'perspective(1000px) rotateX(60deg) translateY(-100px)',
+            transformOrigin: 'top'
+          }} 
+        />
+
+        {/* Moving Scanning Lines */}
+        <motion.div 
+          animate={{ backgroundPosition: ['0% 0%', '0% 100%'] }}
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="absolute inset-0 opacity-20 pointer-events-none"
+          style={{ 
+            backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 100px, rgba(34,211,238,0.1) 101px, rgba(34,211,238,0.1) 102px)',
+            backgroundSize: '100% 200%'
+          }}
+        />
+
+        <div className="absolute top-0 left-1/4 w-[600px] h-[600px] bg-cyan-600/5 rounded-full blur-[150px] animate-pulse" />
+        <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-blue-600/5 rounded-full blur-[150px] animate-pulse" />
       </div>
 
       {/* Floating Particles */}
@@ -249,50 +333,67 @@ export function HologramTrailers() {
           <motion.div
             key={p.id}
             initial={{ x: p.x, y: p.y, opacity: 0.1 }}
-            animate={{ y: ["-10%", "110%"], opacity: [0.1, 0.3, 0.1] }}
+            animate={{ y: ["-20%", "120%"], opacity: [0.1, 0.4, 0.1] }}
             transition={{ duration: p.duration, repeat: Infinity, ease: "linear" }}
             className="absolute w-1 h-1 bg-cyan-400 rounded-full blur-[1px]"
           />
         ))}
       </div>
 
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
-          <div className="space-y-2">
+      <div className="container mx-auto px-8 relative z-10">
+        <div className="flex flex-col lg:flex-row lg:items-end justify-between mb-16 gap-10">
+          <div className="space-y-4">
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
+              initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
-              className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold"
+              className="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[10px] font-black tracking-[0.3em] uppercase"
             >
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
-              </span>
-              LIVE TRAILERS
+              <div className="w-2 h-2 rounded-full bg-cyan-500 animate-ping" />
+              Neural Uplink Active
             </motion.div>
-            <h2 className="text-3xl md:text-5xl font-black tracking-tighter text-white uppercase">
-              Watch Trailers in <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-blue-500">Hologram</span> Experience
+            <h2 className="text-4xl md:text-7xl font-black tracking-tighter text-white uppercase leading-none">
+              Watch Trailers in <br />
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-500 animate-gradient shadow-cyan-500/20">Hologram</span> Experience
             </h2>
-            <p className="text-gray-400 text-lg max-w-2xl">
-              Experience movie trailers like never before in immersive 3D visuals.
-            </p>
+            <div className="flex items-center gap-4 text-cyan-500/40 font-mono text-sm uppercase tracking-widest pt-2">
+               <Compass className="w-5 h-5" />
+               <span>Asset Retrieval Protocol 8.24 // Deep Space Archives</span>
+            </div>
           </div>
 
           <div className="flex gap-4">
-            <Button variant="outline" className="border-cyan-500/30 bg-cyan-500/5 text-cyan-400 hover:bg-cyan-500/10">
-              View All Experience
+            <Button 
+              variant="outline" 
+              className="group border-cyan-500/30 bg-black/40 backdrop-blur-xl text-cyan-400 hover:bg-cyan-500 hover:text-black transition-all px-8 h-14 rounded-2xl font-black text-xs uppercase tracking-widest"
+            >
+              <Monitor className="w-4 h-4 mr-2 group-hover:scale-125 transition-transform" />
+              Access Full Archives
             </Button>
           </div>
         </div>
 
-        {/* Horizontal Scroll Area */}
+        {/* Horizontal Sliding Experience */}
         <div className="relative group">
+          {/* Navigation Controls - HUD STYLE */}
+          <button 
+            onClick={() => scroll('left')}
+            className="absolute -left-6 top-1/2 -translate-y-1/2 z-40 w-14 h-24 bg-black/60 backdrop-blur-3xl border border-cyan-500/30 rounded-2xl flex items-center justify-center text-cyan-400 hover:scale-110 hover:border-cyan-400 hover:bg-cyan-500/10 transition-all opacity-0 group-hover:opacity-100 hidden md:flex"
+          >
+            <ChevronLeft className="w-8 h-8" />
+          </button>
+          <button 
+            onClick={() => scroll('right')}
+            className="absolute -right-6 top-1/2 -translate-y-1/2 z-40 w-14 h-24 bg-black/60 backdrop-blur-3xl border border-cyan-500/30 rounded-2xl flex items-center justify-center text-cyan-400 hover:scale-110 hover:border-cyan-400 hover:bg-cyan-500/10 transition-all opacity-0 group-hover:opacity-100 hidden md:flex"
+          >
+            <ChevronRight className="w-8 h-8" />
+          </button>
+
           <div 
             ref={scrollRef}
-            className="flex gap-8 overflow-x-auto pb-12 pt-4 no-scrollbar snap-x snap-mandatory"
+            className="flex gap-12 overflow-x-auto pb-20 pt-10 no-scrollbar snap-x snap-mandatory px-4"
           >
             {movies.map((movie, index) => (
-              <div key={movie.id} className="snap-center">
+              <div key={movie.id} className="snap-center first:pl-0">
                 <TrailerCard 
                   movie={movie} 
                   isActive={activeIndex === index}
@@ -301,34 +402,52 @@ export function HologramTrailers() {
                 />
               </div>
             ))}
-            {movies.length === 0 && [...Array(5)].map((_, i) => (
-              <div key={i} className="min-w-[320px] aspect-[2/3] rounded-xl bg-white/5 animate-pulse" />
+            {movies.length === 0 && [...Array(6)].map((_, i) => (
+              <div key={i} className="min-w-[340px] aspect-[2/3] rounded-3xl bg-white/5 animate-pulse border border-white/5" />
             ))}
           </div>
           
-          {/* Scroll Indicators/Shadows */}
-          <div className="absolute top-0 left-0 bottom-12 w-20 bg-gradient-to-r from-black to-transparent pointer-events-none z-20" />
-          <div className="absolute top-0 right-0 bottom-12 w-20 bg-gradient-to-l from-black to-transparent pointer-events-none z-20" />
+          {/* HUD Decorative Corners for the Slider Area */}
+          <div className="absolute top-0 left-0 w-32 h-32 border-t border-l border-cyan-500/20 rounded-tl-3xl pointer-events-none -translate-x-4 -translate-y-4" />
+          <div className="absolute bottom-20 right-0 w-32 h-32 border-b border-r border-cyan-500/20 rounded-br-3xl pointer-events-none translate-x-4 translate-y-4" />
+          
+          {/* Scroll Side Shadows */}
+          <div className="absolute top-0 left-0 bottom-20 w-40 bg-gradient-to-r from-[#02050a] to-transparent pointer-events-none z-20" />
+          <div className="absolute top-0 right-0 bottom-20 w-40 bg-gradient-to-l from-[#02050a] to-transparent pointer-events-none z-20" />
         </div>
 
-        {/* Bottom Action Buttons */}
-        <div className="mt-12 flex flex-wrap justify-center gap-6">
-          <Button 
-            size="lg" 
-            onClick={() => setActiveIndex(0)}
-            className="bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-black px-10 h-14 rounded-full text-lg shadow-[0_0_30px_rgba(6,182,212,0.4)]"
-          >
-            <Sparkles className="w-5 h-5 mr-2" />
-            ENTER FULL IMMERSION
-          </Button>
-          <Button size="lg" variant="outline" className="border-white/20 bg-white/5 hover:bg-white/10 text-white font-bold px-10 h-14 rounded-full text-lg">
-            ADD ALL TO WATCHLIST
-          </Button>
+        {/* Bottom Action Section */}
+        <div className="mt-20 flex flex-col items-center gap-10">
+          <div className="flex flex-wrap justify-center gap-8">
+            <Button 
+                size="lg" 
+                onClick={() => setActiveIndex(0)}
+                className="group relative bg-gradient-to-r from-cyan-500 via-blue-600 to-purple-600 hover:scale-105 transition-all text-black font-black px-12 h-20 rounded-2xl text-xl shadow-[0_0_50px_rgba(6,182,212,0.3)] overflow-hidden"
+              >
+                <div className="absolute inset-0 bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Sparkles className="w-6 h-6 mr-3 relative z-10" />
+                <span className="relative z-10 uppercase tracking-widest">Connect Deep Neural Stream</span>
+                <div className="absolute bottom-0 left-0 h-1 bg-white/40 w-0 group-hover:w-full transition-all duration-700" />
+            </Button>
+            
+            <Button size="lg" variant="outline" className="border-white/10 bg-white/5 hover:bg-white/15 text-white font-black px-12 h-20 rounded-2xl text-xl transition-all uppercase tracking-widest backdrop-blur-xl">
+              Sync All to Cluster
+            </Button>
+          </div>
+
+          <div className="flex items-center gap-12 text-[10px] font-mono text-cyan-500/30 uppercase tracking-[0.4em]">
+             <span className="flex items-center gap-3"><div className="w-1.5 h-1.5 bg-green-500/40 rounded-full" /> DATA_RECEPTION: NOMINAL</span>
+             <span className="hidden sm:inline">|</span>
+             <span className="hidden sm:inline">BUFFER_LEVEL: 98.4%</span>
+             <span className="hidden sm:inline">|</span>
+             <span>ENCRYPTION: AES_256_ACTIVE</span>
+          </div>
         </div>
       </div>
 
-      {/* Decorative Wave at bottom */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-500/50 to-transparent" />
+      {/* Futuristic Bottom Separator */}
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-cyan-500 to-transparent opacity-20" />
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-64 h-[1px] bg-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.8)]" />
     </section>
   );
 }
