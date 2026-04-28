@@ -7,14 +7,16 @@ import { ArrowLeft, Mail, Copy, Check, MousePointer2, Radio, Terminal, ExternalL
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { SecretPlatform } from './SecretPlatform';
+import { SunHubPlatform } from './SunHubPlatform';
 
 export function EarthZoomContact() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [stage, setStage] = useState<'idle' | 'zooming' | 'landed' | 'secret' | 'deepSpace' | 'starFocus'>('idle');
+  const [stage, setStage] = useState<'idle' | 'zooming' | 'landed' | 'secret' | 'deepSpace' | 'starFocus' | 'sunHub'>('idle');
   const stageRef = useRef(stage);
 
   // Cinematic timeline refs
+  const sunSoundRef = useRef<AudioBufferSourceNode | null>(null);
   const cinematicTimer = useRef<NodeJS.Timeout | null>(null);
   const galaxyGroupRef = useRef<THREE.Group | null>(null);
   const starsRef = useRef<THREE.Points | null>(null);
@@ -666,7 +668,7 @@ export function EarthZoomContact() {
         } else if (name === 'Mars') {
           enterSecretWorld(event as any);
         } else if (name === 'Sun') {
-          startGalaxyVoyage();
+          enterSunHub();
         }
       }
     };
@@ -744,6 +746,83 @@ export function EarthZoomContact() {
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const enterSunHub = () => {
+    if (stageRef.current !== 'idle') return;
+    setStage('sunHub');
+    
+    if (cinematicTimer.current) clearTimeout(cinematicTimer.current);
+
+    gsap.to(cameraRef.current!.position, {
+      x: 0,
+      y: 10,
+      z: 100,
+      duration: 2.5,
+      ease: "power3.inOut"
+    });
+
+    gsap.to(cameraRef.current!, {
+      fov: 60,
+      duration: 2.5,
+      onUpdate: () => cameraRef.current!.updateProjectionMatrix()
+    });
+
+    playSunProximitySound();
+  };
+
+  const playSunProximitySound = () => {
+    try {
+      if (!audioCtx.current) audioCtx.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const ctx = audioCtx.current;
+      
+      const osc = ctx.createOscillator();
+      const noise = ctx.createBufferSource();
+      const bufferSize = ctx.sampleRate * 2;
+      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+      const output = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        output[i] = Math.random() * 2 - 1;
+      }
+      noise.buffer = buffer;
+      noise.loop = true;
+
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(200, ctx.currentTime);
+      filter.Q.value = 10;
+
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0, ctx.currentTime);
+      gain.gain.linearRampToValueAtTime(0.2, ctx.currentTime + 1);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(ctx.destination);
+      
+      noise.start();
+      sunSoundRef.current = noise;
+    } catch (e) { console.error(e); }
+  };
+
+  const exitSunHub = () => {
+    setStage('idle');
+    if (sunSoundRef.current) {
+      sunSoundRef.current.stop();
+      sunSoundRef.current = null;
+    }
+
+    gsap.to(cameraRef.current!.position, {
+      z: 160,
+      duration: 2,
+      ease: "power2.out"
+    });
+
+    gsap.to(cameraRef.current!, {
+      fov: 40,
+      duration: 2,
+      onUpdate: () => cameraRef.current!.updateProjectionMatrix()
+    });
+  };
 
   const startGalaxyVoyage = () => {
     if (stageRef.current !== 'idle') return;
@@ -977,6 +1056,10 @@ export function EarthZoomContact() {
   const reset = () => {
     setStage('idle');
     if (cameraRef.current) cameraRef.current.position.z = 160;
+    if (sunSoundRef.current) {
+      sunSoundRef.current.stop();
+      sunSoundRef.current = null;
+    }
   };
 
   return (
@@ -1167,6 +1250,10 @@ export function EarthZoomContact() {
               </div>
             </div>
           </motion.div>
+        )}
+
+        {stage === 'sunHub' && (
+          <SunHubPlatform onExit={exitSunHub} />
         )}
       </AnimatePresence>
     </div>
