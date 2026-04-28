@@ -7,11 +7,14 @@ import { ArrowLeft, Mail, Copy, Check, MousePointer2, Radio, Terminal, ExternalL
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { SecretPlatform } from './SecretPlatform';
+import { ScientificAdBanner } from './ScientificAdBanner';
+import { X, Thermometer, Box, Ruler, Globe, Sun as SunIcon } from 'lucide-react';
 
 export function EarthZoomContact() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [stage, setStage] = useState<'idle' | 'zooming' | 'landed' | 'secret' | 'deepSpace' | 'starFocus'>('idle');
+  const [selectedPlanet, setSelectedPlanet] = useState<string | null>(null);
   const stageRef = useRef(stage);
 
   // Cinematic timeline refs
@@ -666,7 +669,7 @@ export function EarthZoomContact() {
         } else if (name === 'Mars') {
           enterSecretWorld(event as any);
         } else if (name === 'Sun') {
-          startGalaxyVoyage();
+          setSelectedPlanet('Sun');
         }
       }
     };
@@ -1120,12 +1123,135 @@ export function EarthZoomContact() {
                   </motion.div>
                 </motion.div>
               )}
+              {/* BOTTOM AD PLACEMENT */}
+              <motion.div 
+                initial={{ y: 50, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ delay: 1 }}
+                className="absolute bottom-10 left-1/2 -translate-x-1/2 w-full max-w-4xl px-4 z-20"
+              >
+                <ScientificAdBanner width="728" height="90" label="SATELLITE AD-LINK" />
+              </motion.div>
             </AnimatePresence>
           </motion.div>
         </div>
       </div>
 
       <AnimatePresence>
+        {selectedPlanet === 'Sun' && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, backdropFilter: "blur(0px)" }}
+            animate={{ opacity: 1, scale: 1, backdropFilter: "blur(20px)" }}
+            exit={{ opacity: 0, scale: 0.9, backdropFilter: "blur(0px)" }}
+            className="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-black/40"
+          >
+            <div className="relative w-full max-w-4xl aspect-[16/9] bg-[#0c0c0e] border-2 border-[#1a1a1c] overflow-hidden rounded-sm flex flex-col">
+              {/* Technical Grid Overlay */}
+              <div className="absolute inset-0 pointer-events-none opacity-[0.05]" style={{ backgroundImage: 'linear-gradient(#fff 1px, transparent 1px), linear-gradient(90deg, #fff 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+              
+              {/* Header */}
+              <div className="h-12 border-b border-orange-500/20 bg-orange-500/5 flex items-center justify-between px-6">
+                <div className="flex items-center gap-3">
+                  <SunIcon className="w-4 h-4 text-orange-500 animate-pulse" />
+                  <span className="text-xs font-mono font-bold tracking-[0.3em] text-orange-500 uppercase italic">Solar Diagnostic Unit: SOL-01</span>
+                </div>
+                <button 
+                  onClick={() => setSelectedPlanet(null)}
+                  className="w-8 h-8 flex items-center justify-center hover:bg-red-500 transition-colors text-white/50 hover:text-white"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Main Content Area */}
+              <div className="flex-1 flex overflow-hidden">
+                {/* Left Panel: Stats */}
+                <div className="w-1/3 border-r border-white/5 p-6 flex flex-col gap-4">
+                  <div className="space-y-1">
+                    <span className="text-[9px] font-mono text-white/40 uppercase tracking-widest">Spectral Class</span>
+                    <div className="text-xl font-bold text-white uppercase italic">G2V (Yellow Dwarf)</div>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4 mt-4">
+                    <div className="p-3 bg-white/5 border border-white/10 rounded-sm">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Thermometer className="w-3 h-3 text-orange-400" />
+                        <span className="text-[8px] text-white/40 uppercase font-mono">Core Temp</span>
+                      </div>
+                      <div className="text-sm font-bold text-white">15.7M °C</div>
+                    </div>
+                    <div className="p-3 bg-white/5 border border-white/10 rounded-sm">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Box className="w-3 h-3 text-orange-400" />
+                        <span className="text-[8px] text-white/40 uppercase font-mono">Mass</span>
+                      </div>
+                      <div className="text-sm font-bold text-white">1.989 × 10³⁰ kg</div>
+                    </div>
+                    <div className="p-3 bg-white/5 border border-white/10 rounded-sm">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Ruler className="w-3 h-3 text-orange-400" />
+                        <span className="text-[8px] text-white/40 uppercase font-mono">Diameter</span>
+                      </div>
+                      <div className="text-sm font-bold text-white">1.39M km</div>
+                    </div>
+                    <div className="p-3 bg-white/5 border border-white/10 rounded-sm">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Globe className="w-3 h-3 text-orange-400" />
+                        <span className="text-[8px] text-white/40 uppercase font-mono">Composition</span>
+                      </div>
+                      <div className="text-sm font-bold text-white">73% H / 25% He</div>
+                    </div>
+                  </div>
+
+                  <div className="mt-auto p-4 border border-orange-500/10 bg-orange-500/5 rounded-sm">
+                    <p className="text-[10px] text-orange-400/80 font-mono leading-relaxed italic">
+                      &quot;The Sun is the star at the center of the Solar System. It is a nearly perfect ball of hot plasma, heated to incandescence by nuclear fusion reactions in its core.&quot;
+                    </p>
+                  </div>
+                </div>
+
+                {/* Right Panel: Visualization & Ad */}
+                <div className="flex-1 flex flex-col p-6 gap-6 relative">
+                  <div className="flex-1 bg-black/40 border border-white/5 rounded-sm flex items-center justify-center relative overflow-hidden group">
+                    <motion.div 
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+                      className="w-48 h-48 rounded-full bg-gradient-to-tr from-yellow-600 via-orange-500 to-red-600 shadow-[0_0_100px_rgba(255,100,0,0.4)] relative"
+                    >
+                       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-20 mix-blend-overlay rounded-full" />
+                    </motion.div>
+                    
+                    <div className="absolute top-4 right-4 flex flex-col gap-1 items-end">
+                      <span className="text-[9px] font-mono text-cyan-400 font-bold uppercase underline">Visual Feed: Active</span>
+                      <span className="text-[8px] font-mono text-white/30 tracking-tighter">TIMESTAMP: {new Date().toLocaleTimeString()}</span>
+                    </div>
+
+                    {/* Technical HUD Elements around the sun */}
+                    <div className="absolute inset-0 pointer-events-none">
+                       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border border-white/10 rounded-full border-dashed animate-[spin_20s_linear_infinite]" />
+                       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 border border-white/5 rounded-full border-dashed animate-[spin_40s_linear_infinite_reverse]" />
+                    </div>
+                  </div>
+
+                  {/* Ad inside details */}
+                  <ScientificAdBanner width="320" height="100" label="SOLAR_AD_STREAM" className="scale-90 origin-bottom" />
+                </div>
+              </div>
+
+              {/* Technical Ticker */}
+              <div className="h-8 bg-black border-t border-white/5 flex items-center gap-12 overflow-hidden px-4">
+                <div className="flex gap-12 whitespace-nowrap animate-marquee">
+                  {[...Array(6)].map((_, i) => (
+                    <span key={i} className="text-[8px] font-mono text-white/20 uppercase tracking-[0.3em]">
+                      CORONAL_MASS_EJECTION: LOW | SOLAR_WIND_SPEED: 412.3 KM/S | PHOTOSPHERE_TEMP: 5505 °C | X-RAY_FLUX: NORMAL
+                    </span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
         {stage === 'secret' && (
           <SecretPlatform onExit={() => {
             setStage('idle');
