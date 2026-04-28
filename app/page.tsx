@@ -13,6 +13,7 @@ import { CinematicBanner } from '@/components/CinematicBanner';
 import { HologramTrailers } from '@/components/HologramTrailers';
 import { EarthZoomContact } from '@/components/EarthZoomContact';
 import { JarvisBackground } from '@/components/JarvisBackground';
+import { SciFiInteractiveLayer } from '@/components/SciFiInteractiveLayer';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 300; // Refresh every 5 minutes
@@ -68,6 +69,7 @@ export default async function HomePage() {
     return (
       <div className="flex flex-col pt-20 relative">
         <JarvisBackground />
+        <SciFiInteractiveLayer />
         <AutoRefresh />
         <AdManager />
         <EarthZoomContact />
