@@ -25,6 +25,8 @@ export function EarthZoomContact() {
   const marsRef = useRef<THREE.Mesh | null>(null);
   const speedScale = useRef(1.0);
   const alignmentTimer = useRef<NodeJS.Timeout | null>(null);
+  const raycaster = useRef(new THREE.Raycaster());
+  const mouse = useRef(new THREE.Vector2());
   
   const audioCtx = useRef<AudioContext | null>(null);
   
@@ -153,22 +155,52 @@ export function EarthZoomContact() {
     rendererRef.current = renderer;
 
     const loader = new THREE.TextureLoader();
-    const earthTexture = loader.load('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg');
-    const cloudTexture = loader.load('https://unpkg.com/three-globe/example/img/earth-clouds.png');
-    const nightTexture = loader.load('https://unpkg.com/three-globe/example/img/earth-night.jpg');
+    const earthTexture = loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg');
+    const cloudTexture = loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_clouds_2048.png');
+    const nightTexture = loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_lights_2048.png');
 
-    // SUN (Central Hub)
-    const sunGeo = new THREE.SphereGeometry(30, 32, 32);
-    const sunMat = new THREE.MeshBasicMaterial({ 
-      color: 0xffcc33,
-      transparent: true,
-      opacity: 0.8
+    // SUN (Realistic Boiling Surface Shader)
+    const sunGeo = new THREE.SphereGeometry(30, 64, 64);
+    const sunMat = new THREE.ShaderMaterial({
+      uniforms: {
+        time: { value: 0 },
+        color1: { value: new THREE.Color(0xffaa00) },
+        color2: { value: new THREE.Color(0xff4400) }
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        varying vec3 vNormal;
+        void main() {
+          vUv = uv;
+          vNormal = normal;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform float time;
+        uniform vec3 color1;
+        uniform vec3 color2;
+        varying vec2 vUv;
+        varying vec3 vNormal;
+
+        float hash(vec2 p) {
+          return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453123);
+        }
+
+        void main() {
+          float n = hash(vUv * 10.0 + time * 0.1);
+          vec3 color = mix(color1, color2, n * 0.5 + 0.5);
+          float intensity = pow(0.8 - dot(vNormal, vec3(0, 0, 1.0)), 3.0);
+          gl_FragColor = vec4(color + intensity * 0.4, 1.0);
+        }
+      `
     });
     const sun = new THREE.Mesh(sunGeo, sunMat);
+    sun.userData = { name: 'Sun' };
     scene.add(sun);
 
     // Add Sun Glow
-    const sunGlowGeo = new THREE.SphereGeometry(45, 32, 32);
+    const sunGlowGeo = new THREE.SphereGeometry(45, 64, 64);
     const sunGlowMat = new THREE.ShaderMaterial({
       transparent: true,
       side: THREE.BackSide,
@@ -200,10 +232,12 @@ export function EarthZoomContact() {
     const earthMat = new THREE.MeshPhongMaterial({ 
       map: earthTexture, 
       specular: new THREE.Color(0x333333),
-      shininess: 15,
-      bumpScale: 1
+      shininess: 25,
+      bumpScale: 0.05,
+      bumpMap: loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_bump_2048.jpg')
     });
     const earth = new THREE.Mesh(earthGeo, earthMat);
+    earth.userData = { name: 'Earth' };
     earthGroup.add(earth);
     earthRef.current = earth;
 
@@ -250,26 +284,73 @@ export function EarthZoomContact() {
     // 8 SURROUNDING PLANETS
     const planets: THREE.Mesh[] = [];
     const planetData = [
-      { name: 'Mercury', size: 6, color: 0x888888, dist: 50, speed: 0.005, offset: 0 },
-      { name: 'Venus', size: 10, color: 0xffcc99, dist: 80, speed: 0.003, offset: 1.2 },
-      { name: 'Mars', size: 8, color: 0xff6633, dist: 140, speed: 0.002, offset: 2.5, isMars: true },
-      { name: 'Jupiter', size: 20, color: 0xeeb882, dist: 200, speed: 0.001, offset: 3.8 },
-      { name: 'Saturn', size: 18, color: 0xe3d4a4, dist: 260, speed: 0.0008, offset: 4.5 },
+      { name: 'Mercury', size: 6, texture: 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/mercury_1024.jpg', dist: 50, speed: 0.005, offset: 0 },
+      { name: 'Venus', size: 10, texture: 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/venus_surface.jpg', dist: 80, speed: 0.003, offset: 1.2 },
+      { name: 'Mars', size: 8, texture: 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/mars_1k_color.jpg', dist: 140, speed: 0.002, offset: 2.5, isMars: true },
+      { name: 'Jupiter', size: 20, texture: 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/jupiter.jpg', dist: 200, speed: 0.001, offset: 3.8 },
+      { name: 'Saturn', size: 18, texture: 'https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/saturn_1k_color.jpg', dist: 260, speed: 0.0008, offset: 4.5 },
       { name: 'Uranus', size: 12, color: 0xace5ee, dist: 320, speed: 0.0006, offset: 5.2 },
       { name: 'Neptune', size: 11, color: 0x4b70dd, dist: 380, speed: 0.0005, offset: 0.8 },
       { name: 'Pluto', size: 5, color: 0xcccccc, dist: 440, speed: 0.0004, offset: 2.0 },
     ];
 
     planetData.forEach((data, i) => {
-      const geo = new THREE.SphereGeometry(data.size, 32, 32);
-      const mat = new THREE.MeshPhongMaterial({ 
-        color: data.color, 
-        shininess: 10,
-        emissive: data.isMars ? 0x330000 : 0x000000 
-      });
+      const geo = new THREE.SphereGeometry(data.size, 64, 64);
+      let mat;
+      if (data.texture) {
+        mat = new THREE.MeshPhongMaterial({ map: loader.load(data.texture), shininess: 10 });
+      } else {
+        mat = new THREE.MeshPhongMaterial({ 
+          color: (data as any).color, 
+          shininess: 10,
+          emissive: data.isMars ? 0x330000 : 0x000000 
+        });
+      }
+      
       const planet = new THREE.Mesh(geo, mat);
+      planet.userData = { name: data.name };
       
       if (data.isMars) marsRef.current = planet;
+
+      if (data.name === 'Saturn') {
+        const ringGeo = new THREE.RingGeometry(data.size * 1.4, data.size * 2.2, 64);
+        const ringMat = new THREE.MeshBasicMaterial({ 
+          color: 0x887766, 
+          side: THREE.DoubleSide, 
+          transparent: true, 
+          opacity: 0.6 
+        });
+        const rings = new THREE.Mesh(ringGeo, ringMat);
+        rings.rotation.x = Math.PI / 2.5;
+        planet.add(rings);
+      }
+
+      // Add a subtle atmosphere to each planet for NASA feel
+      const planetAtmosGeo = new THREE.SphereGeometry(data.size * 1.05, 32, 32);
+      const planetAtmosMat = new THREE.ShaderMaterial({
+        transparent: true,
+        side: THREE.BackSide,
+        blending: THREE.AdditiveBlending,
+        uniforms: {
+          glowColor: { value: new THREE.Color(data.name === 'Mars' ? 0xff4400 : 0x88ccff) }
+        },
+        vertexShader: `
+          varying vec3 vNormal;
+          void main() {
+            vNormal = normalize(normalMatrix * normal);
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          }
+        `,
+        fragmentShader: `
+          uniform vec3 glowColor;
+          varying vec3 vNormal;
+          void main() {
+            float intensity = pow(0.6 - dot(vNormal, vec3(0,0,1.0)), 4.0);
+            gl_FragColor = vec4(glowColor, intensity);
+          }
+        `
+      });
+      planet.add(new THREE.Mesh(planetAtmosGeo, planetAtmosMat));
       
       // Initial position
       const angle = data.offset;
@@ -474,38 +555,33 @@ export function EarthZoomContact() {
       frameIdRef.current = requestAnimationFrame(animate);
       
       const currentTime = Date.now();
+      const delta = currentTime * 0.001;
+
+      // Update Sun Shader
+      if (sunMat.uniforms.time) {
+        sunMat.uniforms.time.value = delta;
+      }
 
       if (stageRef.current === 'idle') {
-        // Move Earth
-        const earthTime = currentTime * 0.0005 * speedScale.current;
+        const earthTime = currentTime * 0.00025 * speedScale.current;
         earthGroup.position.x = Math.cos(earthTime) * 110;
         earthGroup.position.z = Math.sin(earthTime) * 110;
 
-        if (earthRef.current) earthRef.current.rotation.y += 0.001 * speedScale.current;
-        if (cloudsRef.current) cloudsRef.current.rotation.y += 0.0015 * speedScale.current;
+        if (earthRef.current) earthRef.current.rotation.y += 0.002 * speedScale.current;
+        if (cloudsRef.current) cloudsRef.current.rotation.y += 0.003 * speedScale.current;
         
-        stars.rotation.y += 0.0002 * speedScale.current;
+        stars.rotation.y += 0.0001 * speedScale.current;
 
         planets.forEach((planet, idx) => {
           const data = planetData[idx];
           const time = currentTime * data.speed * 0.1 * speedScale.current + data.offset;
           planet.position.x = Math.cos(time) * data.dist;
           planet.position.z = Math.sin(time) * data.dist;
-          planet.rotation.y += 0.01 * speedScale.current;
-
-          // Mars alignment detection
-          if (data.isMars && speedScale.current > 0.3) {
-            const isNearCenter = Math.abs(planet.position.x) < 15;
-            const isPositiveZ = planet.position.z > 40; 
-            
-            if (isNearCenter && isPositiveZ && !marsAligned) {
-              triggerMarsAlignment();
-            }
-          }
+          planet.rotation.y += 0.005 * speedScale.current;
         });
 
         // Rotate Asteroid Belt
-        asteroidGroup.rotation.y += 0.0005 * speedScale.current;
+        asteroidGroup.rotation.y += 0.0003 * speedScale.current;
       }
 
       // GALAXY ANIMATION (Active during voyage)
@@ -553,8 +629,68 @@ export function EarthZoomContact() {
       }
     }, 10000);
 
+    const handlePlanetClick = (event: MouseEvent) => {
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect || !cameraRef.current || !sceneRef.current) return;
+
+      mouse.current.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.current.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.current.setFromCamera(mouse.current, cameraRef.current);
+      const intersects = raycaster.current.intersectObjects(sceneRef.current.children, true);
+
+      if (intersects.length > 0) {
+        const clickedObj = intersects[0].object;
+        let p = clickedObj;
+        while (p.parent && !p.userData.name) p = p.parent;
+        
+        const name = p.userData.name;
+        
+        if (name === 'Earth') {
+          startZoom();
+        } else if (name === 'Mars') {
+          enterSecretWorld(event as any);
+        } else if (name === 'Sun') {
+          startGalaxyVoyage();
+        }
+      }
+    };
+
+    const handleMouseMove = (event: MouseEvent) => {
+      const rect = canvasRef.current?.getBoundingClientRect();
+      if (!rect || !cameraRef.current || !sceneRef.current) return;
+
+      mouse.current.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.current.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.current.setFromCamera(mouse.current, cameraRef.current);
+      const intersects = raycaster.current.intersectObjects(sceneRef.current.children, true);
+
+      if (intersects.length > 0) {
+        let obj = intersects[0].object;
+        while (obj.parent && !obj.userData.name) obj = obj.parent;
+        
+        const name = obj.userData.name;
+        if (name === 'Earth' || name === 'Mars' || name === 'Sun') {
+          canvasRef.current!.style.cursor = 'pointer';
+          return;
+        }
+      }
+      if (canvasRef.current) canvasRef.current.style.cursor = 'default';
+    };
+
+    const currentCanvas = canvasRef.current;
+    if (currentCanvas) {
+      currentCanvas.addEventListener('click', handlePlanetClick);
+      currentCanvas.addEventListener('mousemove', handleMouseMove);
+    }
+
     return () => {
       window.removeEventListener('resize', handleResize);
+      if (currentCanvas) {
+        currentCanvas.removeEventListener('click', handlePlanetClick);
+        currentCanvas.removeEventListener('mousemove', handleMouseMove);
+      }
       if (frameIdRef.current) cancelAnimationFrame(frameIdRef.current);
       
       // Rigorous cleanup to prevent WebGL context loss
