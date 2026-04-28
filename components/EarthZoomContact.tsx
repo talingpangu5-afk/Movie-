@@ -13,6 +13,8 @@ export function EarthZoomContact() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [stage, setStage] = useState<'idle' | 'zooming' | 'landed' | 'secret' | 'deepSpace' | 'starFocus' | 'preparing'>('idle');
   const [scanStatus, setScanStatus] = useState<string | null>(null);
+  const [earthClickable, setEarthClickable] = useState(false);
+  const [marsClickable, setMarsClickable] = useState(false);
   const stageRef = useRef(stage);
 
   // Cinematic timeline refs
@@ -42,6 +44,34 @@ export function EarthZoomContact() {
   const earthRef = useRef<THREE.Mesh | null>(null);
   const cloudsRef = useRef<THREE.Mesh | null>(null);
   const frameIdRef = useRef<number | null>(null);
+  const mouse = useRef(new THREE.Vector2());
+
+  const handleCanvasClick = (event: React.MouseEvent) => {
+    if (!canvasRef.current || !cameraRef.current || !sceneRef.current) return;
+    if (!earthClickable && !marsClickable) return;
+
+    const rect = canvasRef.current.getBoundingClientRect();
+    mouse.current.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.current.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+    const raycaster = new THREE.Raycaster();
+    raycaster.setFromCamera(mouse.current, cameraRef.current);
+
+    const targets = [];
+    if (earthClickable && earthRef.current) targets.push(earthRef.current);
+    if (marsClickable && marsRef.current) targets.push(marsRef.current);
+
+    const intersects = raycaster.intersectObjects(targets);
+
+    if (intersects.length > 0) {
+      const hit = intersects[0].object;
+      if (hit === earthRef.current) {
+        startZoom();
+      } else if (hit === marsRef.current) {
+        enterSecretWorld(event);
+      }
+    }
+  };
 
   const playAlignmentSound = () => {
     try {
@@ -752,7 +782,11 @@ export function EarthZoomContact() {
       onStart: () => {
         setStage('preparing');
         setScanStatus('ANALYZING EARTH HABITABILITY...');
+        setEarthClickable(true);
         gsap.to(speedScale, { current: 0, duration: 2 });
+      },
+      onComplete: () => {
+        setEarthClickable(false);
       }
     });
 
@@ -782,6 +816,7 @@ export function EarthZoomContact() {
       duration: 5,
       onStart: () => {
         setScanStatus('ESTABLISHING MARS LINK...');
+        setMarsClickable(true);
         if (marsRef.current && (marsRef.current.material as any).uniforms) {
           gsap.to((marsRef.current.material as any).uniforms.emissiveIntensity, {
             value: 2.0,
@@ -790,6 +825,9 @@ export function EarthZoomContact() {
             yoyo: true
           });
         }
+      },
+      onComplete: () => {
+        setMarsClickable(false);
       }
     });
 
@@ -1008,7 +1046,13 @@ export function EarthZoomContact() {
         {/* EARTH INTERACTION */}
         <div 
           className="relative w-[280px] md:w-[340px] h-[160px] md:h-[200px] flex items-center justify-center cursor-pointer overflow-visible"
-          onClick={startZoom}
+          onClick={(e) => {
+            if (earthClickable || marsClickable) {
+              handleCanvasClick(e);
+            } else {
+              startZoom();
+            }
+          }}
         >
           <motion.div 
             whileHover={{ scale: 1.05 }}
@@ -1075,6 +1119,27 @@ export function EarthZoomContact() {
                     transition={{ repeat: Infinity, duration: 2.5, ease: "linear" }}
                     className="absolute inset-x-0 h-[2px] bg-cyan-400/30 shadow-[0_0_20px_rgba(34,211,238,0.5)] z-50"
                   />
+
+                  {/* CLICKABLE INDICATOR */}
+                  <AnimatePresence>
+                    {(earthClickable || marsClickable) && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.5 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 1.5 }}
+                        className="absolute flex flex-col items-center gap-2 z-[70] bottom-4"
+                      >
+                        <motion.div
+                          animate={{ scale: [1, 1.2, 1], borderColor: ['rgba(34,211,238,0.5)', 'rgba(34,211,238,1)', 'rgba(34,211,238,0.5)'] }}
+                          transition={{ repeat: Infinity, duration: 1 }}
+                          className="w-12 h-12 rounded-full border-2 flex items-center justify-center bg-cyan-400/10 backdrop-blur-sm"
+                        >
+                          <MousePointer2 className="w-5 h-5 text-cyan-400" />
+                        </motion.div>
+                        <span className="text-[10px] font-black text-cyan-400 tracking-[0.4em] uppercase drop-shadow-sm">Click to Analyze</span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </motion.div>
               )}
             </AnimatePresence>
