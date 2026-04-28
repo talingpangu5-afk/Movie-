@@ -11,7 +11,8 @@ import { SecretPlatform } from './SecretPlatform';
 export function EarthZoomContact() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [stage, setStage] = useState<'idle' | 'zooming' | 'landed' | 'secret' | 'deepSpace' | 'starFocus'>('idle');
+  const [stage, setStage] = useState<'idle' | 'zooming' | 'landed' | 'secret' | 'deepSpace' | 'starFocus' | 'preparing'>('idle');
+  const [scanStatus, setScanStatus] = useState<string | null>(null);
   const stageRef = useRef(stage);
 
   // Cinematic timeline refs
@@ -92,9 +93,9 @@ export function EarthZoomContact() {
     setShowMarsUI(true);
     playAlignmentSound();
 
-    // Cinematic pause: slow down time
+    // Cinematic pause: stop time
     gsap.to(speedScale, {
-      current: 0.1,
+      current: 0,
       duration: 1,
       ease: "power2.out"
     });
@@ -156,6 +157,7 @@ export function EarthZoomContact() {
     const earthTexture = loader.load('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg');
     const cloudTexture = loader.load('https://unpkg.com/three-globe/example/img/earth-clouds.png');
     const nightTexture = loader.load('https://unpkg.com/three-globe/example/img/earth-night.jpg');
+    const marsTexture = loader.load('https://unpkg.com/three-globe/example/img/earth-topology.png'); // Using topology for mars-like detail
 
     // SUN (Central Hub)
     const sunGeo = new THREE.SphereGeometry(30, 32, 32);
@@ -197,11 +199,37 @@ export function EarthZoomContact() {
     scene.add(earthGroup);
     
     const earthGeo = new THREE.SphereGeometry(15, 64, 64);
-    const earthMat = new THREE.MeshPhongMaterial({ 
-      map: earthTexture, 
-      specular: new THREE.Color(0x333333),
-      shininess: 15,
-      bumpScale: 1
+    const earthMat = new THREE.ShaderMaterial({
+      uniforms: {
+        sunDirection: { value: new THREE.Vector3(100, 100, 100).normalize() },
+        dayTexture: { value: earthTexture },
+        nightTexture: { value: nightTexture }
+      },
+      vertexShader: `
+        varying vec2 vUv;
+        varying vec3 vNormal;
+        varying vec3 vSunDirection;
+        void main() {
+          vUv = uv;
+          vNormal = normalize(normalMatrix * normal);
+          vSunDirection = sunDirection;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform sampler2D dayTexture;
+        uniform sampler2D nightTexture;
+        varying vec2 vUv;
+        varying vec3 vNormal;
+        varying vec3 vSunDirection;
+        void main() {
+          float intensity = dot(vNormal, vSunDirection);
+          vec3 dayColor = texture2D(dayTexture, vUv).rgb;
+          vec3 nightColor = texture2D(nightTexture, vUv).rgb;
+          vec3 color = mix(nightColor, dayColor, smoothstep(-0.2, 0.5, intensity));
+          gl_FragColor = vec4(color, 1.0);
+        }
+      `
     });
     const earth = new THREE.Mesh(earthGeo, earthMat);
     earthGroup.add(earth);
@@ -264,12 +292,27 @@ export function EarthZoomContact() {
       const geo = new THREE.SphereGeometry(data.size, 32, 32);
       const mat = new THREE.MeshPhongMaterial({ 
         color: data.color, 
-        shininess: 10,
-        emissive: data.isMars ? 0x330000 : 0x000000 
+        map: data.isMars ? marsTexture : null,
+        shininess: data.isMars ? 5 : 10,
+        emissive: data.isMars ? 0x220000 : 0x000000 
       });
       const planet = new THREE.Mesh(geo, mat);
       
       if (data.isMars) marsRef.current = planet;
+      
+      // Saturn Rings
+      if (data.name === 'Saturn') {
+        const ringGeo = new THREE.RingGeometry(data.size + 4, data.size + 12, 64);
+        const ringMat = new THREE.MeshBasicMaterial({ 
+          color: 0x887755, 
+          side: THREE.DoubleSide, 
+          transparent: true, 
+          opacity: 0.5 
+        });
+        const rings = new THREE.Mesh(ringGeo, ringMat);
+        rings.rotation.x = Math.PI / 2;
+        planet.add(rings);
+      }
       
       // Initial position
       const angle = data.offset;
@@ -481,7 +524,17 @@ export function EarthZoomContact() {
         earthGroup.position.x = Math.cos(earthTime) * 110;
         earthGroup.position.z = Math.sin(earthTime) * 110;
 
-        if (earthRef.current) earthRef.current.rotation.y += 0.001 * speedScale.current;
+        if (earthRef.current) {
+          earthRef.current.rotation.y += 0.001 * speedScale.current;
+          // Update sun direction relative to earth position
+          if ((earthRef.current.material as THREE.ShaderMaterial).uniforms) {
+            const worldPos = new THREE.Vector3();
+            earthRef.current.getWorldPosition(worldPos);
+            (earthRef.current.material as THREE.ShaderMaterial).uniforms.sunDirection.value.copy(
+              new THREE.Vector3(0,0,0).clone().sub(worldPos).normalize()
+            );
+          }
+        }
         if (cloudsRef.current) cloudsRef.current.rotation.y += 0.0015 * speedScale.current;
         
         stars.rotation.y += 0.0002 * speedScale.current;
@@ -641,6 +694,61 @@ export function EarthZoomContact() {
 
     const tl = gsap.timeline();
     
+    // 1. Earth Focus & Scan (5s)
+    tl.to({}, { 
+      duration: 5,
+      onStart: () => {
+        setStage('preparing');
+        setScanStatus('ANALYZING EARTH HABITABILITY...');
+        gsap.to(speedScale, { current: 0, duration: 2 });
+      }
+    });
+
+    // 2. Transition to Mars
+    tl.to(cameraRef.current!.position, {
+      x: 0,
+      y: 0,
+      z: 160,
+      duration: 3,
+      ease: "power2.inOut",
+      onStart: () => {
+        setScanStatus('COORDINATING MARS TRAJECTORY...');
+        const marsPos = marsRef.current!.position.clone();
+        gsap.to(cameraRef.current!.position, {
+          x: marsPos.x,
+          y: marsPos.y,
+          z: marsPos.z + 50,
+          duration: 3,
+          ease: "power2.inOut",
+          onUpdate: () => {
+             if (cameraRef.current && marsRef.current) cameraRef.current.lookAt(marsRef.current.position);
+          }
+        });
+      }
+    });
+
+    // 3. Mars Scan (5s)
+    tl.to({}, {
+      duration: 5,
+      onStart: () => {
+        setScanStatus('ESTABLISHING MARS LINK...');
+        if (marsRef.current) {
+          gsap.to((marsRef.current.material as any), {
+            emissiveIntensity: 5.0,
+            duration: 0.5,
+            repeat: 9,
+            yoyo: true
+          });
+        }
+      }
+    });
+
+    // 4. Start Voyage
+    tl.add(() => {
+      setScanStatus('INITIATING INTERSTELLAR JUMP...');
+      setStage('deepSpace');
+    });
+
     // 1. Slow zoom out from Earth (10s), passing through the system
     tl.to(cameraRef.current!.position, {
       x: 300,
@@ -859,6 +967,68 @@ export function EarthZoomContact() {
           >
             <canvas ref={canvasRef} className={`w-full h-full transition-opacity duration-700 ${['landed', 'secret'].includes(stage) ? 'opacity-0' : 'opacity-100'}`} />
             
+            {/* NASA STYLE SCANNING UI */}
+            <AnimatePresence mode="wait">
+              {stage === 'preparing' && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 flex flex-col items-center justify-center z-[60] pointer-events-none"
+                >
+                  <div className="w-full max-w-lg px-2 shadow-[0_0_100px_rgba(0,0,0,0.8)]">
+                    <div className="flex justify-between items-end mb-2">
+                      <div className="flex flex-col">
+                        <span className="text-[10px] font-black text-cyan-400 tracking-[0.2em] mb-1">NASA DATA LINK: ACTIVE</span>
+                        <div className="flex gap-1">
+                          {[1, 2, 3, 4, 5].map(i => (
+                            <motion.div 
+                              key={i}
+                              animate={{ height: [4, 12, 4] }}
+                              transition={{ repeat: Infinity, duration: 0.5, delay: i * 0.1 }}
+                              className="w-1 bg-cyan-400"
+                            />
+                          ))}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-[10px] font-black text-white/40 tracking-[0.1em]">ENCRYPTION: 4096-BIT</span>
+                      </div>
+                    </div>
+
+                    <div className="relative h-1 w-full bg-white/5 overflow-hidden border border-white/10">
+                      <motion.div 
+                        initial={{ x: "-100%" }}
+                        animate={{ x: "0%" }}
+                        transition={{ duration: 5, ease: "linear" }}
+                        className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-400 to-transparent"
+                      />
+                    </div>
+
+                    <div className="mt-4 flex flex-col gap-1">
+                      <motion.p 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="text-[11px] font-black text-cyan-400 tracking-[0.3em] uppercase drop-shadow-[0_0_8px_rgba(34,211,238,0.5)]"
+                      >
+                        {scanStatus}
+                      </motion.p>
+                      <div className="flex justify-between">
+                        <span className="text-[8px] font-mono text-white/30 italic">SENSOR DEPTH: 1,200KM</span>
+                        <span className="text-[8px] font-mono text-white/30 italic">VIRTUAL SIMULATION: ON</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <motion.div 
+                    animate={{ y: ["-120%", "120%"] }}
+                    transition={{ repeat: Infinity, duration: 2.5, ease: "linear" }}
+                    className="absolute inset-x-0 h-[2px] bg-cyan-400/30 shadow-[0_0_20px_rgba(34,211,238,0.5)] z-50"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* SUBTLE GLOW */}
             <div className="absolute inset-0 rounded-full bg-cyan-500/10 blur-xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity" />
             
