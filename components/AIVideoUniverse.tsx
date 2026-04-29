@@ -70,7 +70,6 @@ export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose:
 
   // Subtitle Simulation
   useEffect(() => {
-    let interval: any;
     if (isPlaying) {
       const subs = [
         "Analyzing packet fragments...",
@@ -80,15 +79,13 @@ export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose:
         "Rebuilding frame buffer 0x82A",
         "Quantum superposition resolved",
       ];
-      interval = setInterval(() => {
+      const interval = setInterval(() => {
         setSubtitle(subs[Math.floor(Math.random() * subs.length)]);
       }, 3000);
-    }
-    
-    return () => {
-      if (interval) clearInterval(interval);
+      return () => clearInterval(interval);
+    } else {
       setSubtitle('');
-    };
+    }
   }, [isPlaying]);
 
   // Infinite Scroll Simulation
