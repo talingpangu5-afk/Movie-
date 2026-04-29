@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Youtube, Sparkles, Activity, Cpu, Zap, ChevronLeft } from 'lucide-react';
 
@@ -101,4 +101,3 @@ export function UIVideoTrigger({ onClick }: { onClick: () => void }) {
     </motion.div>
   );
 }
-
