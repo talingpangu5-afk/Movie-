@@ -105,7 +105,7 @@ export function TouchSidebar() {
     <>
       {/* Sidebar Trigger Indicator */}
       <div 
-        className="fixed top-1/2 -translate-y-1/2 right-0 z-[999] cursor-pointer group flex items-center"
+        className="fixed top-1/3 -translate-y-1/2 right-0 z-[999] cursor-pointer group flex items-center"
         onClick={toggleSidebar}
       >
         {/* The Visible Tab */}
