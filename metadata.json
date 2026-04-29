@@ -1,5 +1,5 @@
 {
-  "name": "Taling Pangu ",
-  "description": "A modern fintech-style SaaS platform featuring a live Mining Dashboard, movie streaming, and real-time analytics.",
+  "name": "NEURAL_STREAM v9.0",
+  "description": "Immersive futuristic AI-powered video platform with cinematic Jarvis HUD interface, voice commands, and neural telemetry.",
   "requestFramePermissions": ["camera", "microphone"]
 }
