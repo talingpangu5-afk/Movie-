@@ -1151,8 +1151,11 @@ export function EarthZoomContact() {
   const copyEmail = () => {
     navigator.clipboard.writeText('arunpangu81125@gmail.com');
     setIsCopied(true);
-    toast.success('Email copied!');
-    setTimeout(() => setIsCopied(false), 2000);
+    toast.success('Email copied! Opening mail client...');
+    setTimeout(() => {
+      setIsCopied(false);
+      window.location.href = "mailto:arunpangu81125@gmail.com";
+    }, 1000);
   };
 
   const reset = () => {
@@ -1863,8 +1866,8 @@ export function EarthZoomContact() {
                                 <div className="flex items-center gap-4 relative z-10">
                                     <Mail className="w-8 h-8 animate-pulse" />
                                     <div className="text-left overflow-hidden">
-                                        <div className="text-[10px] opacity-60 font-mono mb-1 truncate">OFFICIAL_UPLINK_PROTOCOL</div>
-                                        <div className="text-lg md:text-3xl font-black truncate max-w-full">ARUNPANGU81125@GMAIL.COM</div>
+                                        <div className="text-[9px] opacity-60 font-mono mb-1 truncate">OFFICIAL_UPLINK_PROTOCOL</div>
+                                        <div className="text-sm md:text-xl font-black truncate max-w-[200px] md:max-w-full">ARUNPANGU81125@GMAIL.COM</div>
                                     </div>
                                 </div>
                                 <motion.div 

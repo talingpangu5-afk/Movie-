@@ -7,6 +7,7 @@ import { Footer } from '@/components/Footer';
 import { Toaster } from '@/components/ui/sonner';
 import { TouchSidebar } from '@/components/TouchSidebar';
 import { AdultTrigger } from '@/components/AdultTrigger';
+import { AIVideoProvider } from '@/components/AIVideoProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -42,6 +43,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
         <Footer />
         <TouchSidebar />
         <AdultTrigger />
+        <AIVideoProvider />
         <Toaster position="top-center" />
       </body>
     </html>
