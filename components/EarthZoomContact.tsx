@@ -1085,12 +1085,47 @@ export function EarthZoomContact() {
     }
   };
 
-  const locationImages = [
-    "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=800&q=80",
-    "https://images.unsplash.com/photo-1517976487492-5750f3195933?w=800&q=80",
-    "https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?w=800&q=80",
-    "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80",
-    "https://images.unsplash.com/photo-1516339901600-2e1a62986307?w=800&q=80"
+  const locationAssets = [
+    {
+      title: "Bio-Synthetic Jungle",
+      label: "BIO_SYNAPSE_NODE_01",
+      src: "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=800&q=80",
+      stats: { primary: "Biomass: 94.8%", secondary: "O2_Uptake: 21.8%", tertiary: "Flora: Optimizing" },
+      geo: { lat: "28.41N", lng: "94.67E", sector: "Alpha-7" },
+      details: ["Thermal signature: Organic", "Genetic drift: 0.04%", "Humidity: 94.2%"]
+    },
+    {
+      title: "Hydro Basal Matrix",
+      label: "AQUA_FLOW_ARCHIVE_02",
+      src: "https://images.unsplash.com/photo-1517976487492-5750f3195933?w=800&q=80",
+      stats: { primary: "H2O_Purity: 99.1%", secondary: "Depth: 1.4km", tertiary: "Currents: Static" },
+      geo: { lat: "12.55S", lng: "45.12W", sector: "Beta-3" },
+      details: ["Salinity: 0.12%", "Ion Charge: Negative", "Pressure: 140 bar"]
+    },
+    {
+      title: "Arid Strata Ground",
+      label: "GEO_CORE_SCAN_03",
+      src: "https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?w=800&q=80",
+      stats: { primary: "Density: 5.2t/m³", secondary: "Quartz: 14.5%", tertiary: "Stability: 1.0" },
+      geo: { lat: "45.22N", lng: "12.88E", sector: "Gamma-9" },
+      details: ["Vibration: 0.02Hz", "Core Temp: 452C", "Density: 5.51g/cm³"]
+    },
+    {
+      title: "Atmos Vapor Cell",
+      label: "ATMOS_VAPOR_LOG_04",
+      src: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80",
+      stats: { primary: "Humidity: 84.1%", secondary: "Pressure: 1013hPa", tertiary: "Wind: 14km/h" },
+      geo: { lat: "0.00N", lng: "180.00W", sector: "Delta-1" },
+      details: ["N2 Content: 78%", "O2 Level: 21%", "Visibility: 99%"]
+    },
+    {
+      title: "Thermal Ridge Node",
+      label: "MAGMA_CORE_SCAN_05",
+      src: "https://images.unsplash.com/photo-1516339901600-2e1a62986307?w=800&q=80",
+      stats: { primary: "Temp: 1450°C", secondary: "Sulfur: 4.8%", tertiary: "Eruption: 0.01%" },
+      geo: { lat: "19.43N", lng: "155.51W", sector: "Epsilon-5" },
+      details: ["Lava Flow: Active", "Seismic: Level 2", "Gas Leak: Min"]
+    }
   ];
 
   return (
@@ -1285,18 +1320,34 @@ export function EarthZoomContact() {
                       className="absolute inset-x-0 h-1 bg-cyan-500/10 shadow-[0_0_20px_rgba(34,211,238,0.3)] z-20"
                     />
 
-                    <div className="absolute top-10 left-10 text-cyan-400 font-mono text-[10px] space-y-2">
+                    <div className="absolute top-10 left-10 text-cyan-400 font-mono text-[10px] space-y-2 z-30">
                         <div className="flex items-center gap-2">
                             <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
                             <span>SATELLITE_UPLINK: ACTIVE</span>
                         </div>
-                        <div>COORD: 28&deg;25&apos;04.7&quot;N 94&deg;40&apos;42.7&quot;E</div>
-                        <div>ALTITUDE: 15,400 KM</div>
+                        <div className="flex items-center gap-2">
+                            <Activity className="w-3 h-3 animate-spin duration-[3000ms]" />
+                            <span>SYNC_RATE: 48.2 Gbps</span>
+                        </div>
+                        <div className="border-l border-cyan-500/30 pl-3 py-1 space-y-1">
+                            <div>COORD: 28&deg;25&apos;04.7&quot;N 94&deg;40&apos;42.7&quot;E</div>
+                            <div>ALTITUDE: 15,400 KM</div>
+                            <div>RESOLUTION: 0.2m/PX</div>
+                            <div className="text-[8px] text-cyan-400/60 mt-1 animate-pulse">UPLINK_ID: arunpangu81125@gmail.com</div>
+                        </div>
+                        <div className="pt-4 flex gap-2">
+                            <div className="w-1 h-1 bg-cyan-400" />
+                            <div className="w-1 h-1 bg-cyan-400/50" />
+                            <div className="w-1 h-1 bg-cyan-400/20" />
+                        </div>
                     </div>
                     
-                    <div className="absolute bottom-10 right-10 text-cyan-500/50 font-mono text-[8px] uppercase tracking-widest text-right">
-                        Neural Stream v4.8 <br />
-                        Deep Space Encryption: AES-256
+                    <div className="absolute bottom-10 right-10 text-cyan-500/50 font-mono text-[8px] uppercase tracking-widest text-right z-30">
+                        <div className="flex flex-col gap-1">
+                            <span>NEURAL_STREAM v8.0_ALPHA</span>
+                            <span>ENCRYPTION: QUANTUM_ECC</span>
+                            <span className="text-cyan-400/80 animate-pulse">TRANSMITTING...</span>
+                        </div>
                     </div>
                 </div>
 
@@ -1394,7 +1445,7 @@ export function EarthZoomContact() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    {locationImages.map((src, idx) => (
+                    {locationAssets.map((asset, idx) => (
                         <motion.div
                             key={idx}
                             initial={{ y: 50, opacity: 0, rotateY: 20 }}
@@ -1412,42 +1463,65 @@ export function EarthZoomContact() {
                             <div className="absolute inset-0 bg-cyan-500/5 group-hover:bg-cyan-500/10 transition-colors" />
                             
                             <Image 
-                                src={src} 
-                                alt={`Geo-tag ${idx}`}
+                                src={asset.src} 
+                                alt={asset.title}
                                 fill
                                 className="object-cover opacity-60 group-hover:opacity-100 transition-all duration-700 grayscale group-hover:grayscale-0 group-hover:scale-110"
                                 referrerPolicy="no-referrer"
                             />
                             
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
                             
-                            <div className="absolute bottom-6 left-6 right-6">
-                                <div className="text-[10px] font-mono text-cyan-400 mb-1 opacity-60">REF_ID: #ASSET_00{idx + 1}</div>
-                                <div className="text-white font-black uppercase tracking-tighter group-hover:text-cyan-400 transition-colors">Neural Snapshot</div>
+                            <div className="absolute bottom-6 left-6 right-6 z-10">
+                                <div className="text-[9px] font-mono text-cyan-400 mb-1 tracking-widest flex items-center gap-2">
+                                    <Cpu className="w-3 h-3" />
+                                    {asset.label}
+                                </div>
+                                <div className="text-xl font-black text-white uppercase tracking-tighter group-hover:text-cyan-400 transition-colors mb-2">{asset.title}</div>
+                                
+                                <div className="grid grid-cols-1 gap-1 border-t border-white/10 pt-3">
+                                    <div className="flex justify-between items-center text-[7px] font-mono text-cyan-400/40 mb-1">
+                                        <span>LOC: {(asset as any).geo.lat} {(asset as any).geo.lng}</span>
+                                        <span>SEC: {(asset as any).geo.sector}</span>
+                                    </div>
+                                    <div className="text-[8px] font-mono text-gray-500 flex justify-between">
+                                        <span>PRIMARY:</span>
+                                        <span className="text-cyan-400">{asset.stats.primary}</span>
+                                    </div>
+                                    <div className="text-[8px] font-mono text-gray-500 flex justify-between">
+                                        <span>SECONDARY:</span>
+                                        <span className="text-cyan-400">{asset.stats.secondary}</span>
+                                    </div>
+                                    <div className="text-[8px] font-mono text-gray-500 flex justify-between">
+                                        <span>STATUS:</span>
+                                        <span className="text-green-500">{asset.stats.tertiary}</span>
+                                    </div>
+                                    <div className="mt-2 space-y-1">
+                                        {(asset as any).details.map((detail: string, i: number) => (
+                                            <div key={i} className="text-[7px] font-mono text-white/20">
+                                                {`> ${detail}`}
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
                             </div>
                             
                             {/* Scanning Glitch Layer */}
-                            <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-0 group-hover:opacity-20">
+                            <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-0 group-hover:opacity-20 z-20">
                                 <motion.div 
                                     animate={{ y: ["0%", "100%", "0%"] }}
                                     transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                                    className="absolute inset-x-0 h-[2px] bg-cyan-400 shadow-[0_0_15px_pink]"
+                                    className="absolute inset-x-0 h-[2px] bg-cyan-400 shadow-[0_0_15px_cyan]"
                                 />
+                            </div>
+
+                            {/* Hexagon Detail */}
+                            <div className="absolute top-6 right-6 opacity-20 group-hover:opacity-100 transition-opacity">
+                                <Search className="w-5 h-5 text-cyan-500 animate-pulse" />
                             </div>
                         </motion.div>
                     ))}
                     
-                                        {/* Placeholder for more content */}
-                    {[1, 2, 3].map((i) => (
-                        <div key={`empty-${i}`} className="relative aspect-[4/5] rounded-3xl overflow-hidden border border-white/5 bg-white/[0.02] flex items-center justify-center group flex-col gap-4">
-                            <div className="p-4 rounded-full border border-white/10 bg-white/5 opacity-20 group-hover:opacity-100 transition-opacity">
-                                <Search className="w-8 h-8 text-white" />
-                            </div>
-                            <div className="text-[10px] font-mono text-white/10 uppercase tracking-[0.4em]">Empty_Memory_Node_{i}</div>
-                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.02)_0%,transparent_70%)]" />
-                        </div>
-                    ))}
-
                     <div className="md:col-span-3 h-24 flex items-center justify-center">
                         <div className="w-full h-px bg-cyan-500/20" />
                         <ShieldCheck className="w-8 h-8 text-cyan-500/40 mx-8" />
@@ -1485,18 +1559,47 @@ export function EarthZoomContact() {
                             </div>
                         </div>
 
-                        <div className="relative z-10 grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
-                            <button onClick={copyEmail} className="group relative flex items-center justify-center gap-3 py-4 px-8 bg-cyan-500 text-black font-black uppercase text-[11px] tracking-[0.2em] rounded-2xl hover:bg-white transition-all shadow-[0_0_30px_rgba(34,211,238,0.4)] overflow-hidden">
-                                <Mail className="w-4 h-4" />
-                                <span className="relative z-10">Initiate Uplink</span>
-                                <motion.div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20" />
+                        <div className="relative z-10 grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+                            <button onClick={copyEmail} className="group relative flex flex-col items-center justify-center gap-2 py-8 px-10 bg-cyan-500 text-black font-black uppercase text-[11px] tracking-[0.2em] rounded-3xl hover:bg-white transition-all shadow-[0_0_40px_rgba(34,211,238,0.6)] overflow-hidden border-2 border-white/20">
+                                <div className="flex items-center gap-4 relative z-10">
+                                    <Mail className="w-8 h-8 animate-pulse" />
+                                    <div className="text-left">
+                                        <div className="text-[10px] opacity-60 font-mono mb-1">OFFICIAL_UPLINK_PROTOCOL</div>
+                                        <span className="text-xl md:text-2xl font-black">arunpangu81125@gmail.com</span>
+                                    </div>
+                                </div>
+                                <motion.div 
+                                    className="absolute inset-0 bg-[linear-gradient(45deg,transparent,rgba(255,255,255,0.2),transparent)]"
+                                    animate={{ x: ['-100%', '100%'] }}
+                                    transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
+                                />
                             </button>
-                            <button className="group flex items-center justify-center gap-3 py-4 px-8 bg-white/5 border border-white/10 text-white font-black uppercase text-[11px] tracking-[0.2em] rounded-2xl hover:bg-white/10 transition-all border-b-2 border-b-green-500/40">
-                                <Terminal className="w-4 h-4" />
-                                Portfolio_v8.exe
-                            </button>
+                            <div className="flex flex-col gap-4">
+                                <button className="group relative flex items-center justify-center gap-3 py-5 px-8 bg-white/5 border border-white/10 text-white font-black uppercase text-[11px] tracking-[0.2em] rounded-3xl hover:bg-white/10 transition-all border-b-4 border-b-cyan-500 shadow-xl">
+                                    <Terminal className="w-5 h-5 text-cyan-400" />
+                                    Portfolio_v9.exe
+                                </button>
+                                <div className="p-4 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 text-center">
+                                    <div className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest mb-1 animate-pulse">Uplink Encryption: Active</div>
+                                    <div className="flex justify-center gap-1 opacity-40">
+                                        {[1,2,3,4,5,6].map(i => <div key={i} className="w-1 h-3 bg-cyan-500 rounded-full" />)}
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </motion.div>
+
+                    {/* Footer Global Ad Uplink */}
+                    <div className="mt-12 flex justify-center">
+                        <div className="group cursor-pointer relative py-3 px-8 rounded-full border border-cyan-500/10 bg-cyan-500/5 backdrop-blur-sm overflow-hidden hover:border-cyan-500/40 transition-all">
+                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-cyan-400/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                            <div className="relative flex items-center gap-3 text-[9px] font-mono text-cyan-400/60 uppercase tracking-[0.3em]">
+                                <Activity className="w-3 h-3" />
+                                Adsterra_Global_Network_Node_v9.2: Online
+                                <ExternalLink className="w-3 h-3" />
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
             
