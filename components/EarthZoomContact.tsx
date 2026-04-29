@@ -47,6 +47,7 @@ export function EarthZoomContact() {
   const earthRef = useRef<THREE.Mesh | null>(null);
   const cloudsRef = useRef<THREE.Mesh | null>(null);
   const frameIdRef = useRef<number | null>(null);
+  const textureLoaderRef = useRef<THREE.TextureLoader | null>(null);
 
   const playAlignmentSound = () => {
     try {
@@ -159,6 +160,7 @@ export function EarthZoomContact() {
     rendererRef.current = renderer;
 
     const loader = new THREE.TextureLoader();
+    textureLoaderRef.current = loader;
     const earthTexture = loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg');
     const satelliteTexture = loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_lights_2048.png');
     const cloudTexture = loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_clouds_2048.png');
@@ -1039,8 +1041,8 @@ export function EarthZoomContact() {
       duration: 0.3, 
       onComplete: () => {
         setIsSatellite(true);
-        if (earthRef.current) {
-          (earthRef.current.material as THREE.MeshPhongMaterial).map = loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_lights_2048.png');
+        if (earthRef.current && textureLoaderRef.current) {
+          (earthRef.current.material as THREE.MeshPhongMaterial).map = textureLoaderRef.current.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_lights_2048.png');
           (earthRef.current.material as THREE.MeshPhongMaterial).needsUpdate = true;
         }
       }
@@ -1073,9 +1075,8 @@ export function EarthZoomContact() {
     setStage('idle');
     setIsSatellite(false);
     if (cameraRef.current) cameraRef.current.position.z = 160;
-    if (earthRef.current) {
-      const loader = new THREE.TextureLoader();
-      (earthRef.current.material as THREE.MeshPhongMaterial).map = loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg');
+    if (earthRef.current && textureLoaderRef.current) {
+      (earthRef.current.material as THREE.MeshPhongMaterial).map = textureLoaderRef.current.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg');
       (earthRef.current.material as THREE.MeshPhongMaterial).needsUpdate = true;
     }
     if (sunSoundRef.current) {
@@ -1272,9 +1273,19 @@ export function EarthZoomContact() {
                 title="Satellite Feed"
                 />
                 
-                {/* HUD Overlay */}
                 <div className="absolute inset-0 pointer-events-none">
-                    <div className="absolute top-10 left-10 text-cyan-400 font-mono text-[10px] space-y-1">
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(6,182,212,0.1)_100%)] mix-blend-overlay" />
+                    <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black to-transparent" />
+                    <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black to-transparent" />
+                    
+                    {/* Scanning Bar */}
+                    <motion.div 
+                      animate={{ y: ["0%", "100%", "0%"] }}
+                      transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+                      className="absolute inset-x-0 h-1 bg-cyan-500/10 shadow-[0_0_20px_rgba(34,211,238,0.3)] z-20"
+                    />
+
+                    <div className="absolute top-10 left-10 text-cyan-400 font-mono text-[10px] space-y-2">
                         <div className="flex items-center gap-2">
                             <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
                             <span>SATELLITE_UPLINK: ACTIVE</span>
@@ -1319,18 +1330,22 @@ export function EarthZoomContact() {
                             initial={{ y: 50, opacity: 0, rotateY: 20 }}
                             whileInView={{ y: 0, opacity: 1, rotateY: 0 }}
                             transition={{ delay: idx * 0.1, type: "spring", stiffness: 100 }}
-                            whileHover={{ scale: 1.05, y: -10, rotateX: 5 }}
-                            className="relative aspect-[4/5] rounded-3xl overflow-hidden group cursor-pointer border border-white/5 bg-white/5 backdrop-blur-xl"
+                            whileHover={{ 
+                              scale: 1.05, 
+                              z: 50,
+                              rotateY: 5,
+                              boxShadow: "0 25px 50px -12px rgba(6,182,212,0.5)"
+                            }}
+                            className="relative aspect-[4/5] rounded-3xl overflow-hidden group cursor-pointer border border-cyan-500/20 bg-black/40 backdrop-blur-xl preserve-3d"
                         >
-                            {/* Futuristic Frame */}
-                            <div className="absolute inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent top-0 opacity-0 group-hover:opacity-100 transition-opacity" />
-                            <div className="absolute inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent bottom-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            {/* Depth Effect Layers */}
+                            <div className="absolute inset-0 bg-cyan-500/5 group-hover:bg-cyan-500/10 transition-colors" />
                             
                             <Image 
                                 src={src} 
                                 alt={`Geo-tag ${idx}`}
                                 fill
-                                className="object-cover opacity-80 group-hover:opacity-100 transition-all duration-700 grayscale group-hover:grayscale-0"
+                                className="object-cover opacity-60 group-hover:opacity-100 transition-all duration-700 grayscale group-hover:grayscale-0 group-hover:scale-110"
                                 referrerPolicy="no-referrer"
                             />
                             
@@ -1361,37 +1376,47 @@ export function EarthZoomContact() {
                 </div>
 
                 {/* ADSTERRA BANNER PLACEMENT */}
-                <div className="mt-20 w-full max-w-4xl mx-auto">
-                    <div className="relative p-8 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-2xl text-center overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.05)_0%,transparent_70%)]" />
+                <div className="mt-20 w-full max-w-4xl mx-auto mb-20">
+                    <motion.div 
+                      initial={{ opacity: 0, y: 20 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      className="relative p-8 rounded-[2.5rem] border border-cyan-500/30 bg-black/60 backdrop-blur-3xl text-center overflow-hidden shadow-[0_0_50px_rgba(6,182,212,0.1)]"
+                    >
+                        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.1)_0%,transparent_70%)]" />
                         
-                        <div className="relative z-10 text-[10px] font-mono text-gray-500 uppercase tracking-[0.4em] mb-8">
-                            COMMERCIAL_DATA_SEQUENCE
+                        <div className="relative z-10 flex items-center justify-center gap-4 mb-10">
+                            <div className="h-px w-20 bg-gradient-to-r from-transparent to-cyan-500/50" />
+                            <div className="text-[10px] font-mono text-cyan-400 uppercase tracking-[0.4em]">COMMERCIAL_ARCHIVE_NODE</div>
+                            <div className="h-px w-20 bg-gradient-to-l from-transparent to-cyan-500/50" />
                         </div>
 
-                        {/* Adsterra Placeholder */}
-                        <div className="flex justify-center mb-8">
-                            <div className="w-full max-w-[728px] h-[90px] bg-black/40 border border-cyan-500/20 rounded-xl flex items-center justify-center group hover:border-cyan-400/50 transition-colors cursor-pointer">
-                                <div className="text-cyan-500/30 font-mono text-xs animate-pulse flex items-center gap-3">
-                                    <Zap className="w-4 h-4" />
-                                    ADSTERRA_BANNER_PL_01: SYNCING...
-                                    <ExternalLink className="w-4 h-4" />
+                        {/* Adsterra Banner Container */}
+                        <div className="flex justify-center mb-10">
+                            <div className="relative w-full max-w-[728px] h-[90px] rounded-2xl overflow-hidden group cursor-pointer border-2 border-cyan-500/20 hover:border-cyan-400 transition-all">
+                                <div className="absolute inset-0 bg-cyan-400/5 group-hover:bg-cyan-400/10 transition-colors" />
+                                <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                    <div className="flex items-center gap-3 text-cyan-400 font-black text-[13px] uppercase tracking-widest mb-1">
+                                        <Zap className="w-5 h-5 text-yellow-400 fill-yellow-400" />
+                                        Sponsor Uplink
+                                    </div>
+                                    <div className="text-[10px] font-mono text-cyan-500/40 uppercase tracking-[0.2em]">Adsterra High-Priority Deployment 0xAlpha</div>
                                 </div>
+                                <div className="absolute top-2 right-2 px-1.5 py-0.5 border border-cyan-500/30 rounded text-[8px] font-mono text-cyan-500/50">ADS</div>
                             </div>
                         </div>
 
-                        <div className="relative z-10">
-                            <p className="text-xl font-black text-white uppercase mb-4 tracking-tighter">Support the Neural Network</p>
-                            <div className="flex flex-wrap justify-center gap-4">
-                                <button onClick={copyEmail} className="px-8 py-3 bg-cyan-500 text-black font-black uppercase text-[10px] tracking-widest rounded-xl hover:bg-white transition-all shadow-[0_0_20px_rgba(34,211,238,0.4)]">
-                                    Contact Agent
-                                </button>
-                                <button className="px-8 py-3 bg-white/5 border border-white/10 text-white font-black uppercase text-[10px] tracking-widest rounded-xl hover:bg-white/10 transition-all">
-                                    Full Portfolio
-                                </button>
-                            </div>
+                        <div className="relative z-10 grid md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+                            <button onClick={copyEmail} className="group relative flex items-center justify-center gap-3 py-4 px-8 bg-cyan-500 text-black font-black uppercase text-[11px] tracking-[0.2em] rounded-2xl hover:bg-white transition-all shadow-[0_0_30px_rgba(34,211,238,0.4)] overflow-hidden">
+                                <Mail className="w-4 h-4" />
+                                <span className="relative z-10">Initiate Uplink</span>
+                                <motion.div className="absolute inset-0 bg-white opacity-0 group-hover:opacity-20" />
+                            </button>
+                            <button className="group flex items-center justify-center gap-3 py-4 px-8 bg-white/5 border border-white/10 text-white font-black uppercase text-[11px] tracking-[0.2em] rounded-2xl hover:bg-white/10 transition-all border-b-2 border-b-green-500/40">
+                                <Terminal className="w-4 h-4" />
+                                Portfolio_v8.exe
+                            </button>
                         </div>
-                    </div>
+                    </motion.div>
                 </div>
             </div>
             
