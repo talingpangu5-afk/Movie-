@@ -4,17 +4,57 @@ import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import * as THREE from 'three';
 import { gsap } from 'gsap';
-import { ArrowLeft, Mail, Copy, Check, MousePointer2, Radio, Terminal, ExternalLink, Zap, ShieldCheck, Droplets, LandPlot, Building2, Activity, Cpu, Globe, Search } from 'lucide-react';
-import { motion, AnimatePresence } from 'motion/react';
+import { ArrowLeft, Mail, Copy, Check, MousePointer2, Radio, Terminal, ExternalLink, Zap, ShieldCheck, Droplets, LandPlot, Building2, Activity, Cpu, Globe, Search, Wind, Waves, MapPin, Navigation, Signal, ZapOff, Crosshair } from 'lucide-react';
+import { motion, AnimatePresence, useScroll, useTransform } from 'motion/react';
 import { toast } from 'sonner';
 import { SecretPlatform } from './SecretPlatform';
 import { SunHubPlatform } from './SunHubPlatform';
 
+function FloatingLabel({ pos, title, description, active = false }: { pos: { top: string, left: string }, title: string, description: string, active?: boolean }) {
+  return (
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: active ? 1.2 : 1 }}
+      className="absolute z-30 pointer-events-none"
+      style={{ top: pos.top, left: pos.left }}
+    >
+      <div className="flex items-center gap-4">
+        {/* Connection Line */}
+        <div className="w-12 h-px bg-cyan-400 opacity-40 -rotate-45 origin-right" />
+        
+        <div className="bg-black/40 backdrop-blur-md border-l-2 border-cyan-400 p-3 rounded-r-xl">
+           <div className={`text-[10px] font-black uppercase tracking-widest ${active ? 'text-cyan-400' : 'text-cyan-400/60'}`}>
+             {active && <span className="inline-block w-1.5 h-1.5 bg-cyan-400 rounded-full animate-ping mr-2" />}
+             {title}
+           </div>
+           <div className="text-[7px] font-mono text-gray-500 uppercase mt-1">{description}</div>
+        </div>
+      </div>
+
+      {/* Target Ring */}
+      <div className="absolute -left-[54px] -top-2">
+        <motion.div 
+          animate={{ scale: [1, 1.2, 1], opacity: [0.5, 1, 0.5] }}
+          transition={{ duration: 2, repeat: Infinity }}
+          className="w-4 h-4 rounded-full border border-cyan-400"
+        />
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-1 h-1 bg-cyan-400 rounded-full" />
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 export function EarthZoomContact() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const terrainCanvasRef = useRef<HTMLCanvasElement>(null);
   const [stage, setStage] = useState<'idle' | 'zooming' | 'landed' | 'secret' | 'deepSpace' | 'starFocus' | 'sunHub'>('idle');
   const [isSatellite, setIsSatellite] = useState(false);
+  const [isScanning, setIsScanning] = useState(true);
+  const [activeGeoTag, setActiveGeoTag] = useState<string | null>(null);
+  const [riverSync, setRiverSync] = useState(false);
   const stageRef = useRef(stage);
 
   // Cinematic timeline refs
@@ -1071,6 +1111,150 @@ export function EarthZoomContact() {
     setTimeout(() => setIsCopied(false), 2000);
   };
 
+    // TERRAIN SCENE SETUP
+    useEffect(() => {
+      if (stage !== 'landed' || !terrainCanvasRef.current) return;
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0x020617);
+      scene.fog = new THREE.FogExp2(0x020617, 0.005);
+
+      const width = terrainCanvasRef.current.clientWidth;
+      const height = terrainCanvasRef.current.clientHeight;
+      const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+      camera.position.set(0, 100, 200);
+
+      const renderer = new THREE.WebGLRenderer({
+        canvas: terrainCanvasRef.current,
+        antialias: true,
+        alpha: true
+      });
+      renderer.setSize(width, height);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+      renderer.shadowMap.enabled = true;
+
+      // Realistic Satellite Terrain
+      const loader = new THREE.TextureLoader();
+      const terrainTexture = loader.load('https://images.unsplash.com/photo-1506744038136-46273834b3fb?w=2048&q=80'); // Placeholder satellite-like landscape
+      const displacementMap = loader.load('https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?w=1024&q=80'); // Using texture as displacement for depth
+
+      const terrainGeo = new THREE.PlaneGeometry(500, 500, 128, 128);
+      const terrainMat = new THREE.MeshStandardMaterial({
+        map: terrainTexture,
+        displacementMap: displacementMap,
+        displacementScale: 25,
+        roughness: 0.8,
+        metalness: 0.2,
+      });
+
+      const terrain = new THREE.Mesh(terrainGeo, terrainMat);
+      terrain.rotation.x = -Math.PI / 2;
+      terrain.receiveShadow = true;
+      scene.add(terrain);
+
+      // Siyom River Simulation
+      const riverGeo = new THREE.PlaneGeometry(40, 500, 1, 64);
+      const riverMat = new THREE.ShaderMaterial({
+        uniforms: {
+          time: { value: 0 },
+          color: { value: new THREE.Color(0x00ffff) }
+        },
+        vertexShader: `
+          varying vec2 vUv;
+          uniform float time;
+          void main() {
+            vUv = uv;
+            vec3 pos = position;
+            pos.z += sin(pos.y * 0.05 + time) * 2.0;
+            gl_Position = projectionMatrix * modelViewMatrix * vec4(pos, 1.0);
+          }
+        `,
+        fragmentShader: `
+          varying vec2 vUv;
+          uniform vec3 color;
+          uniform float time;
+          void main() {
+            float pulse = sin(vUv.y * 10.0 - time * 2.0) * 0.5 + 0.5;
+            gl_FragColor = vec4(color * (0.5 + pulse * 0.5), 0.8);
+          }
+        `,
+        transparent: true
+      });
+      const river = new THREE.Mesh(riverGeo, riverMat);
+      river.rotation.x = -Math.PI / 2;
+      river.position.y = 5.5; // Sit slightly above terrain
+      river.position.x = -20;
+      scene.add(river);
+
+      // volumetric Lighting
+      const light = new THREE.DirectionalLight(0xffffff, 1.5);
+      light.position.set(200, 300, 100);
+      light.castShadow = true;
+      scene.add(light);
+
+      const hemiLight = new THREE.HemisphereLight(0x00f2ff, 0x002244, 0.5);
+      scene.add(hemiLight);
+
+      // Drone Path Animation
+      const droneTL = gsap.timeline({ repeat: -1 });
+      
+      // Stage 1: Slow Glide (0-10s)
+      droneTL.to(camera.position, {
+        x: 50,
+        y: 80,
+        z: 150,
+        duration: 10,
+        ease: "sine.inOut"
+      });
+
+      // Stage 2: Medium Tracking (10-25s) - Tilt and dive
+      droneTL.to(camera.position, {
+        x: -50,
+        y: 40,
+        z: 100,
+        duration: 15,
+        ease: "power2.inOut",
+        onStart: () => setRiverSync(true)
+      });
+
+      // Stage 3: Focus Hover (25-40s) - Lock onto Siyom River
+      droneTL.to(camera.position, {
+        x: -20,
+        y: 20,
+        z: 50,
+        duration: 15,
+        ease: "expo.out",
+        onUpdate: () => {
+          camera.lookAt(river.position);
+        }
+      });
+
+      const animate = () => {
+        const frameId = requestAnimationFrame(animate);
+        const delta = Date.now() * 0.001;
+        
+        riverMat.uniforms.time.value = delta;
+        
+        // Micro Shake
+        camera.position.x += Math.sin(delta * 10) * 0.1;
+        camera.position.y += Math.cos(delta * 12) * 0.1;
+
+        renderer.render(scene, camera);
+        return frameId;
+      };
+
+      const frameId = animate();
+
+      return () => {
+        cancelAnimationFrame(frameId);
+        terrainGeo.dispose();
+        terrainMat.dispose();
+        riverGeo.dispose();
+        riverMat.dispose();
+        renderer.dispose();
+      };
+    }, [stage]);
+
   const reset = () => {
     setStage('idle');
     setIsSatellite(false);
@@ -1301,52 +1485,137 @@ export function EarthZoomContact() {
             className="fixed inset-0 z-[100] bg-[#020617] flex flex-col overflow-y-auto no-scrollbar"
           >
             {/* Satellite View Header */}
-            <div className="relative h-[60vh] w-full overflow-hidden shrink-0">
-                <iframe 
-                src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d11347.16!2d94.678!3d28.418!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMjjCsDI1JzA0LjciTiA5NMKwNDAnNDIuNyJF!5e1!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin&maptype=satellite"
-                className="w-full h-full border-none brightness-75 contrast-125 saturate-[1.5]"
-                title="Satellite Feed"
-                />
+            <div className="relative h-[80vh] w-full overflow-hidden shrink-0 border-b border-cyan-500/20">
+                <canvas ref={terrainCanvasRef} className="w-full h-full bg-black" />
                 
                 <div className="absolute inset-0 pointer-events-none">
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(6,182,212,0.1)_100%)] mix-blend-overlay" />
-                    <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black to-transparent" />
-                    <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black to-transparent" />
+                    <div className="absolute inset-x-0 top-0 h-48 bg-gradient-to-b from-black via-black/40 to-transparent" />
+                    <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-black via-black/40 to-transparent" />
                     
+                    {/* Scanning Grid Layer */}
+                    <div className="absolute inset-0 opacity-10 bg-[linear-gradient(rgba(34,211,238,0.2)_1px,transparent_1px),linear-gradient(90deg,rgba(34,211,238,0.2)_1px,transparent_1px)] bg-[size:40px_40px]" />
+                    
+                    {/* Signal Glitch Layer */}
+                    <div className="absolute inset-0 pointer-events-none z-50">
+                        <motion.div 
+                          animate={{ 
+                            opacity: [0, 0.1, 0, 0.05, 0],
+                            x: [0, -2, 2, -1, 0]
+                          }}
+                          transition={{ 
+                            duration: 0.2, 
+                            repeat: Infinity, 
+                            repeatDelay: 5 
+                          }}
+                          className="absolute inset-0 bg-cyan-500/10 mix-blend-screen"
+                        />
+                    </div>
+
+                    <div className="absolute inset-0 opacity-[0.03] pointer-events-none mix-blend-overlay z-40 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat" />
+
                     {/* Scanning Bar */}
                     <motion.div 
                       animate={{ y: ["0%", "100%", "0%"] }}
-                      transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                      className="absolute inset-x-0 h-1 bg-cyan-500/10 shadow-[0_0_20px_rgba(34,211,238,0.3)] z-20"
+                      transition={{ duration: 6, repeat: Infinity, ease: "linear" }}
+                      className="absolute inset-x-0 h-px bg-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.8)] z-20"
                     />
 
-                    <div className="absolute top-10 left-10 text-cyan-400 font-mono text-[10px] space-y-2 z-30">
-                        <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                            <span>SATELLITE_UPLINK: ACTIVE</span>
+                    {/* JARVIS Floating Labels */}
+                    <AnimatePresence>
+                      <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="absolute inset-0"
+                      >
+                        <FloatingLabel pos={{ top: '40%', left: '30%' }} title="SIYOM_RIVER_SEC_A" description="Hydro-Thermal Sync: Active" active={riverSync} />
+                        <FloatingLabel pos={{ top: '25%', left: '60%' }} title="KAYING_SETTLEMENT" description="Population: Isolated" />
+                        <FloatingLabel pos={{ top: '65%', left: '45%' }} title="TECTONIC_RIDGE_04" description="Seismic: Stable" />
+                      </motion.div>
+                    </AnimatePresence>
+                    
+                    <div className="absolute top-10 left-10 text-cyan-400 font-mono text-[10px] space-y-4 z-30">
+                        <div className="flex items-center gap-3">
+                            <div className="relative">
+                               <div className="w-3 h-3 bg-red-500 rounded-full animate-ping absolute" />
+                               <div className="w-3 h-3 bg-red-500 rounded-full relative" />
+                            </div>
+                            <span className="font-black tracking-[0.2em]">LIVE FEED • CONNECTED</span>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Activity className="w-3 h-3 animate-spin duration-[3000ms]" />
-                            <span>SYNC_RATE: 48.2 Gbps</span>
+                        <div className="flex items-center gap-2 text-cyan-400/60">
+                            <Activity className="w-4 h-4 animate-pulse" />
+                            <span>DRONE_DATA_UPLINK: 844 MB/S</span>
                         </div>
-                        <div className="border-l border-cyan-500/30 pl-3 py-1 space-y-1">
-                            <div>COORD: 28&deg;25&apos;04.7&quot;N 94&deg;40&apos;42.7&quot;E</div>
-                            <div>ALTITUDE: 15,400 KM</div>
-                            <div>RESOLUTION: 0.2m/PX</div>
-                            <div className="text-[8px] text-cyan-400/60 mt-1 animate-pulse">UPLINK_ID: arunpangu81125@gmail.com</div>
-                        </div>
-                        <div className="pt-4 flex gap-2">
-                            <div className="w-1 h-1 bg-cyan-400" />
-                            <div className="w-1 h-1 bg-cyan-400/50" />
-                            <div className="w-1 h-1 bg-cyan-400/20" />
+                        <div className="border-l-2 border-cyan-500/40 pl-5 py-2 space-y-2 bg-black/20 backdrop-blur-sm rounded-r-xl">
+                            <div className="flex justify-between gap-8">
+                                <span className="opacity-60">LATITUDE</span>
+                                <span className="font-bold">28&deg;25&apos;04.7&quot;N</span>
+                            </div>
+                            <div className="flex justify-between gap-8">
+                                <span className="opacity-60">LONGITUDE</span>
+                                <span className="font-bold">94&deg;40&apos;42.7&quot;E</span>
+                            </div>
+                            <div className="flex justify-between gap-8">
+                                <span className="opacity-60">ALTITUDE</span>
+                                <motion.span 
+                                  animate={{ textShadow: ["0 0 0px cyan", "0 0 10px cyan", "0 0 0px cyan"] }}
+                                  transition={{ duration: 0.5, repeat: Infinity }}
+                                  className="font-bold text-cyan-300"
+                                >
+                                  {(15400 * Math.random()).toFixed(0)}m
+                                </motion.span>
+                            </div>
+                            <div className="pt-2">
+                                <div className="text-[8px] opacity-40 mb-1">SIGNAL_STRENGTH</div>
+                                <div className="flex gap-1">
+                                    {[1,1,1,1,1,0,0].map((s, i) => (
+                                        <div key={i} className={`w-1 h-3 rounded-full ${s ? 'bg-cyan-400' : 'bg-cyan-400/20'}`} />
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
-                    <div className="absolute bottom-10 right-10 text-cyan-500/50 font-mono text-[8px] uppercase tracking-widest text-right z-30">
-                        <div className="flex flex-col gap-1">
-                            <span>NEURAL_STREAM v8.0_ALPHA</span>
-                            <span>ENCRYPTION: QUANTUM_ECC</span>
-                            <span className="text-cyan-400/80 animate-pulse">TRANSMITTING...</span>
+                    <div className="absolute bottom-10 left-10 z-30">
+                         {riverSync && (
+                             <motion.div 
+                               initial={{ x: -20, opacity: 0 }}
+                               animate={{ x: 0, opacity: 1 }}
+                               className="p-6 bg-black/60 backdrop-blur-xl border border-cyan-400/30 rounded-3xl max-w-sm"
+                             >
+                                 <div className="flex items-center gap-3 mb-4">
+                                     <Waves className="w-6 h-6 text-cyan-400" />
+                                     <h3 className="text-xl font-black text-white uppercase tracking-tighter">Siyom River</h3>
+                                 </div>
+                                 <div className="space-y-3 text-[10px] font-mono uppercase tracking-widest text-gray-400">
+                                     <div className="flex justify-between">
+                                         <span>Length:</span>
+                                         <span className="text-cyan-400">~120 KM</span>
+                                     </div>
+                                     <div className="flex justify-between">
+                                         <span>Flow:</span>
+                                         <span className="text-cyan-400">Brahmaputra Tributary</span>
+                                     </div>
+                                     <div className="flex justify-between">
+                                         <span>Origin:</span>
+                                         <span className="text-cyan-400">Tibet Plateau</span>
+                                     </div>
+                                     <div className="pt-2 mt-2 border-t border-white/10 text-[9px] text-cyan-400/60 leading-relaxed">
+                                         Crystal clear glacial melt flowing through the Kaying valley. Neural sync confirms high oxygenation levels.
+                                     </div>
+                                 </div>
+                             </motion.div>
+                         )}
+                    </div>
+
+                    <div className="absolute top-10 right-32 text-right text-cyan-500/50 font-mono text-[8px] uppercase tracking-[0.4em] z-30">
+                        <div className="flex flex-col gap-2">
+                            <span>SATELLITE: ARC-TH-09</span>
+                            <span>SENSOR: SPECTRAL_IR</span>
+                            <div className="flex items-center justify-end gap-2 text-cyan-400/80">
+                                <motion.div animate={{ opacity: [0, 1] }} transition={{ duration: 0.1, repeat: Infinity }} className="w-2 h-2 bg-cyan-400 rounded-full" />
+                                <span>STREAMING_DATA</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1355,6 +1624,19 @@ export function EarthZoomContact() {
                     <button onClick={reset} className="bg-black/60 backdrop-blur-xl border border-cyan-500/30 p-4 rounded-2xl text-cyan-400 hover:bg-cyan-500 hover:text-black transition-all shadow-[0_0_20px_rgba(34,211,238,0.2)]">
                         <ArrowLeft className="w-6 h-6" />
                     </button>
+                </div>
+                
+                {/* Radar Sweep Effect */}
+                <div className="absolute bottom-10 right-10 w-32 h-32 border border-cyan-500/20 rounded-full bg-cyan-500/5 backdrop-blur-sm z-30 overflow-hidden">
+                    <motion.div 
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                      className="absolute inset-0 bg-[conic-gradient(from_0deg,transparent_0deg,rgba(34,211,238,0.2)_10deg,transparent_20deg)]"
+                    />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <Crosshair className="w-4 h-4 text-cyan-500/40" />
+                    </div>
+                    <div className="absolute bottom-2 inset-x-0 text-center text-[7px] text-cyan-400 font-mono">RADAR_SWEEP</div>
                 </div>
             </div>
 
@@ -1559,31 +1841,61 @@ export function EarthZoomContact() {
                             </div>
                         </div>
 
-                        <div className="relative z-10 grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
-                            <button onClick={copyEmail} className="group relative flex flex-col items-center justify-center gap-2 py-8 px-10 bg-cyan-500 text-black font-black uppercase text-[11px] tracking-[0.2em] rounded-3xl hover:bg-white transition-all shadow-[0_0_40px_rgba(34,211,238,0.6)] overflow-hidden border-2 border-white/20">
-                                <div className="flex items-center gap-4 relative z-10">
-                                    <Mail className="w-8 h-8 animate-pulse" />
-                                    <div className="text-left">
-                                        <div className="text-[10px] opacity-60 font-mono mb-1">OFFICIAL_UPLINK_PROTOCOL</div>
-                                        <span className="text-xl md:text-2xl font-black">arunpangu81125@gmail.com</span>
+                        <div className="relative z-10 grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+                            <div className="space-y-4">
+                                <div className="text-[10px] font-mono text-cyan-400 uppercase tracking-[0.4em] mb-2 opacity-60">Identity_Resolution_Channel</div>
+                                <div className="relative group">
+                                    <div className="absolute inset-0 bg-cyan-500/20 blur-2xl rounded-3xl opacity-0 group-hover:opacity-100 transition-opacity" />
+                                    <div className="relative p-8 bg-black/40 backdrop-blur-2xl border-2 border-cyan-500/30 rounded-3xl hover:border-cyan-400 transition-all flex items-center justify-between group overflow-hidden">
+                                        <div className="flex items-center gap-6">
+                                            <div className="p-4 bg-cyan-500/10 rounded-2xl border border-cyan-500/20">
+                                                <Mail className="w-8 h-8 text-cyan-400" />
+                                            </div>
+                                            <div className="text-left">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-[10px] text-cyan-400 font-mono">UPLINK_VERIFIED</span>
+                                                    <Check className="w-3 h-3 text-cyan-400" />
+                                                </div>
+                                                <span className="text-xl md:text-2xl font-black text-white tracking-widest block group-hover:text-cyan-400 transition-colors">
+                                                    arunpangu81125@gmail.com
+                                                    <motion.span 
+                                                      animate={{ opacity: [0, 1, 0] }}
+                                                      transition={{ duration: 0.8, repeat: Infinity }}
+                                                      className="inline-block w-3 h-6 bg-cyan-400 ml-1 translate-y-1"
+                                                    />
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <button 
+                                          onClick={copyEmail}
+                                          className="p-4 bg-cyan-500 text-black rounded-2xl hover:bg-white transition-all shadow-[0_0_20px_rgba(6,182,212,0.4)]"
+                                        >
+                                            <Copy className="w-6 h-6" />
+                                        </button>
                                     </div>
                                 </div>
-                                <motion.div 
-                                    className="absolute inset-0 bg-[linear-gradient(45deg,transparent,rgba(255,255,255,0.2),transparent)]"
-                                    animate={{ x: ['-100%', '100%'] }}
-                                    transition={{ duration: 3, repeat: Infinity, ease: 'linear' }}
-                                />
-                            </button>
-                            <div className="flex flex-col gap-4">
-                                <button className="group relative flex items-center justify-center gap-3 py-5 px-8 bg-white/5 border border-white/10 text-white font-black uppercase text-[11px] tracking-[0.2em] rounded-3xl hover:bg-white/10 transition-all border-b-4 border-b-cyan-500 shadow-xl">
-                                    <Terminal className="w-5 h-5 text-cyan-400" />
-                                    Portfolio_v9.exe
+                            </div>
+
+                            <div className="flex flex-col gap-4 justify-end">
+                                <button className="group relative flex items-center justify-center gap-4 py-6 px-10 bg-white/5 border border-white/10 text-white font-black uppercase text-[12px] tracking-[0.4em] rounded-[2rem] hover:bg-white/10 transition-all border-b-4 border-b-cyan-500 shadow-2xl overflow-hidden">
+                                    <Terminal className="w-6 h-6 text-cyan-400" />
+                                    System_Node_v9.bin
+                                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                                 </button>
-                                <div className="p-4 rounded-2xl border border-cyan-500/20 bg-cyan-500/5 text-center">
-                                    <div className="text-[10px] font-mono text-cyan-400 uppercase tracking-widest mb-1 animate-pulse">Uplink Encryption: Active</div>
-                                    <div className="flex justify-center gap-1 opacity-40">
-                                        {[1,2,3,4,5,6].map(i => <div key={i} className="w-1 h-3 bg-cyan-500 rounded-full" />)}
+                                
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="p-4 rounded-2xl bg-cyan-500/5 border border-cyan-500/20 flex items-center gap-3">
+                                        <ShieldCheck className="w-4 h-4 text-cyan-400" />
+                                        <span className="text-[9px] font-mono text-cyan-400/60 uppercase">Quantum_Encrypted</span>
                                     </div>
+                                    <div className="p-4 rounded-2xl bg-cyan-500/5 border border-cyan-500/20 flex items-center gap-3">
+                                        <Zap className="w-4 h-4 text-yellow-400" />
+                                        <span className="text-[9px] font-mono text-cyan-400/60 uppercase">Direct_Neural</span>
+                                    </div>
+                                </div>
+
+                                <div className="p-4 rounded-2xl bg-white/5 border border-white/5 text-[9px] font-mono text-center text-gray-600 tracking-[0.4em] uppercase animate-pulse">
+                                    Transmission_Protocol_Standby
                                 </div>
                             </div>
                         </div>
