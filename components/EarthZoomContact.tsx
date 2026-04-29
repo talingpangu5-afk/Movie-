@@ -1048,21 +1048,105 @@ export function EarthZoomContact() {
       }
     });
 
+    // Drone-style vertical descent
     tl.to(cameraRef.current!.position, { 
       x: targetPos.x,
       y: targetPos.y,
-      z: targetPos.z + 200, 
-      duration: 0.6 
+      z: targetPos.z + 100, 
+      duration: 1.2,
+      ease: 'power2.inOut'
     });
-    tl.to(earthRef.current!.rotation, { y: THREE.MathUtils.degToRad(-94.6), x: THREE.MathUtils.degToRad(28.4), duration: 2, ease: 'expo.inOut' }, "-=0.1");
+    
+    tl.to(earthRef.current!.rotation, { 
+      y: THREE.MathUtils.degToRad(-94.678), 
+      x: THREE.MathUtils.degToRad(28.418), 
+      duration: 3.5, 
+      ease: 'expo.inOut' 
+    }, "-=0.2");
+
     tl.to(cameraRef.current!.position, { 
       x: targetPos.x,
       y: targetPos.y,
-      z: targetPos.z + 40, 
-      duration: 2.2, 
+      z: targetPos.z + 20, 
+      duration: 3.8, 
       ease: 'expo.inOut' 
     }, "<");
   };
+
+  const [telemetry, setTelemetry] = useState({
+    altitude: 15400,
+    lat: 28.4180,
+    lng: 94.6780,
+    signal: 98,
+    latency: 14,
+    scanning: false,
+    riverLock: false
+  });
+
+  const [riverDataVisible, setRiverDataVisible] = useState(false);
+
+  const telemetryRef = useRef({
+    altitude: 15400,
+    lat: 28.4180,
+    lng: 94.6780,
+    signal: 98,
+    latency: 14,
+    scanning: false,
+    riverLock: false
+  });
+
+  useEffect(() => {
+    if (stage === 'landed') {
+      const tl = gsap.timeline();
+      
+      const updateTelemetry = () => {
+        setTelemetry({ ...telemetryRef.current });
+      };
+
+      // Initial Telemetry Start
+      telemetryRef.current.scanning = true;
+      updateTelemetry();
+
+      // Drone Descent Phase 1: High Orbit to Low Orbit
+      tl.to(telemetryRef.current, {
+        altitude: 500,
+        latency: 42,
+        signal: 85,
+        duration: 8,
+        ease: "power2.inOut",
+        onUpdate: updateTelemetry,
+      });
+
+      // Drone Descent Phase 2: Low Orbit to Drone Scan Height
+      tl.to(telemetryRef.current, {
+        altitude: 45,
+        latency: 120,
+        signal: 72,
+        duration: 10,
+        ease: "power1.inOut",
+        onUpdate: updateTelemetry,
+      });
+
+      // Pivot to Siyom River Lock
+      tl.add(() => {
+        telemetryRef.current.riverLock = true;
+        updateTelemetry();
+      });
+
+      // Pause for Siyom River Sequence (15s)
+      tl.to({}, { duration: 15, onStart: () => setRiverDataVisible(true), onComplete: () => setRiverDataVisible(false) });
+
+      // Final Descent
+      tl.to(telemetryRef.current, {
+        altitude: 12,
+        signal: 99,
+        latency: 8,
+        duration: 5,
+        ease: "power2.out",
+        onUpdate: updateTelemetry,
+      });
+    }
+  }, [stage]);
 
   const copyEmail = () => {
     navigator.clipboard.writeText('arunpangu81125@gmail.com');
@@ -1309,44 +1393,206 @@ export function EarthZoomContact() {
                 />
                 
                 <div className="absolute inset-0 pointer-events-none">
+                    {/* Deep Space / Atmospheric Fog */}
                     <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(6,182,212,0.1)_100%)] mix-blend-overlay" />
-                    <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black to-transparent" />
-                    <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black to-transparent" />
+                    <div className="absolute inset-0 bg-cyan-900/10 backdrop-blur-[1px]" />
                     
-                    {/* Scanning Bar */}
+                    {/* Dynamic Grid Overlay */}
+                    <div className="absolute inset-0 opacity-20" style={{ backgroundImage: 'radial-gradient(circle, #0891b2 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+                    <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'linear-gradient(to right, #0891b2 1px, transparent 1px), linear-gradient(to bottom, #0891b2 1px, transparent 1px)', backgroundSize: '100px 100px' }} />
+
+                    <div className="absolute inset-x-0 top-0 h-32 bg-gradient-to-b from-black via-black/40 to-transparent" />
+                    <div className="absolute inset-x-0 bottom-0 h-32 bg-gradient-to-t from-black via-black/40 to-transparent" />
+                    
+                    {/* Scanning Bar (Horizontal) */}
                     <motion.div 
                       animate={{ y: ["0%", "100%", "0%"] }}
-                      transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                      className="absolute inset-x-0 h-1 bg-cyan-500/10 shadow-[0_0_20px_rgba(34,211,238,0.3)] z-20"
-                    />
+                      transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
+                      className="absolute inset-x-0 h-1 bg-cyan-500/40 shadow-[0_0_30px_rgba(34,211,238,0.5)] z-20 flex items-center justify-center"
+                    >
+                        <div className="px-4 py-0.5 bg-cyan-500 text-[8px] font-mono text-black">SCANNING_SURFACE_GRID_0x82</div>
+                    </motion.div>
 
-                    <div className="absolute top-10 left-10 text-cyan-400 font-mono text-[10px] space-y-2 z-30">
-                        <div className="flex items-center gap-2">
-                            <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                            <span>SATELLITE_UPLINK: ACTIVE</span>
+                    {/* TOP HUD: Identity & Status */}
+                    <div className="absolute top-10 inset-x-10 flex justify-between items-start z-30">
+                        <div className="space-y-4">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-cyan-500/10 border border-cyan-500/30 rounded-lg">
+                                    <Cpu className="w-5 h-5 text-cyan-400 animate-pulse" />
+                                </div>
+                                <div>
+                                    <div className="text-white font-black text-xs uppercase tracking-[0.3em]">Authorized Access</div>
+                                    <div className="text-cyan-400 font-mono text-[10px]">USER: ARUNPANGU81125@GMAIL.COM</div>
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-4 text-cyan-400 font-mono text-[9px] uppercase">
+                                <div className="flex items-center gap-2">
+                                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                                    <span>System: Active</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <Radio className="w-3 h-3" />
+                                    <span>Mode: Live_Surveillance</span>
+                                </div>
+                            </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <Activity className="w-3 h-3 animate-spin duration-[3000ms]" />
-                            <span>SYNC_RATE: 48.2 Gbps</span>
-                        </div>
-                        <div className="border-l border-cyan-500/30 pl-3 py-1 space-y-1">
-                            <div>COORD: 28&deg;25&apos;04.7&quot;N 94&deg;40&apos;42.7&quot;E</div>
-                            <div>ALTITUDE: 15,400 KM</div>
-                            <div>RESOLUTION: 0.2m/PX</div>
-                            <div className="text-[8px] text-cyan-400/60 mt-1 animate-pulse">UPLINK_ID: arunpangu81125@gmail.com</div>
-                        </div>
-                        <div className="pt-4 flex gap-2">
-                            <div className="w-1 h-1 bg-cyan-400" />
-                            <div className="w-1 h-1 bg-cyan-400/50" />
-                            <div className="w-1 h-1 bg-cyan-400/20" />
+
+                        <div className="text-right space-y-2">
+                            <div className="text-white font-black text-[14px] uppercase tracking-widest">Satellite Uplink</div>
+                            <div className="flex flex-col gap-1 items-end">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-24 h-1 bg-white/10 rounded-full overflow-hidden">
+                                        <motion.div 
+                                          animate={{ width: ["80%", "95%", "80%"] }}
+                                          transition={{ duration: 3, repeat: Infinity }}
+                                          className="h-full bg-cyan-400" 
+                                        />
+                                    </div>
+                                    <span className="text-cyan-400 font-mono text-[10px]">SIGNAL: {Math.round(telemetry.signal)}%</span>
+                                </div>
+                                <div className="text-cyan-400/60 font-mono text-[9px]">LATENCY: {Math.round(telemetry.latency)} MS</div>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div className="absolute bottom-10 right-10 text-cyan-500/50 font-mono text-[8px] uppercase tracking-widest text-right z-30">
-                        <div className="flex flex-col gap-1">
-                            <span>NEURAL_STREAM v8.0_ALPHA</span>
-                            <span>ENCRYPTION: QUANTUM_ECC</span>
-                            <span className="text-cyan-400/80 animate-pulse">TRANSMITTING...</span>
+
+                    {/* CENTER HUD: Reticle & Scanning Markers */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <div className="relative w-64 h-64 border border-cyan-500/20 rounded-full flex items-center justify-center">
+                            <motion.div 
+                                animate={{ rotate: 360 }}
+                                transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                                className="absolute inset-0 border-t-2 border-cyan-400/40 rounded-full"
+                            />
+                            <div className="w-4 h-4 border border-cyan-400 relative">
+                                <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-0.5 h-6 bg-cyan-400/40" />
+                                <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-0.5 h-6 bg-cyan-400/40" />
+                                <div className="absolute -left-10 top-1/2 -translate-y-1/2 w-6 h-0.5 bg-cyan-400/40" />
+                                <div className="absolute -right-10 top-1/2 -translate-y-1/2 w-6 h-0.5 bg-cyan-400/40" />
+                            </div>
+                            
+                            {/* Scanning Data Corner Tags */}
+                            <div className="absolute -top-12 -left-12 text-cyan-400 font-mono text-[8px] animate-pulse">OBJ_DETECTION: 28</div>
+                            <div className="absolute -top-12 -right-12 text-cyan-400 font-mono text-[8px] animate-pulse">STRATA_LVL: 04</div>
+                            <div className="absolute -bottom-12 -left-12 text-cyan-400 font-mono text-[8px] animate-pulse">GEO_ID: SIY_SEC</div>
+                            <div className="absolute -bottom-12 -right-12 text-cyan-400 font-mono text-[8px] animate-pulse">AI_READY: 1</div>
+                        </div>
+
+                        {/* Simulated Object Bounding Boxes */}
+                        <div className="absolute inset-0">
+                             {[
+                                { t: "20%", l: "30%", w: "40px", h: "40px", label: "STRUCTURE_01" },
+                                { t: "60%", l: "70%", w: "60px", h: "30px", label: "ROAD_SEC_2" },
+                                { t: "45%", l: "15%", w: "30px", h: "50px", label: "LAND_MASS_A" },
+                                { t: "10%", l: "80%", w: "20px", h: "20px", label: "NODE_ALPHA" }
+                             ].map((box, i) => (
+                                 <motion.div
+                                    key={i}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: [0, 0.4, 0] }}
+                                    transition={{ duration: 3, repeat: Infinity, delay: i * 0.5 }}
+                                    className="absolute border border-cyan-400/50"
+                                    style={{ top: box.t, left: box.l, width: box.w, height: box.h }}
+                                 >
+                                     <div className="absolute -top-4 left-0 text-[6px] font-mono text-cyan-400 whitespace-nowrap bg-black/40 px-1">{box.label}</div>
+                                     <div className="absolute inset-0 bg-cyan-400/5" />
+                                 </motion.div>
+                             ))}
+                        </div>
+                    </div>
+
+                    {/* Siyom River Holographic Panel */}
+                    <AnimatePresence>
+                        {riverDataVisible && (
+                            <motion.div 
+                                initial={{ opacity: 0, x: 20, scale: 0.9 }}
+                                animate={{ opacity: 1, x: 0, scale: 1 }}
+                                exit={{ opacity: 0, x: -20, scale: 0.9 }}
+                                className="absolute top-1/2 right-20 -translate-y-1/2 z-50 w-72"
+                            >
+                                {/* River Scanning Particles */}
+                                <div className="absolute -left-64 top-1/2 -translate-y-1/2 w-48 h-32 pointer-events-none overflow-hidden">
+                                    {[1, 2, 3, 4, 5].map(i => (
+                                        <motion.div
+                                            key={i}
+                                            animate={{ x: [0, 200], opacity: [0, 1, 0] }}
+                                            transition={{ duration: 2, repeat: Infinity, delay: i * 0.4 }}
+                                            className="absolute h-px bg-cyan-400 w-8"
+                                            style={{ top: `${i * 20}%` }}
+                                        />
+                                    ))}
+                                </div>
+
+                                <div className="relative p-6 bg-black/60 backdrop-blur-2xl border border-cyan-500/40 rounded-2xl shadow-[0_0_50px_rgba(6,182,212,0.3)]">
+                                    <div className="absolute -top-4 -left-4 p-2 bg-cyan-500 rounded-lg">
+                                        <Droplets className="w-5 h-5 text-black" />
+                                    </div>
+                                    
+                                    <div className="text-[10px] font-mono text-cyan-500 mb-2 tracking-widest animate-pulse">PRIME_TARGET_LOCKED</div>
+                                    <h3 className="text-2xl font-black text-white mb-4 uppercase tracking-tighter">Siyom River</h3>
+                                    
+                                    <div className="space-y-4">
+                                        {[
+                                            { label: "Type", value: "Himalayan System" },
+                                            { label: "Flow", value: "Active / Stable" },
+                                            { label: "Clarity", value: "High (0.8ntu)" },
+                                            { label: "Analysis", value: "Hydrologically Normal" }
+                                        ].map((item, i) => (
+                                            <div key={i} className="border-b border-cyan-500/20 pb-2">
+                                                <div className="text-[9px] font-mono text-cyan-500/40 uppercase mb-1">{item.label}</div>
+                                                <div className="text-white font-black text-xs uppercase tracking-widest">{item.value}</div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    
+                                    <div className="mt-6 flex items-center gap-3">
+                                        <div className="w-full h-1 bg-white/5 rounded-full overflow-hidden">
+                                            <motion.div 
+                                              initial={{ width: 0 }}
+                                              animate={{ width: "100%" }}
+                                              transition={{ duration: 15, ease: "linear" }}
+                                              className="h-full bg-cyan-500" 
+                                            />
+                                        </div>
+                                        <span className="text-[8px] font-mono text-cyan-400">SYNC</span>
+                                    </div>
+                                </div>
+
+                                {/* Connector Line */}
+                                <div className="absolute right-full top-1/2 -translate-y-1/2 w-48 h-px bg-gradient-to-r from-transparent to-cyan-500/40" />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* TELEMETRY HUD: Sidebar Details */}
+                    <div className="absolute bottom-10 left-10 text-cyan-400 font-mono text-[10px] space-y-4 z-30">
+                        <div className="p-4 bg-black/40 border border-cyan-500/20 rounded-xl backdrop-blur-md">
+                            <div className="text-white font-black uppercase mb-3 flex items-center gap-2">
+                                <Search className="w-3 h-3" />
+                                Surface Scan
+                            </div>
+                            <div className="space-y-2">
+                                <div className="flex justify-between gap-10 border-b border-white/5 pb-1">
+                                    <span className="text-cyan-500/50">ALT:</span>
+                                    <span className="text-cyan-400">{Math.round(telemetry.altitude).toLocaleString()} M</span>
+                                </div>
+                                <div className="flex justify-between gap-10 border-b border-white/5 pb-1">
+                                    <span className="text-cyan-500/50">LAT:</span>
+                                    <span className="text-cyan-400">{telemetry.lat.toFixed(4)}&deg;N</span>
+                                </div>
+                                <div className="flex justify-between gap-10 border-b border-white/5 pb-1">
+                                    <span className="text-cyan-500/50">LNG:</span>
+                                    <span className="text-cyan-400">{telemetry.lng.toFixed(4)}&deg;E</span>
+                                </div>
+                                <div className="flex justify-between gap-10 border-b border-white/5 pb-1">
+                                    <span className="text-cyan-500/50">TIME:</span>
+                                    <span className="text-cyan-400">{new Date().toLocaleTimeString()}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 pl-4">
+                            <Activity className="w-4 h-4 animate-bounce text-cyan-400" />
+                            <div className="text-[9px] uppercase tracking-widest text-cyan-500/60">AI_Scanning_Sequence_0xAlpha</div>
                         </div>
                     </div>
                 </div>
