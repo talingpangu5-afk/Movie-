@@ -1422,40 +1422,79 @@ export function EarthZoomContact() {
                                 </div>
                                 <div>
                                     <div className="text-white font-black text-xs uppercase tracking-[0.3em]">Authorized Access</div>
-                                    <div className="text-cyan-400 font-mono text-[10px]">USER: ARUNPANGU81125@GMAIL.COM</div>
-                                </div>
-                            </div>
-                            <div className="flex items-center gap-4 text-cyan-400 font-mono text-[9px] uppercase">
-                                <div className="flex items-center gap-2">
-                                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-                                    <span>System: Active</span>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <Radio className="w-3 h-3" />
-                                    <span>Mode: Live_Surveillance</span>
-                                </div>
+                                <div className="text-cyan-400 font-mono text-[9px] bg-cyan-500/10 px-2 py-0.5 rounded border border-cyan-500/20">ID: ARUNPANGU81125@GMAIL.COM</div>
                             </div>
                         </div>
-
-                        <div className="text-right space-y-2">
-                            <div className="text-white font-black text-[14px] uppercase tracking-widest">Satellite Uplink</div>
-                            <div className="flex flex-col gap-1 items-end">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-24 h-1 bg-white/10 rounded-full overflow-hidden">
-                                        <motion.div 
-                                          animate={{ width: ["80%", "95%", "80%"] }}
-                                          transition={{ duration: 3, repeat: Infinity }}
-                                          className="h-full bg-cyan-400" 
-                                        />
-                                    </div>
-                                    <span className="text-cyan-400 font-mono text-[10px]">SIGNAL: {Math.round(telemetry.signal)}%</span>
-                                </div>
-                                <div className="text-cyan-400/60 font-mono text-[9px]">LATENCY: {Math.round(telemetry.latency)} MS</div>
+                        <div className="flex items-center gap-4 text-cyan-400 font-mono text-[8px] uppercase">
+                            <div className="flex items-center gap-2">
+                                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                                <span>System: Active</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <Radio className="w-2.5 h-2.5" />
+                                <span>Mode: Live_Surveillance</span>
                             </div>
                         </div>
                     </div>
 
-                    {/* CENTER HUD: Reticle & Scanning Markers */}
+                    <div className="text-right space-y-1">
+                        <div className="text-white font-black text-[12px] uppercase tracking-widest">Satellite Uplink</div>
+                        <div className="flex flex-col gap-0.5 items-end">
+                            <div className="flex items-center gap-2">
+                                <div className="w-16 h-1 bg-white/10 rounded-full overflow-hidden">
+                                    <motion.div 
+                                      animate={{ width: ["80%", "95%", "80%"] }}
+                                      transition={{ duration: 3, repeat: Infinity }}
+                                      className="h-full bg-cyan-400" 
+                                    />
+                                </div>
+                                <span className="text-cyan-400 font-mono text-[9px]">SIGNAL: {Math.round(telemetry.signal)}%</span>
+                            </div>
+                            <div className="text-cyan-400/60 font-mono text-[8px]">LATENCY: {Math.round(telemetry.latency)} MS</div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* DRONE SWARM OVERLAY (20 Realistic Drones) */}
+                <div className="absolute inset-0 pointer-events-none z-20">
+                    {Array.from({ length: 20 }).map((_, i) => (
+                        <motion.div
+                            key={i}
+                            initial={{ 
+                                x: `${Math.random() * 100}%`, 
+                                y: `${Math.random() * 100}%`,
+                                opacity: 0 
+                            }}
+                            animate={{ 
+                                x: [
+                                    `${Math.random() * 100}%`, 
+                                    `${Math.random() * 100}%`, 
+                                    `${Math.random() * 100}%`
+                                ],
+                                y: [
+                                    `${Math.random() * 100}%`, 
+                                    `${Math.random() * 100}%`, 
+                                    `${Math.random() * 100}%`
+                                ],
+                                opacity: [0, 0.4, 0]
+                            }}
+                            transition={{ 
+                                duration: 15 + Math.random() * 20, 
+                                repeat: Infinity,
+                                ease: "linear"
+                            }}
+                            className="absolute"
+                        >
+                            <div className="relative">
+                                <div className="w-4 h-4 border border-cyan-500/30 rounded-sm" />
+                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-1 bg-red-500 rounded-full animate-pulse" />
+                                <div className="absolute -top-3 left-0 text-[5px] font-mono text-cyan-400 opacity-40">DRN_{100 + i}</div>
+                            </div>
+                        </motion.div>
+                    ))}
+                </div>
+
+                {/* CENTER HUD: Reticle & Scanning Markers */}
                     <div className="absolute inset-0 flex items-center justify-center">
                         <div className="relative w-64 h-64 border border-cyan-500/20 rounded-full flex items-center justify-center">
                             <motion.div 
@@ -1646,7 +1685,10 @@ export function EarthZoomContact() {
                                     <span>Status: Synchronized</span>
                                 </div>
                             </div>
-                            <button className="px-6 py-2 bg-cyan-500 text-black font-black uppercase text-[10px] tracking-widest rounded-lg hover:bg-white transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+                            <button 
+                                onClick={copyEmail}
+                                className="px-6 py-2 bg-cyan-500 text-black font-black uppercase text-[10px] tracking-widest rounded-lg hover:bg-white transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+                            >
                                 Connect Now
                             </button>
                         </div>
@@ -1790,18 +1832,29 @@ export function EarthZoomContact() {
                             <div className="h-px w-20 bg-gradient-to-l from-transparent to-cyan-500/50" />
                         </div>
 
-                        {/* Adsterra Banner Container */}
+                        {/* Adsterra Banner Container - Realistic Integration */}
                         <div className="flex justify-center mb-10">
-                            <div className="relative w-full max-w-[728px] h-[90px] rounded-2xl overflow-hidden group cursor-pointer border-2 border-cyan-500/20 hover:border-cyan-400 transition-all">
-                                <div className="absolute inset-0 bg-cyan-400/5 group-hover:bg-cyan-400/10 transition-colors" />
+                            <div className="relative w-full max-w-[728px] h-[90px] rounded-2xl overflow-hidden group cursor-pointer border-2 border-cyan-500/30 bg-black/80 hover:border-cyan-400 transition-all shadow-[0_0_30px_rgba(6,182,212,0.1)]">
+                                <div className="absolute inset-0 bg-[linear-gradient(45deg,transparent,rgba(6,182,212,0.05),transparent)] animate-pulse" />
                                 <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                    <div className="flex items-center gap-3 text-cyan-400 font-black text-[13px] uppercase tracking-widest mb-1">
-                                        <Zap className="w-5 h-5 text-yellow-400 fill-yellow-400" />
-                                        Sponsor Uplink
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-cyan-500/20 rounded-lg">
+                                            <Activity className="w-5 h-5 text-cyan-400" />
+                                        </div>
+                                        <div className="text-left">
+                                            <div className="text-[10px] font-mono text-cyan-500/60 uppercase tracking-[0.2em]">Adsterra_Active_Node</div>
+                                            <div className="text-white font-black text-sm md:text-lg uppercase tracking-tighter">Strategic Ads Distribution v9.0</div>
+                                        </div>
                                     </div>
-                                    <div className="text-[10px] font-mono text-cyan-500/40 uppercase tracking-[0.2em]">Adsterra High-Priority Deployment 0xAlpha</div>
+                                    <div className="mt-2 flex gap-4 text-[8px] font-mono text-cyan-400/40 uppercase">
+                                        <span>Click to synchronize</span>
+                                        <span>•</span>
+                                        <span>CPM: Optimized</span>
+                                        <span>•</span>
+                                        <span>Status: Live</span>
+                                    </div>
                                 </div>
-                                <div className="absolute top-2 right-2 px-1.5 py-0.5 border border-cyan-500/30 rounded text-[8px] font-mono text-cyan-500/50">ADS</div>
+                                <div className="absolute top-2 right-2 px-1.5 py-0.5 border border-cyan-500/30 rounded text-[8px] font-mono text-cyan-500/50">ADSTERRA_UPLINK</div>
                             </div>
                         </div>
 
@@ -1809,9 +1862,9 @@ export function EarthZoomContact() {
                             <button onClick={copyEmail} className="group relative flex flex-col items-center justify-center gap-2 py-8 px-10 bg-cyan-500 text-black font-black uppercase text-[11px] tracking-[0.2em] rounded-3xl hover:bg-white transition-all shadow-[0_0_40px_rgba(34,211,238,0.6)] overflow-hidden border-2 border-white/20">
                                 <div className="flex items-center gap-4 relative z-10">
                                     <Mail className="w-8 h-8 animate-pulse" />
-                                    <div className="text-left">
-                                        <div className="text-[10px] opacity-60 font-mono mb-1">OFFICIAL_UPLINK_PROTOCOL</div>
-                                        <span className="text-xl md:text-2xl font-black">arunpangu81125@gmail.com</span>
+                                    <div className="text-left overflow-hidden">
+                                        <div className="text-[10px] opacity-60 font-mono mb-1 truncate">OFFICIAL_UPLINK_PROTOCOL</div>
+                                        <div className="text-lg md:text-3xl font-black truncate max-w-full">ARUNPANGU81125@GMAIL.COM</div>
                                     </div>
                                 </div>
                                 <motion.div 
