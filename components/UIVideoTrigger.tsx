@@ -11,7 +11,7 @@ export function UIVideoTrigger({ onClick }: { onClick: () => void }) {
     <motion.div
       initial={{ x: 20, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
-      className="fixed right-0 bottom-32 z-[1002]"
+      className="fixed right-0 bottom-24 z-[1005]"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
