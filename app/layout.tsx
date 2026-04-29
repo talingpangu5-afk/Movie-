@@ -8,6 +8,7 @@ import { Toaster } from '@/components/ui/sonner';
 import { TouchSidebar } from '@/components/TouchSidebar';
 import { AdultTrigger } from '@/components/AdultTrigger';
 import { AIVideoProvider } from '@/components/AIVideoProvider';
+import { JarvisFooter } from '@/components/JarvisFooter';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -41,6 +42,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
           {children}
         </main>
         <Footer />
+        <JarvisFooter />
         <TouchSidebar />
         <AdultTrigger />
         <AIVideoProvider />
