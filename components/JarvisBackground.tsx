@@ -10,11 +10,14 @@ export function JarvisBackground() {
   const y2 = useTransform(scrollY, [0, 5000], [0, -1000]);
 
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
+  const [isClient, setIsClient] = useState(false);
+  
   const [dataPoints] = useState(() => 
     [...Array(20)].map(() => 
       `${Math.random() > 0.5 ? 'SYSTEM_CHECK: OK' : 'DATA_INPUT: RECEIVED'} // 0x${Math.floor(Math.random()*10000).toString(16)}`
     )
   );
+
   const [clusters] = useState(() => 
     [...Array(8)].map(() => ({
       x: Math.random() * 100 + '%',
@@ -22,6 +25,7 @@ export function JarvisBackground() {
       duration: 15 + Math.random() * 10
     }))
   );
+
   const [stars] = useState(() => 
     [...Array(50)].map(() => ({
       left: Math.random() * 100 + '%',
@@ -31,6 +35,8 @@ export function JarvisBackground() {
   );
 
   useEffect(() => {
+    const timer = setTimeout(() => setIsClient(true), 0);
+
     const handleMouseMove = (e: MouseEvent) => {
       setMousePos({
         x: (e.clientX / window.innerWidth - 0.5) * 20,
@@ -38,8 +44,13 @@ export function JarvisBackground() {
       });
     };
     window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      clearTimeout(timer);
+    };
   }, []);
+
+  if (!isClient) return null;
 
   return (
     <div 

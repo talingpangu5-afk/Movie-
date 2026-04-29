@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import Image from 'next/image';
 import * as THREE from 'three';
 import { gsap } from 'gsap';
 import { ArrowLeft, Mail, Copy, Check, MousePointer2, Radio, Terminal, ExternalLink, Zap, ShieldCheck } from 'lucide-react';
@@ -13,6 +14,7 @@ export function EarthZoomContact() {
   const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [stage, setStage] = useState<'idle' | 'zooming' | 'landed' | 'secret' | 'deepSpace' | 'starFocus' | 'sunHub'>('idle');
+  const [isSatellite, setIsSatellite] = useState(false);
   const stageRef = useRef(stage);
 
   // Cinematic timeline refs
@@ -158,6 +160,7 @@ export function EarthZoomContact() {
 
     const loader = new THREE.TextureLoader();
     const earthTexture = loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg');
+    const satelliteTexture = loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_lights_2048.png');
     const cloudTexture = loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_clouds_2048.png');
     const nightTexture = loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_lights_2048.png');
 
@@ -1030,6 +1033,19 @@ export function EarthZoomContact() {
     const targetPos = earthRef.current!.parent!.position.clone();
     
     const tl = gsap.timeline({ onComplete: () => { setStage('landed'); document.body.style.overflow = 'auto'; } });
+    
+    // Switch to satellite view mid-zoom
+    tl.to({}, { 
+      duration: 0.3, 
+      onComplete: () => {
+        setIsSatellite(true);
+        if (earthRef.current) {
+          (earthRef.current.material as THREE.MeshPhongMaterial).map = loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_lights_2048.png');
+          (earthRef.current.material as THREE.MeshPhongMaterial).needsUpdate = true;
+        }
+      }
+    });
+
     tl.to(cameraRef.current!.position, { 
       x: targetPos.x,
       y: targetPos.y,
@@ -1055,12 +1071,26 @@ export function EarthZoomContact() {
 
   const reset = () => {
     setStage('idle');
+    setIsSatellite(false);
     if (cameraRef.current) cameraRef.current.position.z = 160;
+    if (earthRef.current) {
+      const loader = new THREE.TextureLoader();
+      (earthRef.current.material as THREE.MeshPhongMaterial).map = loader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg');
+      (earthRef.current.material as THREE.MeshPhongMaterial).needsUpdate = true;
+    }
     if (sunSoundRef.current) {
       sunSoundRef.current.stop();
       sunSoundRef.current = null;
     }
   };
+
+  const locationImages = [
+    "https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=800&q=80",
+    "https://images.unsplash.com/photo-1517976487492-5750f3195933?w=800&q=80",
+    "https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?w=800&q=80",
+    "https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=800&q=80",
+    "https://images.unsplash.com/photo-1516339901600-2e1a62986307?w=800&q=80"
+  ];
 
   return (
     <div className="w-full bg-transparent pt-0 pb-5 relative z-40 overflow-hidden select-none">
@@ -1232,23 +1262,141 @@ export function EarthZoomContact() {
             initial={{ opacity: 0 }} 
             animate={{ opacity: 1 }} 
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-black flex flex-col"
+            className="fixed inset-0 z-[100] bg-[#020617] flex flex-col overflow-y-auto no-scrollbar"
           >
-            <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d11347.16!2d94.678!3d28.418!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMjjCsDI1JzA0LjciTiA5NMKwNDAnNDIuNyJF!5e1!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin&maptype=satellite"
-              className="w-full flex-1 border-none brightness-90 saturate-[1.2]"
-              title=" Kaying Village Area"
-            />
-            <div className="absolute top-6 right-6 z-30">
-              <button onClick={reset} className="bg-black/60 backdrop-blur-md border border-white/20 p-3 rounded-full text-white hover:bg-red-500 transition-all"><ArrowLeft className="w-5 h-5" /></button>
+            {/* Satellite View Header */}
+            <div className="relative h-[60vh] w-full overflow-hidden shrink-0">
+                <iframe 
+                src="https://www.google.com/maps/embed?pb=!1m17!1m12!1m3!1d11347.16!2d94.678!3d28.418!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zMjjCsDI1JzA0LjciTiA5NMKwNDAnNDIuNyJF!5e1!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin&maptype=satellite"
+                className="w-full h-full border-none brightness-75 contrast-125 saturate-[1.5]"
+                title="Satellite Feed"
+                />
+                
+                {/* HUD Overlay */}
+                <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute top-10 left-10 text-cyan-400 font-mono text-[10px] space-y-1">
+                        <div className="flex items-center gap-2">
+                            <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                            <span>SATELLITE_UPLINK: ACTIVE</span>
+                        </div>
+                        <div>COORD: 28&deg;25&apos;04.7&quot;N 94&deg;40&apos;42.7&quot;E</div>
+                        <div>ALTITUDE: 15,400 KM</div>
+                    </div>
+                    
+                    <div className="absolute bottom-10 right-10 text-cyan-500/50 font-mono text-[8px] uppercase tracking-widest text-right">
+                        Neural Stream v4.8 <br />
+                        Deep Space Encryption: AES-256
+                    </div>
+                </div>
+
+                <div className="absolute top-6 right-6 z-30">
+                    <button onClick={reset} className="bg-black/60 backdrop-blur-xl border border-cyan-500/30 p-4 rounded-2xl text-cyan-400 hover:bg-cyan-500 hover:text-black transition-all shadow-[0_0_20px_rgba(34,211,238,0.2)]">
+                        <ArrowLeft className="w-6 h-6" />
+                    </button>
+                </div>
             </div>
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-full max-w-sm px-6">
-              <div className="bg-black/80 backdrop-blur-xl border border-white/10 p-6 rounded-2xl text-center shadow-2xl">
-                <p className="text-[10px] text-cyan-400 font-black tracking-widest uppercase mb-1">Transmission Secured</p>
-                <p className="text-xl font-black text-white mb-4">arunpangu81125@gmail.com</p>
-                <button onClick={copyEmail} className="w-full flex items-center justify-center gap-2 py-3 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 text-[10px] uppercase font-black tracking-widest">{isCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />} {isCopied ? 'Copied' : 'Copy Email'}</button>
-              </div>
+
+            {/* Geo-tagging 3D Gallery */}
+            <div className="container mx-auto px-6 py-20 relative z-10">
+                <div className="mb-12 text-center">
+                    <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        whileInView={{ scale: 1, opacity: 1 }}
+                        className="inline-block px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-[10px] font-black uppercase tracking-[0.3em] mb-4"
+                    >
+                        Geo-Tagged Assets Retrieved
+                    </motion.div>
+                    <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter mb-4">
+                        Location <span className="text-cyan-400">Archives</span>
+                    </h2>
+                    <p className="text-gray-500 font-mono text-sm uppercase tracking-widest">Decrypted data from Kaying Sector 4.2</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    {locationImages.map((src, idx) => (
+                        <motion.div
+                            key={idx}
+                            initial={{ y: 50, opacity: 0, rotateY: 20 }}
+                            whileInView={{ y: 0, opacity: 1, rotateY: 0 }}
+                            transition={{ delay: idx * 0.1, type: "spring", stiffness: 100 }}
+                            whileHover={{ scale: 1.05, y: -10, rotateX: 5 }}
+                            className="relative aspect-[4/5] rounded-3xl overflow-hidden group cursor-pointer border border-white/5 bg-white/5 backdrop-blur-xl"
+                        >
+                            {/* Futuristic Frame */}
+                            <div className="absolute inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent top-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            <div className="absolute inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-cyan-400 to-transparent bottom-0 opacity-0 group-hover:opacity-100 transition-opacity" />
+                            
+                            <Image 
+                                src={src} 
+                                alt={`Geo-tag ${idx}`}
+                                fill
+                                className="object-cover opacity-80 group-hover:opacity-100 transition-all duration-700 grayscale group-hover:grayscale-0"
+                                referrerPolicy="no-referrer"
+                            />
+                            
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent" />
+                            
+                            <div className="absolute bottom-6 left-6 right-6">
+                                <div className="text-[10px] font-mono text-cyan-400 mb-1 opacity-60">REF_ID: #ASSET_00{idx + 1}</div>
+                                <div className="text-white font-black uppercase tracking-tighter group-hover:text-cyan-400 transition-colors">Neural Snapshot</div>
+                            </div>
+                            
+                            {/* Scanning Glitch Layer */}
+                            <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-0 group-hover:opacity-20">
+                                <motion.div 
+                                    animate={{ y: ["0%", "100%", "0%"] }}
+                                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                                    className="absolute inset-x-0 h-[2px] bg-cyan-400 shadow-[0_0_15px_pink]"
+                                />
+                            </div>
+                        </motion.div>
+                    ))}
+                    
+                    {/* Placeholder for more content */}
+                    <div className="md:col-span-3 h-24 flex items-center justify-center">
+                        <div className="w-full h-px bg-cyan-500/20" />
+                        <ShieldCheck className="w-8 h-8 text-cyan-500/40 mx-8" />
+                        <div className="w-full h-px bg-cyan-500/20" />
+                    </div>
+                </div>
+
+                {/* ADSTERRA BANNER PLACEMENT */}
+                <div className="mt-20 w-full max-w-4xl mx-auto">
+                    <div className="relative p-8 rounded-3xl border border-white/10 bg-white/5 backdrop-blur-2xl text-center overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,rgba(34,211,238,0.05)_0%,transparent_70%)]" />
+                        
+                        <div className="relative z-10 text-[10px] font-mono text-gray-500 uppercase tracking-[0.4em] mb-8">
+                            COMMERCIAL_DATA_SEQUENCE
+                        </div>
+
+                        {/* Adsterra Placeholder */}
+                        <div className="flex justify-center mb-8">
+                            <div className="w-full max-w-[728px] h-[90px] bg-black/40 border border-cyan-500/20 rounded-xl flex items-center justify-center group hover:border-cyan-400/50 transition-colors cursor-pointer">
+                                <div className="text-cyan-500/30 font-mono text-xs animate-pulse flex items-center gap-3">
+                                    <Zap className="w-4 h-4" />
+                                    ADSTERRA_BANNER_PL_01: SYNCING...
+                                    <ExternalLink className="w-4 h-4" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="relative z-10">
+                            <p className="text-xl font-black text-white uppercase mb-4 tracking-tighter">Support the Neural Network</p>
+                            <div className="flex flex-wrap justify-center gap-4">
+                                <button onClick={copyEmail} className="px-8 py-3 bg-cyan-500 text-black font-black uppercase text-[10px] tracking-widest rounded-xl hover:bg-white transition-all shadow-[0_0_20px_rgba(34,211,238,0.4)]">
+                                    Contact Agent
+                                </button>
+                                <button className="px-8 py-3 bg-white/5 border border-white/10 text-white font-black uppercase text-[10px] tracking-widest rounded-xl hover:bg-white/10 transition-all">
+                                    Full Portfolio
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+            
+            {/* Background Grain/Noise */}
+            <div className="fixed inset-0 pointer-events-none opacity-[0.03] z-[-1]" style={{ backgroundImage: 'url(https://grainy-gradients.vercel.app/noise.svg)' }} />
           </motion.div>
         )}
 
