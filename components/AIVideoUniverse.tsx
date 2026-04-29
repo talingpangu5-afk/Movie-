@@ -276,7 +276,8 @@ export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose:
 
         {/* MAIN VIDEO PLAYER: HOLOGRAPHIC STYLE */}
         <div className="flex-1 h-full flex flex-col gap-6 order-1 lg:order-2 overflow-hidden">
-           <div className="relative flex-1 rounded-3xl overflow-hidden bg-black/40 border-2 border-cyan-500/20 shadow-[0_0_50px_rgba(6,182,212,0.1)] group/player">
+           {activeVideo ? (
+             <div className="relative flex-1 rounded-3xl overflow-hidden bg-black/40 border-2 border-cyan-500/20 shadow-[0_0_50px_rgba(6,182,212,0.1)] group/player">
               <Image 
                 src={activeVideo.thumbnail} 
                 alt="Active Stream" 
@@ -437,10 +438,31 @@ export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose:
                     </div>
                  </div>
               </div>
-           </div>
+             </div>
+           ) : (
+             <div className="flex-1 flex flex-col items-center justify-center bg-black/40 border-2 border-dashed border-cyan-500/20 rounded-3xl">
+                <Loader2 className="w-12 h-12 text-cyan-500 animate-spin mb-4" />
+                <p className="text-xs font-mono text-cyan-500/60 uppercase tracking-widest animate-pulse">Initializing Neural Link...</p>
+             </div>
+           )}
 
            {/* BOTTOM FEATURE PANEL: VOICE & COMMANDS */}
-           <div className="h-32 flex divide-x divide-white/5 border border-white/5 bg-black/40 backdrop-blur-xl rounded-3xl overflow-hidden shrink-0">
+           <div className="flex flex-col gap-4 shrink-0">
+              {/* Adsterra Player Banner */}
+              <div className="p-3 bg-indigo-500/10 border border-indigo-500/20 rounded-2xl flex items-center justify-between group cursor-pointer hover:bg-indigo-500/20 transition-all">
+                 <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center">
+                       <Zap className="w-4 h-4 text-indigo-400" />
+                    </div>
+                    <div>
+                       <div className="text-[8px] font-mono text-indigo-400/60 uppercase">Adsterra_Link_09</div>
+                       <div className="text-[10px] font-black text-white uppercase tracking-wider">Dynamic Revenue Protocol Multi-CPM</div>
+                    </div>
+                 </div>
+                 <div className="text-[9px] font-mono text-white/40 group-hover:text-white transition-colors">ADSTERRA_NETWORK {">>" }</div>
+              </div>
+
+              <div className="h-32 flex divide-x divide-white/5 border border-white/5 bg-black/40 backdrop-blur-xl rounded-3xl overflow-hidden">
               <div className="flex-1 p-6 flex items-center gap-6">
                  <button 
                   onClick={toggleListening}
@@ -504,6 +526,7 @@ export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose:
             <ChevronRight className="w-4 h-4 text-cyan-500 group-hover:translate-x-1 transition-transform" />
          </div>
       </div>
+    </div>
     </motion.div>
   );
 }

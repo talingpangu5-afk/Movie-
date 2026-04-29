@@ -115,7 +115,7 @@ export function TouchSidebar() {
         </div>
         
         {/* Invisible Extended Trigger Area for easier swiping */}
-        <div className="absolute right-0 w-12 h-screen -z-10" />
+        <div className="absolute right-0 w-12 h-[300px] -z-10" />
       </div>
 
       <AnimatePresence>
