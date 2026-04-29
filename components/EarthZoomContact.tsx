@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import Image from 'next/image';
 import * as THREE from 'three';
 import { gsap } from 'gsap';
-import { ArrowLeft, Mail, Copy, Check, MousePointer2, Radio, Terminal, ExternalLink, Zap, ShieldCheck } from 'lucide-react';
+import { ArrowLeft, Mail, Copy, Check, MousePointer2, Radio, Terminal, ExternalLink, Zap, ShieldCheck, Droplets, LandPlot, Building2, Activity, Cpu, Globe, Search } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { SecretPlatform } from './SecretPlatform';
@@ -1320,7 +1320,77 @@ export function EarthZoomContact() {
                     <h2 className="text-4xl md:text-6xl font-black text-white uppercase tracking-tighter mb-4">
                         Location <span className="text-cyan-400">Archives</span>
                     </h2>
-                    <p className="text-gray-500 font-mono text-sm uppercase tracking-widest">Decrypted data from Kaying Sector 4.2</p>
+                                        <p className="text-gray-500 font-mono text-sm uppercase tracking-widest">Decrypted data from Kaying Sector 4.2</p>
+                </div>
+
+                {/* PROMINENT AD PLACEMENT - TOP */}
+                <div className="mb-20">
+                    <div className="relative group cursor-pointer h-24 border border-cyan-500/30 rounded-2xl bg-black/40 overflow-hidden backdrop-blur-xl transition-all hover:border-cyan-400">
+                        <div className="absolute inset-0 bg-[linear-gradient(90deg,transparent,rgba(6,182,212,0.1),transparent)] group-hover:animate-pulse" />
+                        <div className="absolute inset-x-0 h-[1px] bg-cyan-400/50 top-1/2 -translate-y-1/2 opacity-20" />
+                        <div className="absolute inset-0 flex items-center justify-between px-12">
+                            <div className="flex items-center gap-4">
+                                <div className="p-3 bg-cyan-500/10 rounded-full border border-cyan-500/20 group-hover:scale-110 transition-transform">
+                                    <Globe className="w-6 h-6 text-cyan-400 animate-pulse" />
+                                </div>
+                                <div>
+                                    <div className="text-[10px] font-mono text-cyan-500/50 uppercase tracking-[0.2em] mb-1">Global Node Ad-Uplink</div>
+                                    <div className="text-white font-black uppercase tracking-widest text-sm">Strategic Partner Deployment 042</div>
+                                </div>
+                            </div>
+                            <div className="hidden md:flex items-center gap-8 text-[11px] font-mono text-cyan-400/40 uppercase">
+                                <div className="flex flex-col">
+                                    <span>Latency: 4ms</span>
+                                    <span>Bandwidth: Unlimited</span>
+                                </div>
+                                <div className="h-10 w-px bg-cyan-500/20" />
+                                <div className="flex flex-col">
+                                    <span>Priority: High</span>
+                                    <span>Status: Synchronized</span>
+                                </div>
+                            </div>
+                            <button className="px-6 py-2 bg-cyan-500 text-black font-black uppercase text-[10px] tracking-widest rounded-lg hover:bg-white transition-all shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+                                Connect Now
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Futuristc Location Status Grid */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-20">
+                    {[
+                        { icon: Droplets, label: "H2O_ANALYSIS", value: "98.4%", color: "text-blue-400", sub: "Purity Index" },
+                        { icon: LandPlot, label: "GEO_COMPOSITION", value: "STABLE", color: "text-green-400", sub: "Mineral density high" },
+                        { icon: Building2, label: "STRUCTURAL_SYNC", value: "ACTIVE", color: "text-purple-400", sub: "14 Nodes Detected" },
+                        { icon: Activity, label: "NEURAL_FLUX", value: "OPTIMAL", color: "text-cyan-400", sub: "Syncing..." }
+                    ].map((stat, i) => (
+                        <motion.div
+                            key={i}
+                            initial={{ opacity: 0, y: 20 }}
+                            whileInView={{ opacity: 1, y: 0 }}
+                            transition={{ delay: i * 0.1 }}
+                            className="p-6 rounded-3xl border border-white/5 bg-white/5 backdrop-blur-3xl group hover:border-cyan-400/30 transition-all"
+                        >
+                            <div className="flex items-start justify-between mb-4">
+                                <div className={`p-2 rounded-xl bg-white/5 ${stat.color}`}>
+                                    <stat.icon className="w-5 h-5" />
+                                </div>
+                                <div className="text-[10px] font-mono text-gray-500 tracking-tighter">0xDBF_{i}</div>
+                            </div>
+                            <div className="text-[10px] font-mono text-gray-500 uppercase tracking-widest mb-1">{stat.label}</div>
+                            <div className={`text-2xl font-black ${stat.color} mb-1`}>{stat.value}</div>
+                            <div className="text-[10px] font-mono text-white/20 uppercase">{stat.sub}</div>
+                            
+                            <div className="mt-4 h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                                <motion.div 
+                                    initial={{ width: 0 }}
+                                    whileInView={{ width: "70%" }}
+                                    transition={{ duration: 1.5, delay: i * 0.2 }}
+                                    className={`h-full bg-current ${stat.color}`} 
+                                />
+                            </div>
+                        </motion.div>
+                    ))}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -1367,7 +1437,17 @@ export function EarthZoomContact() {
                         </motion.div>
                     ))}
                     
-                    {/* Placeholder for more content */}
+                                        {/* Placeholder for more content */}
+                    {[1, 2, 3].map((i) => (
+                        <div key={`empty-${i}`} className="relative aspect-[4/5] rounded-3xl overflow-hidden border border-white/5 bg-white/[0.02] flex items-center justify-center group flex-col gap-4">
+                            <div className="p-4 rounded-full border border-white/10 bg-white/5 opacity-20 group-hover:opacity-100 transition-opacity">
+                                <Search className="w-8 h-8 text-white" />
+                            </div>
+                            <div className="text-[10px] font-mono text-white/10 uppercase tracking-[0.4em]">Empty_Memory_Node_{i}</div>
+                            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.02)_0%,transparent_70%)]" />
+                        </div>
+                    ))}
+
                     <div className="md:col-span-3 h-24 flex items-center justify-center">
                         <div className="w-full h-px bg-cyan-500/20" />
                         <ShieldCheck className="w-8 h-8 text-cyan-500/40 mx-8" />
