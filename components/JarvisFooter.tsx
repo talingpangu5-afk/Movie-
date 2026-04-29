@@ -2,67 +2,58 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Bot, Cpu, Activity, Radio, ShieldCheck, Zap, ChevronUp, Sparkles, Mic, Terminal, Info } from 'lucide-react';
+import { Bot, Cpu, Activity, Radio, ShieldCheck, Zap, ChevronUp, Sparkles, Mic, Terminal, Info, Layout, Globe, Lock } from 'lucide-react';
 
 // --- SUB-COMPONENTS ---
 
 function VoiceWaveform() {
   return (
-    <div className="flex items-center gap-1 h-8 px-4 bg-cyan-500/5 rounded-full border border-cyan-500/20">
-      <Mic className="w-3 h-3 text-cyan-400 mr-2" />
-      {[...Array(12)].map((_, i) => (
+    <div className="flex items-center gap-1.5 h-10 px-5 bg-cyan-500/5 rounded-full border border-cyan-500/20 shadow-[0_0_15px_rgba(6,182,212,0.1)]">
+      <Mic className="w-3.5 h-3.5 text-cyan-400 mr-2" />
+      {[...Array(15)].map((_, i) => (
         <motion.div
           key={i}
-          animate={{ height: [4, (i % 3 === 0 ? 18 : 10), 4] }}
-          transition={{ duration: 0.5 + (i % 4) * 0.1, repeat: Infinity, delay: i * 0.05 }}
-          className="w-0.5 bg-cyan-400/60 rounded-full"
+          animate={{ height: [4, (i % 3 === 0 ? 20 : 12), 4] }}
+          transition={{ duration: 0.4 + (i % 5) * 0.1, repeat: Infinity, delay: i * 0.04 }}
+          className="w-1 bg-cyan-400/50 rounded-full"
         />
       ))}
-      <span className="text-[7px] font-mono text-cyan-400/40 ml-2 uppercase tracking-tighter">Voice_Protocol_Active</span>
+      <span className="text-[8px] font-black font-mono text-cyan-400/40 ml-3 uppercase tracking-[0.2em]">Live_Input</span>
     </div>
   );
 }
 
-function SystemLogs() {
-  const [logs, setLogs] = useState<string[]>([]);
-  
-  useEffect(() => {
-    const rawLogs = [
-      "DECRYPTING_PACKET_0x82",
-      "NEURAL_SYNAPSE_SYNC_100%",
-      "BYPASSING_FIREWALL_v4",
-      "OPTIMIZING_RENDER_PIPELINE",
-      "SCANNING_DEEP_NODES",
-      "ESTABLISHING_SECURE_LINK",
-      "UPLINK_ESTABLISHED_0x9A",
-      "GEO_SPATIAL_CALIBRATION",
-    ];
-    
-    // Deterministic log flow
-    const interval = setInterval(() => {
-      const timestamp = new Date().toLocaleTimeString([], { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
-      setLogs(prev => [`[${timestamp}] ${rawLogs[prev.length % rawLogs.length]}`, ...prev].slice(0, 5));
-    }, 2500);
-    
-    return () => clearInterval(interval);
-  }, []);
-
+function HolographicPanel({ title, items, side = 'left', delay = 0 }: { title: string; items: string[]; side?: 'left' | 'right'; delay?: number }) {
   return (
-    <div className="flex flex-col gap-1 w-full h-24 overflow-hidden">
-      <AnimatePresence initial={false}>
-        {logs.map((log, i) => (
-          <motion.div
-            key={`${log}-${i}`}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1 - i * 0.2, x: 0 }}
-            exit={{ opacity: 0 }}
-            className="flex items-center gap-2"
-          >
-            <span className="text-[9px] font-mono text-cyan-400/80 truncate uppercase tracking-widest">{log}</span>
-          </motion.div>
+    <motion.div
+      initial={{ opacity: 0, x: side === 'left' ? -50 : 50, rotateY: side === 'left' ? 20 : -20 }}
+      animate={{ opacity: 1, x: 0, rotateY: 0 }}
+      transition={{ duration: 0.8, delay }}
+      className={`relative w-64 p-6 bg-black/40 backdrop-blur-3xl border border-cyan-500/20 rounded-2xl shadow-2xl ${side === 'right' ? 'text-right' : ''}`}
+    >
+      {/* Decorative Corners */}
+      <div className={`absolute top-0 ${side === 'left' ? 'left-0' : 'right-0'} w-4 h-4 border-t-2 border-${side === 'left' ? 'l' : 'r'}-2 border-cyan-500/40`} />
+      <div className={`absolute bottom-0 ${side === 'left' ? 'right-0' : 'left-0'} w-4 h-4 border-b-2 border-${side === 'left' ? 'r' : 'l'}-2 border-cyan-500/20`} />
+      
+      <div className={`flex items-center gap-2 mb-4 border-b border-cyan-500/10 pb-3 ${side === 'right' ? 'flex-row-reverse' : ''}`}>
+        <div className="p-1.5 bg-cyan-500/10 rounded-lg">
+          {side === 'left' ? <Terminal className="w-3.5 h-3.5 text-cyan-400" /> : <Layout className="w-3.5 h-3.5 text-blue-400" />}
+        </div>
+        <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400/80">{title}</h4>
+      </div>
+      
+      <ul className="space-y-3">
+        {items.map((item, i) => (
+          <li key={i} className={`flex items-center gap-3 text-[9px] font-mono leading-relaxed group ${side === 'right' ? 'flex-row-reverse' : ''}`}>
+             <div className="w-1 h-1 rounded-full bg-cyan-400 group-hover:shadow-[0_0_8px_#06b6d4] transition-shadow" />
+             <span className="text-white/60 group-hover:text-cyan-400 transition-colors">{item}</span>
+          </li>
         ))}
-      </AnimatePresence>
-    </div>
+      </ul>
+
+      {/* Grid Pattern Overlay */}
+      <div className="absolute inset-0 bg-[linear-gradient(rgba(6,182,212,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(6,182,212,0.05)_1px,transparent_1px)] bg-[size:20px_20px] [mask-image:radial-gradient(ellipse_at_center,black,transparent)] pointer-events-none" />
+    </motion.div>
   );
 }
 
@@ -72,14 +63,13 @@ export function JarvisFooter() {
   const [isSwiped, setIsSwiped] = useState(false);
   const [startY, setStartY] = useState<number | null>(null);
   
-  // Stabilize values for particles using deterministic logic
-  const particles = useMemo(() => [...Array(15)].map((_, i) => ({
+  const particles = useMemo(() => [...Array(25)].map((_, i) => ({
     id: i,
-    delay: (i * 0.7) % 5,
-    duration: 3 + (i * 0.5) % 4,
-    y: -100 - (i * 15) % 200,
-    x: (i * 3) % 20 - 10,
-    marginLeft: (i - 7) * 40
+    delay: (i * 0.6) % 4,
+    duration: 2 + (i * 0.4) % 3,
+    y: -150 - (i * 12) % 250,
+    x: (i * 4) % 60 - 30,
+    marginLeft: (i - 12) * 25
   })), []);
 
   const handleTouchStart = (e: React.TouchEvent) => setStartY(e.touches[0].clientY);
@@ -87,235 +77,273 @@ export function JarvisFooter() {
     if (startY === null) return;
     const currentY = e.touches[0].clientY;
     const diffY = startY - currentY;
-    if (diffY > 50) setIsSwiped(true);
-    if (diffY < -50) setIsSwiped(false);
+    if (diffY > 40) setIsSwiped(true);
+    if (diffY < -40) setIsSwiped(false);
   };
 
   return (
     <div 
-      className="fixed bottom-0 left-0 right-0 z-[1000] flex flex-col items-center pointer-events-none"
+      className="fixed bottom-0 left-0 right-0 z-[1000] flex flex-col items-center pointer-events-none pb-8"
       onTouchStart={handleTouchStart}
       onTouchMove={handleTouchMove}
     >
-      {/* Cinematic Lighting Ambience */}
-      <div className="absolute bottom-0 w-full h-[300px] bg-[radial-gradient(circle_at_50%_100%,rgba(6,182,212,0.1)_0%,transparent_70%)] pointer-events-none" />
-      
-      {/* Floating Spark Particles */}
-      <div className="absolute inset-x-0 bottom-0 h-64 pointer-events-none overflow-hidden">
+      {/* Cinematic Lighting & Atmosphere */}
+      <div className="absolute bottom-0 w-full h-[500px] bg-[radial-gradient(circle_at_50%_100%,rgba(6,182,212,0.2)_0%,transparent_75%)] pointer-events-none" />
+
+      {/* Floating Volumetric Particles */}
+      <div className="absolute inset-x-0 bottom-0 h-[600px] pointer-events-none overflow-hidden">
         {particles.map((p) => (
           <motion.div
             key={p.id}
-            initial={{ opacity: 0, y: 100 }}
+            initial={{ opacity: 0, y: 150 }}
             animate={{ 
-              opacity: [0, 1, 0],
-              y: p.y,
+              opacity: [0, 0.6, 0],
+              y: p.y - 120,
               x: p.x
             }}
             transition={{ duration: p.duration, repeat: Infinity, delay: p.delay }}
-            className="absolute left-1/2 w-0.5 h-0.5 bg-cyan-400 rounded-full blur-[0.5px]"
+            className="absolute left-1/2 w-1 h-1 bg-cyan-400 rounded-full blur-[1px]"
             style={{ marginLeft: `${p.marginLeft}px` }}
           />
         ))}
       </div>
 
-      {/* FOOTER BAR */}
+      {/* FOOTER SWIPE BAR - Futuristic Glassmorphism */}
       <motion.div
         layout
-        initial={{ y: 100, opacity: 0 }}
+        initial={{ y: 150, opacity: 0 }}
         animate={{ y: isSwiped ? -20 : 0, opacity: 1 }}
-        transition={{ type: 'spring', damping: 20, stiffness: 100 }}
-        className="relative w-[320px] sm:w-[450px] lg:w-[650px] pointer-events-auto"
+        transition={{ type: 'spring', damping: 22, stiffness: 100 }}
+        className="relative w-[340px] sm:w-[500px] lg:w-[750px] pointer-events-auto"
       >
-        <div className={`relative h-14 sm:h-20 bg-black/60 backdrop-blur-3xl border border-white/5 rounded-[2rem] overflow-hidden flex items-center justify-center group cursor-pointer transition-all duration-700 shadow-2xl ${isSwiped ? 'shadow-[0_0_80px_rgba(6,182,212,0.2)] scale-[1.02]' : 'hover:border-cyan-500/20'}`}
-             onClick={() => setIsSwiped(!isSwiped)}
+        {/* Soft Reflection on Floor */}
+        <div className="absolute -bottom-8 left-1/2 -translate-x-1/2 w-4/5 h-12 bg-cyan-500/10 blur-[30px] rounded-full pointer-events-none" />
+
+        <div 
+          className={`relative h-16 sm:h-20 bg-black/40 backdrop-blur-[30px] border border-cyan-500/30 rounded-full overflow-hidden flex items-center justify-between px-10 sm:px-14 group cursor-pointer transition-all duration-700 shadow-2xl ${isSwiped ? 'shadow-[0_0_120px_rgba(6,182,212,0.25)] border-cyan-500/50 scale-[1.03]' : 'hover:border-cyan-400/40'}`}
+          onClick={() => setIsSwiped(!isSwiped)}
         >
-          {/* Internal Glow Streak */}
+          {/* Neon Bloom Glow */}
+          <div className="absolute inset-0 shadow-[inset_0_0_20px_rgba(6,182,212,0.2)]" />
+          <div className="absolute inset-x-16 bottom-0 h-px bg-cyan-400 shadow-[0_0_15px_#06b6d4] opacity-40" />
+
+          {/* Animated Internal Streaks */}
           <motion.div 
-            animate={{ x: ['100%', '-100%'] }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
-            className="absolute top-0 bottom-0 w-32 bg-gradient-to-r from-transparent via-cyan-400/5 to-transparent skew-x-[-30deg]"
+            animate={{ x: ['200%', '-200%'] }}
+            transition={{ duration: 6, repeat: Infinity, ease: 'linear' }}
+            className="absolute top-0 bottom-0 w-64 bg-gradient-to-r from-transparent via-cyan-400/5 to-transparent skew-x-[-35deg]"
           />
-          
-          <div className="flex items-center gap-4 lg:gap-10 z-10 px-8 w-full justify-between">
-            {/* Left Status */}
-            <div className="hidden lg:flex flex-col items-start gap-1">
-              <span className="text-[7px] font-black tracking-widest text-white/20 uppercase font-mono">SYS_CORE_v9</span>
-              <div className="flex items-center gap-1.5 px-2 py-0.5 bg-cyan-500/5 border border-cyan-500/10 rounded-full">
-                <div className="w-1 h-1 rounded-full bg-cyan-400 animate-pulse" />
-                <span className="text-[9px] font-mono text-cyan-400/80 uppercase">READY</span>
-              </div>
-            </div>
 
-            {/* Core Hub */}
-            <div className="flex items-center gap-5">
-              <div className="relative w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center">
-                <motion.div 
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
-                  className="absolute inset-0 rounded-full border border-cyan-500/20 border-dashed"
-                />
-                <motion.div 
-                   animate={{ rotate: -360 }}
-                   transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
-                   className="absolute inset-2 rounded-full border border-blue-500/40"
-                />
-                <Bot className="w-5 h-5 text-cyan-400 drop-shadow-[0_0_8px_rgba(6,182,212,0.8)]" />
-              </div>
-
-              <div className="flex flex-col items-start">
-                <h3 className="text-sm font-black tracking-[0.4em] uppercase italic text-white flex items-center gap-2">
-                  JARVIS <span className="text-cyan-500/60 font-medium">INTERFACE</span>
-                </h3>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <Activity className="w-2.5 h-2.5 text-cyan-400 animate-pulse" />
-                  <span className="text-[8px] font-mono text-white/20 uppercase tracking-[0.2em]">Neural_Net_Online</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Right Status */}
-            <div className="hidden lg:flex items-center gap-4">
-              <VoiceWaveform />
-              <div className="flex items-center gap-4 border-l border-white/5 pl-4 ml-4">
-                <ShieldCheck className="w-4 h-4 text-cyan-400/40" />
-                <Zap className="w-4 h-4 text-blue-400/40" />
-              </div>
-            </div>
+          {/* Left Arrow Indicators */}
+          <div className="flex items-center gap-1.5 text-cyan-500/20 group-hover:text-cyan-400/40 transition-colors">
+            {[...Array(3)].map((_, i) => (
+              <motion.div key={i} animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 1.5, repeat: Infinity, delay: i * 0.2 }}>
+                <ChevronUp className="w-5 h-5 -rotate-90" />
+              </motion.div>
+            ))}
           </div>
 
-          <div className="absolute inset-0 border-b-2 border-cyan-500/10 pointer-events-none" />
+          {/* Main Label */}
+          <div className="flex flex-col items-center gap-1">
+            <span className="text-[11px] font-black tracking-[0.5em] uppercase text-white/90 italic drop-shadow-md group-hover:text-cyan-400 transition-colors duration-500">
+              {isSwiped ? 'SYSTEM_COMMANDS' : 'SWIPE UP TO INTERACT'}
+            </span>
+            <div className={`w-8 h-0.5 bg-cyan-500/30 rounded-full group-hover:bg-cyan-500/60 transition-colors ${isSwiped ? 'hidden' : ''}`} />
+          </div>
+
+          {/* Right Arrow Indicators */}
+          <div className="flex items-center gap-1.5 text-cyan-500/20 group-hover:text-cyan-400/40 transition-colors">
+            {[...Array(3)].map((_, i) => (
+              <motion.div key={i} animate={{ opacity: [0.2, 1, 0.2] }} transition={{ duration: 1.5, repeat: Infinity, delay: (2 - i) * 0.2 }}>
+                <ChevronUp className="w-5 h-5 rotate-90" />
+              </motion.div>
+            ))}
+          </div>
         </div>
 
-        {/* EXPANDED INTERFACE */}
+        {/* EXPANDED INTERFACE - Ultra Realistic AI Scene */}
         <AnimatePresence>
           {isSwiped && (
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 30 }}
+              initial={{ opacity: 0, scale: 0.9, y: 80 }}
               animate={{ opacity: 1, scale: 1, y: -40 }}
-              exit={{ opacity: 0, scale: 0.95, y: 30 }}
-              className="absolute bottom-full left-1/2 -translate-x-1/2 w-[340px] sm:w-[550px] lg:w-[900px] mb-12"
+              exit={{ opacity: 0, scale: 0.9, y: 80 }}
+              transition={{ duration: 0.6, ease: "circOut" }}
+              className="absolute bottom-full left-1/2 -translate-x-1/2 w-full max-w-[1400px] mb-24 flex flex-col items-center"
             >
-              <div className="relative flex flex-col items-center">
-                
-                {/* ADVANCED ROBOTIC SVG */}
+              {/* SPEECH BUBBLE */}
+              <motion.div 
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="mb-14 px-10 py-5 bg-black/80 backdrop-blur-3xl border border-cyan-500/40 rounded-3xl relative shadow-[0_0_50px_rgba(6,182,212,0.15)]"
+              >
+                <div className="absolute -bottom-5 left-1/2 -translate-x-1/2 border-l-[12px] border-l-transparent border-r-[12px] border-r-transparent border-t-[20px] border-t-cyan-500/40" />
+                <p className="text-white text-base font-black uppercase tracking-widest italic flex items-center gap-4">
+                  <motion.div animate={{ rotate: [0, 360] }} transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}>
+                    <Sparkles className="w-5 h-5 text-cyan-400" />
+                  </motion.div>
+                  &quot;Hello, Sir. How can I assist you today?&quot;
+                </p>
+              </motion.div>
+
+              <div className="relative w-full h-[650px] flex items-center justify-center">
+                {/* HOLOGRAPHIC SOURCE PLATFORM (Circular with energy beams) */}
+                <div className="absolute bottom-10 left-1/2 -translate-x-1/2 w-96 h-96 pointer-events-none">
+                  {/* Rotating Rings */}
+                  <div className="absolute inset-0 rounded-full border border-cyan-500/20 border-dashed animate-spin-slow" />
+                  <div className="absolute inset-8 rounded-full border-2 border-cyan-400/10 animate-spin-reverse" />
+                  <div className="absolute inset-16 rounded-full border border-blue-500/30 border-t-transparent shadow-[0_0_40px_rgba(6,182,212,0.2)]" />
+                  
+                  {/* Energy Beams & Volumetric Fog */}
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-full w-2 h-[400px] bg-gradient-to-t from-cyan-400/40 via-cyan-400/10 to-transparent blur-[2px]" />
+                  <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[280px] w-80 h-[300px] bg-cyan-500/5 blur-[60px] rounded-full scale-y-150 opacity-40 mix-blend-screen" />
+                  
+                  {/* Pulse Effect */}
+                  <motion.div 
+                    animate={{ scale: [0.8, 1.2, 0.8], opacity: [0.1, 0.3, 0.1] }}
+                    transition={{ duration: 4, repeat: Infinity }}
+                    className="absolute inset-0 rounded-full bg-cyan-500/20 blur-[50px]"
+                  />
+                </div>
+
+                {/* JARVIS HUMANOID AI ROBOT (Realistic metallic figure) */}
                 <motion.div 
-                  initial={{ rotateY: 45, opacity: 0 }}
-                  animate={{ rotateY: 0, opacity: 1 }}
-                  transition={{ duration: 1.2 }}
-                  className="relative w-48 h-64 lg:w-96 lg:h-[450px] mb-12 z-20 perspective-1000"
+                  initial={{ opacity: 0, scale: 0.7 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 1.8, ease: "easeOut" }}
+                  className="relative w-80 h-[550px] z-20"
                 >
-                  <svg viewBox="0 0 100 150" className="w-full h-full drop-shadow-[0_0_50px_rgba(6,182,212,0.5)]">
+                  <svg viewBox="0 0 100 150" className="w-full h-full drop-shadow-[0_0_40px_rgba(6,182,212,0.7)]">
                     <defs>
-                      <linearGradient id="metal-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#1e293b" />
-                        <stop offset="50%" stopColor="#334155" />
-                        <stop offset="100%" stopColor="#0f172a" />
+                      <linearGradient id="body-chrome" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stopColor="#0a0f14" />
+                        <stop offset="50%" stopColor="#1e293b" />
+                        <stop offset="100%" stopColor="#020617" />
                       </linearGradient>
-                      <filter id="h-glow" x="-20%" y="-20%" width="140%" height="140%">
-                        <feGaussianBlur stdDeviation="2" result="blur" />
+                      <filter id="h-glow-strong" x="-100%" y="-100%" width="300%" height="300%">
+                        <feGaussianBlur stdDeviation="4" result="blur" />
                         <feComposite in="SourceGraphic" in2="blur" operator="over" />
                       </filter>
-                      <linearGradient id="cyber-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                        <stop offset="0%" stopColor="#06b6d4" stopOpacity="0.2" />
-                        <stop offset="50%" stopColor="#06b6d4" stopOpacity="0.8" />
-                        <stop offset="100%" stopColor="#06b6d4" stopOpacity="0.2" />
-                      </linearGradient>
+                      <radialGradient id="reactor-grad">
+                         <stop offset="0%" stopColor="#fff" />
+                         <stop offset="40%" stopColor="#22d3ee" />
+                         <stop offset="100%" stopColor="#0891b2" />
+                      </radialGradient>
                     </defs>
 
-                    {/* MECHANICAL SKELETON */}
-                    <g className="skeleton" fill="none" stroke="#2dd4bf" strokeWidth="0.2" opacity="0.3">
-                      <path d="M50,15 L50,140 M30,40 L70,40 M40,80 L60,80 M45,110 L55,110" />
+                    {/* MECHANICAL SKELETON (Subtle background details) */}
+                    <g opacity="0.15" stroke="#06b6d4" strokeWidth="0.1">
+                       <path d="M50,20 L50,135 M30,50 L70,50 M35,90 L65,90" />
+                       <circle cx="50" cy="20" r="10" fill="none" />
                     </g>
                     
-                    {/* ARMOR PLATING */}
-                    <g fill="url(#metal-grad)" stroke="#06b6d4" strokeWidth="0.3" strokeOpacity="0.4">
-                      {/* Torso Components */}
-                      <path d="M30,40 Q50,35 70,40 L75,85 Q50,90 25,85 Z" />
-                      <path d="M35,95 Q50,92 65,95 L68,130 Q50,135 32,130 Z" />
-                      {/* Shoulders */}
-                      <circle cx="28" cy="45" r="8" />
-                      <circle cx="72" cy="45" r="8" />
-                      {/* Head Piece */}
-                      <path d="M40,10 Q50,0 60,10 L62,32 Q50,38 38,32 Z" />
-                      <rect x="42" y="24" width="16" height="4" rx="1" fill="#06b6d4" fillOpacity="0.2" />
+                    {/* ARMOR PLATING (Metallic, Sleek Black) */}
+                    <g fill="url(#body-chrome)" stroke="#22d3ee" strokeWidth="0.3" strokeOpacity="0.3">
+                      {/* Torso & Abdomen */}
+                      <path d="M35,38 Q50,32 65,38 L70,80 Q50,85 30,80 Z" />
+                      <path d="M40,25 Q50,18 60,25 L63,42 Q50,48 37,42 Z" />
+                      {/* Pelvis/Leg Base */}
+                      <path d="M32,85 Q50,82 68,85 L72,120 Q50,128 28,120 Z" />
+                      {/* Shoulders (Articulated) */}
+                      <path d="M22,45 Q28,35 34,45 Z" />
+                      <path d="M66,45 Q72,35 78,45 Z" />
+                      <circle cx="28" cy="50" r="7" />
+                      <circle cx="72" cy="50" r="7" />
+                      {/* Face / Helmet (Minimalist smooth) */}
+                      <path d="M43,8 Q50,2 57,8 L60,30 Q50,36 40,30 Z" />
                     </g>
 
-                    {/* ENERGY NETWORK */}
-                    <g stroke="#22d3ee" strokeWidth="0.8" opacity="0.6" filter="url(#h-glow)">
-                      <motion.path
-                        initial={{ pathLength: 0 }}
-                        animate={{ pathLength: 1 }}
-                        transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
-                        d="M50,130 L50,90 M30,45 L40,60 M70,45 L60,60 M50,40 L50,15"
-                      />
+                    {/* LUMINOUS CIRCUIT LINES */}
+                    <g stroke="#06b6d4" strokeWidth="0.7" opacity="0.9" filter="url(#h-glow-strong)">
+                       <motion.path
+                          initial={{ pathLength: 0 }}
+                          animate={{ pathLength: 1 }}
+                          transition={{ duration: 5, repeat: Infinity, ease: 'linear' }}
+                          d="M50,80 L50,45 M35,45 L45,60 M65,45 L55,60 M40,20 L60,20 M50,10 L50,5"
+                       />
                     </g>
 
-                    {/* MAIN CORE (ARC REACTOR STYLE) */}
+                    {/* CIRCULAR ARC REACTOR CORE (The Heart) */}
                     <g cursor="pointer">
-                      <circle cx="50" cy="62" r="8" fill="#06b6d4" filter="url(#h-glow)">
-                        <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite" />
+                      <circle cx="50" cy="65" r="12" fill="none" stroke="#22d3ee" strokeWidth="0.5" strokeOpacity="0.2" />
+                      {/* Outer Ring */}
+                      <circle cx="50" cy="65" r="9" fill="none" stroke="#22d3ee" strokeWidth="1" opacity="0.6">
+                         <animate attributeName="stroke-dasharray" values="1,15;15,1;1,15" dur="3s" repeatCount="indefinite" />
                       </circle>
-                      <circle cx="50" cy="62" r="3" fill="white" />
-                      <circle cx="50" cy="62" r="14" fill="none" stroke="#06b6d4" strokeWidth="0.5" strokeOpacity="0.4" strokeDasharray="4 2">
-                        <animateTransform attributeName="transform" type="rotate" from="0 50 62" to="360 50 62" dur="3s" repeatCount="indefinite" />
+                      {/* Glowing Core */}
+                      <circle cx="50" cy="65" r="6" fill="url(#reactor-grad)" filter="url(#h-glow-strong)">
+                        <animate attributeName="opacity" values="0.4;1;0.4" dur="2s" repeatCount="indefinite" />
+                        <animate attributeName="r" values="5;7;5" dur="2s" repeatCount="indefinite" />
                       </circle>
                     </g>
 
-                    {/* VISOR LIGHT */}
-                    <line x1="45" y1="20" x2="55" y2="20" stroke="#06b6d4" strokeWidth="1.5" filter="url(#h-glow)">
-                      <animate attributeName="opacity" values="0.3;1;0.3" dur="1s" repeatCount="indefinite" />
-                    </line>
+                    {/* MINIMAL GLOWING EYES (Intelligence) */}
+                    <g filter="url(#h-glow-strong)">
+                       <line x1="46" y1="18" x2="54" y2="18" stroke="#fff" strokeWidth="1.2" strokeLinecap="round" />
+                       <line x1="46" y1="18" x2="54" y2="18" stroke="#06b6d4" strokeWidth="2.5" strokeLinecap="round" opacity="0.6">
+                         <animate attributeName="opacity" values="0.4;1;0.4" dur="1.2s" repeatCount="indefinite" />
+                       </line>
+                    </g>
                   </svg>
-                  
-                  {/* Digital Atmosphere */}
-                  <div className="absolute inset-0 bg-radial-gradient from-cyan-500/5 to-transparent pointer-events-none opacity-40 blur-3xl animate-pulse" />
+
+                  {/* Holographic Grain/Texture Overlay */}
+                  <div className="absolute inset-0 bg-scanlines mix-blend-overlay opacity-10 pointer-events-none" />
                 </motion.div>
 
-                {/* HOLOGRAPHIC TILES */}
-                <div className="absolute top-20 w-full flex justify-between px-4 lg:px-0 pointer-events-none z-30">
-                   <div className="space-y-6">
-                      <SystemPanel icon={ShieldCheck} title="FIREWALL" status="OPTIMAL" delay={0.1} />
-                      <SystemPanel icon={Radio} title="UPLINK" status="9.8 GB/S" delay={0.3} />
+                {/* HOLOGRAPHIC FLOATING PANELS */}
+                <div className="absolute inset-0 flex items-center justify-between w-full max-w-[1200px] pointer-events-none px-12 lg:px-4">
+                   <div className="space-y-12">
+                      <HolographicPanel 
+                        title="JARVIS - AI SYSTEM" 
+                        items={['SYSTEM_ONLINE', 'CORE_STABLE', 'UPLINK_v9.2', 'ENCRYPTED_LINK']} 
+                        delay={0.2}
+                      />
+                      <HolographicPanel 
+                        title="NETWORK_ACCESS" 
+                        items={['FIREWALL_OPTIMAL', 'PROTOCOLS_READY', 'BYPASS_v4_ACTIVE']} 
+                        delay={0.5}
+                      />
                    </div>
-                   <div className="space-y-6 text-right flex flex-col items-end">
-                      <SystemPanel icon={Cpu} title="PROCESSOR" status="24.2 THz" delay={0.2} flip />
-                      <SystemPanel icon={Zap} title="BATTERY" status="98.4%" delay={0.4} flip />
+
+                   <div className="space-y-12">
+                      <HolographicPanel 
+                        title="SYSTEM_COMMANDS" 
+                        items={['VOICE_CONTROL: ON', 'NETWORK: SECURE', 'SYNC_LATENCY: 2ms']} 
+                        side="right" 
+                        delay={0.3}
+                      />
+                      <HolographicPanel 
+                        title="DATA_ANALYSIS" 
+                        items={['NODES_SCANNED: 42K', 'THREAT_LEVEL: ZERO', 'CAPACITY: 100%']} 
+                        side="right" 
+                        delay={0.6}
+                      />
                    </div>
                 </div>
 
-                {/* DATA SUMMARY PANEL */}
+                {/* BOTTOM LOGS / SUMMARY */}
                 <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
+                  initial={{ opacity: 0, y: 50 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="w-full max-w-2xl bg-black/80 backdrop-blur-3xl border border-white/5 p-8 rounded-[2.5rem] shadow-[0_0_40px_rgba(0,0,0,0.8)]"
+                  transition={{ delay: 0.8 }}
+                  className="absolute bottom-10 w-full max-w-4xl flex justify-between px-16 pointer-events-none z-30"
                 >
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-                    <div className="space-y-6">
-                      <div className="flex items-center gap-3 border-b border-white/5 pb-4">
-                        <Terminal className="w-4 h-4 text-cyan-400" />
-                        <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-cyan-400">NEURAL_DECRYPT_LOGS</h4>
+                   <div className="flex items-center gap-4 bg-black/40 backdrop-blur-2xl border border-cyan-500/10 p-4 rounded-2xl w-72">
+                      <div className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_#06b6d4]" />
+                      <div className="flex flex-col">
+                         <span className="text-[8px] font-black uppercase tracking-widest text-cyan-400/60">Status_Report</span>
+                         <span className="text-[10px] font-mono text-white/80">100%_OPERATIONAL</span>
                       </div>
-                      <SystemLogs />
-                    </div>
-                    
-                    <div className="space-y-6">
-                      <div className="flex items-center gap-3 border-b border-white/5 pb-4">
-                        <Info className="w-4 h-4 text-blue-400" />
-                        <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-400">ANALYSIS_REPORT</h4>
+                   </div>
+
+                   <div className="flex items-center gap-4 bg-black/40 backdrop-blur-2xl border border-blue-500/10 p-4 rounded-2xl w-72 px-6">
+                      <Activity className="w-4 h-4 text-blue-400 animate-bounce-slow" />
+                      <div className="flex flex-col">
+                         <span className="text-[8px] font-black uppercase tracking-widest text-blue-400/60">Identity_Integrity</span>
+                         <span className="text-[10px] font-mono text-white/80">VERIFIED_SIGNATURE</span>
                       </div>
-                      <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
-                        <p className="text-[11px] font-mono text-white/50 leading-loose uppercase italic">
-                          Sentiment Layer: <span className="text-white font-bold">STABLE</span> <br />
-                          Identity Integrity: <span className="text-white font-bold">VERIFIED</span> <br />
-                          Sync Latency: <span className="text-cyan-400">2ms_SYNCED</span> <br />
-                          Current Load: <span className="text-blue-400">14.2%_IDLE</span>
-                        </p>
-                      </div>
-                      <div className="flex justify-end pr-2">
-                        <Sparkles className="w-4 h-4 text-cyan-400 opacity-20 animate-spin-slow" />
-                      </div>
-                    </div>
-                  </div>
+                   </div>
                 </motion.div>
               </div>
             </motion.div>
@@ -323,24 +351,5 @@ export function JarvisFooter() {
         </AnimatePresence>
       </motion.div>
     </div>
-  );
-}
-
-function SystemPanel({ icon: Icon, title, status, delay, flip = false }: any) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: flip ? 30 : -30 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay }}
-      className={`flex items-center gap-4 bg-black/60 backdrop-blur-2xl border border-white/5 p-4 rounded-2xl min-w-[140px] shadow-xl ${flip ? 'flex-row-reverse text-right' : ''}`}
-    >
-      <div className="p-2 bg-cyan-500/10 rounded-lg">
-        <Icon className="w-4 h-4 text-cyan-400" />
-      </div>
-      <div>
-        <div className="text-[8px] font-black uppercase tracking-widest text-white/40">{title}</div>
-        <div className="text-[10px] font-mono font-bold text-white uppercase">{status}</div>
-      </div>
-    </motion.div>
   );
 }
