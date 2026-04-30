@@ -2,12 +2,15 @@
 
 import React, { useEffect, useRef, memo } from 'react';
 
-function TradingViewWidget() {
+function TradingViewWidget({ symbol = 'BTCUSDT' }: { symbol?: string }) {
   const container = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Prevent multiple script injections
-    if (!container.current || container.current.querySelector('script')) return;
+    if (!container.current) return;
+    
+    // Clear previous if exist to force reload on symbol change
+    container.current.innerHTML = '<div class="tradingview-widget-container__widget" style="height: calc(100% - 32px); width: 100%"></div>';
 
     const script = document.createElement("script");
     script.src = "https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
@@ -15,7 +18,7 @@ function TradingViewWidget() {
     script.async = true;
     script.innerHTML = JSON.stringify({
       "autosize": true,
-      "symbol": "KUCOIN:BTCUSDT",
+      "symbol": `KUCOIN:${symbol}`,
       "interval": "D",
       "timezone": "Etc/UTC",
       "theme": "dark",
@@ -27,7 +30,7 @@ function TradingViewWidget() {
       "support_host": "https://www.tradingview.com"
     });
     container.current.appendChild(script);
-  }, []);
+  }, [symbol]);
 
   return (
     <div className="tradingview-widget-container" ref={container} style={{ height: "100%", width: "100%" }}>

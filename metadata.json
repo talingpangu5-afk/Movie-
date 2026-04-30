@@ -1,5 +1,5 @@
 {
-  "name": "Taling Pangu ",
-  "description": "A modern fintech-style SaaS platform featuring a live Mining Dashboard, movie streaming, and real-time analytics.",
+  "name": "AetherMiner Elite",
+  "description": "Futuristic mining and trading platform with KuCoin integration and APR analytics.",
   "requestFramePermissions": ["camera", "microphone"]
 }

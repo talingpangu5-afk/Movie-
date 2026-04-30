@@ -35,9 +35,39 @@
         "userId": { "type": "string" },
         "balance": { "type": "number" },
         "minedCoins": { "type": "number" },
+        "stakedAmount": { "type": "number" },
         "lastUpdated": { "type": "string", "format": "date-time" }
       },
       "required": ["userId", "balance", "minedCoins", "lastUpdated"]
+    },
+    "UserApiKey": {
+      "title": "User API Key",
+      "description": "Encrypted or stored API keys for exchanges",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "exchange": { "type": "string" },
+        "apiKey": { "type": "string" },
+        "apiSecret": { "type": "string" },
+        "passphrase": { "type": "string" },
+        "updatedAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "exchange", "apiKey", "updatedAt"]
+    },
+    "Trade": {
+      "title": "Trade",
+      "description": "Trade execution history",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "symbol": { "type": "string" },
+        "side": { "type": "string", "enum": ["buy", "sell"] },
+        "amount": { "type": "number" },
+        "price": { "type": "number" },
+        "status": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "symbol", "side", "amount", "price", "status", "timestamp"]
     }
   },
   "firestore": {
@@ -52,6 +82,14 @@
     "/wallets/{userId}": {
       "schema": "UserWallet",
       "description": "User wallet information"
+    },
+    "/apiKeys/{userId}": {
+      "schema": "UserApiKey",
+      "description": "Storage for exchange API keys"
+    },
+    "/trades/{tradeId}": {
+      "schema": "Trade",
+      "description": "Trade history"
     }
   }
 }

@@ -132,15 +132,28 @@ export class KuCoinClient {
   }
 
   /**
-   * Fetch Market Ticker for BTC-USDT
+   * Fetch All Market Tickers
    */
-  async getTicker(symbol: string = 'BTC-USDT') {
+  async getMarketAllTickers() {
     try {
-      const response = await fetch(`${this.baseUrl}/api/v1/market/orderbook/level1?symbol=${symbol}`);
-      if (!response.ok) return { data: { price: '0' } };
+      const response = await fetch(`${this.baseUrl}/api/v1/market/allTickers`);
+      if (!response.ok) return { data: { ticker: [] } };
       return await response.json();
     } catch (error) {
-      return { data: { price: '0' } };
+      return { data: { ticker: [] } };
+    }
+  }
+
+  /**
+   * Fetch All Symbols
+   */
+  async getSymbols() {
+    try {
+      const response = await fetch(`${this.baseUrl}/api/v1/symbols`);
+      if (!response.ok) return { data: [] };
+      return await response.json();
+    } catch (error) {
+      return { data: [] };
     }
   }
 }

@@ -32,6 +32,7 @@ import { BadgeDollarSign } from 'lucide-react';
 import { TestimonialsSection } from './TestimonialsSection';
 import { VideoSupportSystem } from './VideoSupportSystem';
 import { PLSimulationPanel } from './PLSimulationPanel';
+import { APIKeyModal } from './APIKeyModal';
 
 ChartJS.register(
   CategoryScale,
@@ -69,6 +70,22 @@ export function MiningDashboard({ user }: MiningDashboardProps) {
   });
   const [marketPrice, setMarketPrice] = useState<number>(8500000); // Default placeholder
   const [logs, setLogs] = useState<any[]>([]);
+  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false);
+  const [userApiKeys, setUserApiKeys] = useState<any>(null);
+  const [availableCoins, setAvailableCoins] = useState<any[]>([]);
+  const [selectedCoin, setSelectedCoin] = useState('BTC-USDT');
+
+  // Fetch all coins for selector
+  useEffect(() => {
+    const fetchCoins = async () => {
+      try {
+        const res = await fetch('/api/market');
+        const result = await res.json();
+        if (result.success) setAvailableCoins(result.data);
+      } catch (error) {}
+    };
+    fetchCoins();
+  }, []);
 
   // Fetch real market stats from secure backend
   useEffect(() => {
@@ -175,18 +192,21 @@ export function MiningDashboard({ user }: MiningDashboardProps) {
         return Math.max(30, Math.min(60, next));
       });
 
-      // Increase earnings
+      // APR System Logic
+      // 100% APR = (Balance * 1) / (365 * 24 * 3600) per second
+      // Currently using a profitFactor as a multiplier for the "APR"
       setStats(prev => {
-        // ₹10/day from ₹1000 investment
-        // ₹10 / 86400 seconds = ₹0.00011574 per second
-        const TARGET_INR_PER_SEC = 0.00011574 * miningSettings.profitFactor;
-        const BTC_EQUIVALENT = TARGET_INR_PER_SEC / marketPrice;
+        const BASE_APR = 0.15; // 15% Base APR
+        const currentAPR = BASE_APR * miningSettings.profitFactor;
+        const rewardPerSec = (prev.balance * currentAPR) / (365 * 24 * 3600);
+        
+        const BTC_EQUIVALENT = rewardPerSec / marketPrice;
         
         return {
           ...prev,
           earnings: prev.earnings + BTC_EQUIVALENT,
           minedCoins: prev.minedCoins + (BTC_EQUIVALENT / 2),
-          livePL: prev.livePL + TARGET_INR_PER_SEC
+          livePL: prev.livePL + rewardPerSec
         };
       });
 
@@ -280,6 +300,12 @@ export function MiningDashboard({ user }: MiningDashboardProps) {
     <div className="min-h-screen bg-[#0b0b0b] text-white pt-24 pb-12 px-4 md:px-8">
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-8">
         
+        <APIKeyModal 
+          isOpen={isApiKeyModalOpen} 
+          onClose={() => setIsApiKeyModalOpen(false)}
+          onSave={(keys) => setUserApiKeys(keys)}
+        />
+        
         {/* Sidebar Nav */}
         <aside className="w-full lg:w-64 flex flex-col gap-2">
           {[
@@ -328,6 +354,14 @@ export function MiningDashboard({ user }: MiningDashboardProps) {
                   </div>
                   <div className="flex-1" />
                   <div className="flex items-center gap-4">
+                    <Button 
+                      onClick={() => setIsApiKeyModalOpen(true)}
+                      variant="outline" 
+                      className="bg-white/5 border-white/10 text-[10px] font-black uppercase tracking-widest h-8 px-4 hover:bg-primary hover:text-black transition-all"
+                    >
+                      {userApiKeys ? 'API: Linked' : 'Connect API Key'}
+                    </Button>
+                    <div className="w-px h-8 bg-white/10" />
                     <div className="text-right">
                       <p className="text-[10px] uppercase tracking-widest text-white/40 font-bold">KuCoin BTC Price</p>
                       <p className="text-sm font-black text-primary tracking-tighter">
@@ -347,8 +381,8 @@ export function MiningDashboard({ user }: MiningDashboardProps) {
                 {/* Stats Row */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                   <StatCard label="Live Hashrate" value={`${currentHashrate.toFixed(2)} TH/s`} icon={Zap} color="text-cyan-400" />
-                  <StatCard label="KuCoin Status" value="Syncing" icon={Activity} color="text-green-400" pulse />
-                  <StatCard label="Daily Yield" value={`${stats.earnings.toFixed(6)} BTC`} icon={TrendingUp} color="text-yellow-400" sub="via KuCoin" />
+                  <StatCard label="Current APR" value={`${(15 * miningSettings.profitFactor).toFixed(1)}%`} icon={TrendingUp} color="text-green-400" sub="Staking" />
+                  <StatCard label="Daily Yield" value={`${stats.earnings.toFixed(6)} BTC`} icon={BarChart3} color="text-yellow-400" sub="via KuCoin" />
                   <StatCard label="Network Diff" value="Low" icon={Database} color="text-purple-400" />
                 </div>
 
@@ -463,7 +497,7 @@ export function MiningDashboard({ user }: MiningDashboardProps) {
               </motion.div>
             )}
 
-            {activeTab === 'trade' && <TradeView marketPrice={marketPrice} stats={stats} user={user} />}
+            {activeTab === 'trade' && <TradeView marketPrice={marketPrice} stats={stats} user={user} coins={availableCoins} selectedCoin={selectedCoin} setSelectedCoin={setSelectedCoin} />}
             {activeTab === 'wallet' && <WalletView stats={stats} />}
             {activeTab === 'analytics' && <AnalyticsView chartData={chartData} />}
             {activeTab === 'subscription' && <SubscriptionView user={user} settings={miningSettings} />}
@@ -476,10 +510,13 @@ export function MiningDashboard({ user }: MiningDashboardProps) {
   );
 }
 
-function TradeView({ marketPrice, stats, user }: { marketPrice: number, stats: any, user: any }) {
+function TradeView({ marketPrice, stats, user, coins, selectedCoin, setSelectedCoin }: any) {
   const [amount, setAmount] = useState<string>('');
   const [type, setType] = useState<'buy' | 'sell'>('buy');
   const [isProcessing, setIsProcessing] = useState(false);
+
+  const currentCoin = coins.find((c: any) => c.symbol === selectedCoin) || { last: marketPrice / 84, symbol: 'BTC-USDT' };
+  const currentPriceInInr = parseFloat(currentCoin.last) * 84;
 
   const handleTrade = async () => {
     if (!amount || parseFloat(amount) <= 0) return toast.error('Enter valid amount');
@@ -487,12 +524,6 @@ function TradeView({ marketPrice, stats, user }: { marketPrice: number, stats: a
     
     try {
       const token = await user?.getIdToken();
-      
-      // For KuCoin Market Orders:
-      // Side 'buy' requires 'funds' (total amount of quote currency, e.g. USDT)
-      // Side 'sell' requires 'size' (total amount of base currency, e.g. BTC)
-      
-      // Convert INR amount back to USD for the API
       const usdAmount = parseFloat(amount) / 84;
 
       const response = await fetch('/api/mining/trade', {
@@ -502,16 +533,16 @@ function TradeView({ marketPrice, stats, user }: { marketPrice: number, stats: a
           'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
-          symbol: 'BTC-USDT',
+          symbol: selectedCoin,
           side: type,
-          amount: type === 'buy' ? usdAmount : (parseFloat(amount) / marketPrice)
+          amount: type === 'buy' ? usdAmount : (parseFloat(amount) / currentPriceInInr)
         })
       });
 
       const result = await response.json();
 
       if (result.success) {
-        toast.success(`Order Processed: ${type.toUpperCase()} Success`);
+        toast.success(`${selectedCoin} ${type.toUpperCase()} Success`);
         setAmount('');
       } else {
         toast.error(`Trade Failed: ${result.error || 'Unknown Error'}`);
@@ -536,12 +567,24 @@ function TradeView({ marketPrice, stats, user }: { marketPrice: number, stats: a
                 Live Market <span className="text-primary italic">Terminal</span>
              </h3>
              <div className="flex items-center gap-2">
-                <span className="text-[10px] bg-green-500/10 text-green-400 px-3 py-1 rounded-full font-black uppercase tracking-widest border border-green-500/20">TRADINGVIEW ENGINE</span>
-                <span className="text-[10px] bg-primary/10 text-primary px-3 py-1 rounded-full font-black uppercase tracking-widest border border-primary/20">BTC/USDT</span>
+                <select 
+                  value={selectedCoin}
+                  onChange={(e) => setSelectedCoin(e.target.value)}
+                  className="bg-black/50 border border-white/10 text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full outline-none focus:ring-1 focus:ring-primary/50 cursor-pointer"
+                >
+                  {coins.length > 0 ? (
+                    coins.map((c: any) => (
+                      <option key={c.symbol} value={c.symbol}>{c.symbol}</option>
+                    ))
+                  ) : (
+                    <option>Loading Coins...</option>
+                  )}
+                </select>
+                <span className="text-[10px] bg-primary/10 text-primary px-3 py-1.5 rounded-full font-black uppercase tracking-widest border border-primary/20">SPOT</span>
              </div>
           </div>
           <div className="flex-1 w-full relative">
-             <TradingViewWidget />
+             <TradingViewWidget key={selectedCoin} symbol={selectedCoin.replace('-', '')} />
           </div>
        </div>
 
@@ -558,13 +601,13 @@ function TradeView({ marketPrice, stats, user }: { marketPrice: number, stats: a
                onClick={() => setType('buy')}
                className={`flex-1 py-4 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-500 ${type === 'buy' ? 'bg-green-500 text-black shadow-lg shadow-green-500/20' : 'text-white/40 hover:bg-white/5'}`}
              >
-               Buy BTC
+               Buy {selectedCoin.split('-')[0]}
              </button>
              <button 
                onClick={() => setType('sell')}
                className={`flex-1 py-4 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-500 ${type === 'sell' ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'text-white/40 hover:bg-white/5'}`}
              >
-               Sell BTC
+               Sell {selectedCoin.split('-')[0]}
              </button>
           </div>
 
@@ -589,8 +632,8 @@ function TradeView({ marketPrice, stats, user }: { marketPrice: number, stats: a
              <div className="space-y-4">
                 <div className="flex justify-between items-center p-4 bg-white/5 rounded-2xl border border-white/5">
                    <div className="space-y-1">
-                      <p className="text-[9px] uppercase tracking-widest text-white/40 font-bold">KuCoin Index Price</p>
-                      <p className="text-sm font-black text-white tracking-tighter">₹{marketPrice.toLocaleString()}</p>
+                      <p className="text-[9px] uppercase tracking-widest text-white/40 font-bold">{selectedCoin} Price</p>
+                      <p className="text-sm font-black text-white tracking-tighter">₹{currentPriceInInr.toLocaleString()}</p>
                    </div>
                    <TrendingUp className="w-4 h-4 text-primary opacity-20" />
                 </div>
@@ -599,7 +642,7 @@ function TradeView({ marketPrice, stats, user }: { marketPrice: number, stats: a
                    <div className="space-y-1">
                       <p className="text-[9px] uppercase tracking-widest text-white/40 font-bold">Estimated Output</p>
                       <p className={`text-sm font-black tracking-tighter ${type === 'buy' ? 'text-green-400' : 'text-red-400'}`}>
-                        {amount ? (parseFloat(amount) / marketPrice).toFixed(8) : '0.00000000'} BTC
+                        {amount ? (parseFloat(amount) / currentPriceInInr).toFixed(8) : '0.00000000'} {selectedCoin.split('-')[0]}
                       </p>
                    </div>
                    <RefreshCw className="w-4 h-4 text-white/20" />
@@ -620,7 +663,7 @@ function TradeView({ marketPrice, stats, user }: { marketPrice: number, stats: a
                     <RefreshCw className="w-4 h-4 animate-spin" />
                     Executing...
                  </div>
-               ) : `Place KuCoin ${type.toUpperCase()} Order`}
+               ) : `Place KuCoin ${selectedCoin.split('-')[0]} Order`}
              </Button>
              <p className="text-[9px] text-white/20 text-center uppercase tracking-widest font-bold">
                 Orders are routed directly to KuCoin Spot Exchange
