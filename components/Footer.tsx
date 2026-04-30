@@ -1,11 +1,16 @@
 import Link from 'next/link';
 import { Film, Youtube, Facebook, BookOpen } from 'lucide-react';
+import { FooterTrailers } from './FooterTrailers';
 
 export function Footer() {
   return (
-    <footer className="bg-secondary/30 border-t py-12 mt-20">
+    <footer className="bg-secondary/30 border-t py-12 mt-20 relative overflow-hidden">
+      {/* Background Decorative Element */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/2 pointer-events-none" />
+      
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
+          {/* ... existing columns ... */}
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-2 text-primary font-bold text-xl tracking-tighter">
               <Film className="w-6 h-6 fill-primary" />
@@ -87,6 +92,11 @@ export function Footer() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Global System Trailers Section */}
+        <div className="mt-12 pt-8 border-t border-white/5">
+           <FooterTrailers />
         </div>
         
         <div className="border-t mt-12 pt-8 text-center text-sm text-muted-foreground">
