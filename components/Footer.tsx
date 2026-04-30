@@ -1,6 +1,9 @@
+'use client';
+
 import Link from 'next/link';
 import { Film, Youtube, Facebook, BookOpen } from 'lucide-react';
 import { FooterTrailers } from './FooterTrailers';
+import { FooterSwipeBar } from './FooterSwipeBar';
 
 export function Footer() {
   return (
@@ -76,6 +79,11 @@ export function Footer() {
             {/* Neural Trailers Ingested Feed */}
             <FooterTrailers />
           </div>
+        </div>
+
+        {/* Jarvis Trigger Swipe Bar */}
+        <div className="mt-12 mb-4 border-y border-white/5 py-4">
+           <FooterSwipeBar onTrigger={() => window.dispatchEvent(new CustomEvent('open-jarvis'))} />
         </div>
         
         <div className="border-t border-white/5 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground uppercase tracking-widest font-mono">
