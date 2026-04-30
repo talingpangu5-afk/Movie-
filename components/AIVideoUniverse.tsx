@@ -7,17 +7,44 @@ import {
   Settings, Share2, Info, Sparkles, Loader2, 
   Activity, Cpu, Radio, Search, ChevronRight, 
   ChevronLeft, Monitor, Zap, ShieldCheck, 
-  Volume2, VolumeX, MessageSquare, Bot
+  Volume2, VolumeX, MessageSquare, Bot,
+  Eye, Calendar, Star, TrendingUp
 } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'sonner';
+import { tmdb } from '@/lib/tmdb';
+
+// Alien Monitor Scanline Effect
+const Scanline = () => (
+  <div className="absolute inset-0 pointer-events-none z-50">
+    <div className="absolute inset-0 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-10 bg-[length:100%_2px,3px_100%]" />
+    <motion.div 
+      animate={{ top: ['-100%', '100%'] }} 
+      transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
+      className="absolute inset-x-0 h-2 bg-cyan-400/20 blur-[10px]"
+    />
+  </div>
+);
 
 // Simulated AI Video Data with infinite generator simulation
+// Simulated AI Video Data with informative futuristic loops
+const FUTURISTIC_VIDEOS = [
+  "https://assets.mixkit.co/videos/preview/mixkit-futuristic-technology-background-with-lines-and-dots-interactive-31623-large.mp4",
+  "https://assets.mixkit.co/videos/preview/mixkit-abstract-futuristic-lines-of-light-flowing-in-dark-blue-background-31624-large.mp4",
+  "https://assets.mixkit.co/videos/preview/mixkit-glowing-digital-lines-moving-on-a-blue-background-31625-large.mp4",
+  "https://assets.mixkit.co/videos/preview/mixkit-futuristic-city-with-neon-lights-and-flying-cars-31626-large.mp4",
+  "https://assets.mixkit.co/videos/preview/mixkit-abstract-background-of-flying-digital-numbers-and-letters-31627-large.mp4",
+  "https://assets.mixkit.co/videos/preview/mixkit-connecting-network-lines-on-a-dark-blue-background-31628-large.mp4",
+  "https://assets.mixkit.co/videos/preview/mixkit-moving-digital-world-map-on-a-dark-blue-background-31629-large.mp4"
+];
+
 const generateVideos = (count: number, offset: number) => 
   Array.from({ length: count }, (_, i) => ({
     id: `ai-vid-${offset + i}`,
     title: `[NEURAL_LINK] Stream_${(Math.random() * 9999).toFixed(0)}`,
+    nodeId: Math.random().toString(16).slice(2, 8).toUpperCase(),
     thumbnail: `https://picsum.photos/seed/ai-v-${offset + i}/800/450`,
+    videoUrl: FUTURISTIC_VIDEOS[(offset + i) % FUTURISTIC_VIDEOS.length],
     duration: `${Math.floor(Math.random() * 5)}:${Math.floor(Math.random() * 50).toString().padStart(2, '0')}`,
     category: ['SYNTHETIC', 'QUANTUM_CORE', 'NEURO_NET', 'VOID_ASTRO'][Math.floor(Math.random() * 4)],
     views: `${(Math.random() * 500).toFixed(1)}K`,
@@ -27,6 +54,9 @@ const generateVideos = (count: number, offset: number) =>
 export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
   const [videos, setVideos] = useState<any[]>([]);
   const [activeVideo, setActiveVideo] = useState<any>(null);
+  const [activeTrailerKey, setActiveTrailerKey] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
+  const [loading, setLoading] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [commandText, setCommandText] = useState('');
@@ -36,10 +66,40 @@ export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose:
   const [particles, setParticles] = useState<any[]>([]);
   const [waveformIndices, setWaveformIndices] = useState<any[]>([]);
 
-  // Initialize random values on mount
+  // Fetch movies from TMDB
+  const fetchMovies = useCallback(async (pageNum: number) => {
+    setLoading(true);
+    try {
+      const data = await tmdb.getTrending(pageNum);
+      const moviesWithDetails = data.results.map((m: any) => ({
+        id: m.id,
+        title: m.title || m.name,
+        overview: m.overview,
+        thumbnail: tmdb.getImageUrl(m.backdrop_path || m.poster_path, 'w1280'),
+        poster: tmdb.getImageUrl(m.poster_path, 'w500'),
+        rating: m.vote_average.toFixed(1),
+        release: m.release_date || m.first_air_date,
+        views: `${(m.popularity / 10).toFixed(1)}K`,
+        category: 'CINEMATIC_RECON'
+      }));
+      
+      setVideos(prev => pageNum === 1 ? moviesWithDetails : [...prev, ...moviesWithDetails]);
+      
+      if (pageNum === 1 && moviesWithDetails.length > 0) {
+        setActiveVideo(moviesWithDetails[0]);
+      }
+    } catch (error) {
+      console.error("Failed to fetch movies:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setVideos(generateVideos(20, 0));
+    if (isOpen) {
+      fetchMovies(1);
+      
+      // Initialize particles
       setParticles(Array.from({ length: 30 }).map((_, i) => ({
         id: i,
         x: `${Math.random() * 100}%`,
@@ -54,47 +114,65 @@ export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose:
         maxHeight: Math.random() * 24 + 4,
         delay: i * 0.02
       })));
-    }, 0);
-    return () => clearTimeout(timer);
-  }, []);
-  
-  // Set initial active video
-  useEffect(() => {
-    if (!activeVideo && videos.length > 0) {
-      const timer = setTimeout(() => {
-        setActiveVideo(videos[0]);
-      }, 0);
-      return () => clearTimeout(timer);
     }
-  }, [videos, activeVideo]);
+  }, [isOpen, fetchMovies]);
+
+  // Fetch trailer for active video
+  useEffect(() => {
+    if (activeVideo?.id) {
+      const getTrailer = async () => {
+        const details = await tmdb.getMovieDetails(activeVideo.id);
+        const trailer = details.videos?.results?.find((v: any) => v.type === 'Trailer' && v.site === 'YouTube');
+        setActiveTrailerKey(trailer?.key || null);
+        setIsPlaying(true);
+      };
+      getTrailer();
+    }
+  }, [activeVideo]);
 
   // Subtitle Simulation
   useEffect(() => {
-    if (isPlaying) {
-      const subs = [
-        "Analyzing packet fragments...",
-        "Neural sync established at 98.4%",
-        "Decrypting visual metadata layer 4",
-        "Bio-synthetic signatures detected",
-        "Rebuilding frame buffer 0x82A",
-        "Quantum superposition resolved",
-      ];
-      const interval = setInterval(() => {
-        setSubtitle(subs[Math.floor(Math.random() * subs.length)]);
-      }, 3000);
-      return () => clearInterval(interval);
-    } else {
+    if (!isPlaying) return;
+    
+    const subs = [
+      "Analyzing packet fragments...",
+      "Neural sync established at 98.4%",
+      "Decrypting visual metadata layer 4",
+      "Bio-synthetic signatures detected",
+      "Rebuilding frame buffer 0x82A",
+      "Quantum superposition resolved",
+    ];
+    
+    const interval = setInterval(() => {
+      setSubtitle(subs[Math.floor(Math.random() * subs.length)]);
+    }, 3000);
+    
+    return () => {
+      clearInterval(interval);
       setSubtitle('');
-    }
+    };
   }, [isPlaying]);
 
   // Infinite Scroll Simulation
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const mainVideoRef = useRef<HTMLVideoElement>(null);
+  
+  useEffect(() => {
+    if (mainVideoRef.current) {
+      if (isPlaying) {
+        mainVideoRef.current.play().catch(() => {});
+      } else {
+        mainVideoRef.current.pause();
+      }
+    }
+  }, [isPlaying]);
   const handleScroll = () => {
-    if (!scrollContainerRef.current) return;
+    if (!scrollContainerRef.current || loading) return;
     const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current;
-    if (scrollTop + clientHeight >= scrollHeight - 50) {
-      setVideos(prev => [...prev, ...generateVideos(10, prev.length)]);
+    if (scrollTop + clientHeight >= scrollHeight - 300) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchMovies(nextPage);
     }
   };
 
@@ -201,107 +279,148 @@ export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose:
       >
         <div className="max-w-[1400px] mx-auto px-6 lg:px-12 py-8 space-y-12 lg:space-y-20 pb-32">
           
-          {/* HERO PLAYER SECTION */}
+          {/* HERO PLAYER SECTION (ALIEN MONITOR) */}
           {activeVideo ? (
             <motion.section 
               initial={{ y: 40, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              className="relative w-full aspect-video rounded-[24px] lg:rounded-[32px] overflow-hidden border border-white/10 shadow-[0_32px_64px_-12px_rgba(0,0,0,0.8)] bg-black group/hero"
+              className="relative w-full aspect-video rounded-[32px] overflow-hidden border-2 border-cyan-500/50 shadow-[0_0_80px_rgba(6,182,212,0.3)] bg-black group/hero"
             >
-              <Image 
-                src={activeVideo.thumbnail} 
-                alt="Active Stream" 
-                fill 
-                className={`object-cover transition-all duration-1000 ${isPlaying ? 'scale-105' : 'scale-100 blur-sm'} opacity-60`} 
-                priority
-                referrerPolicy="no-referrer"
-              />
+              <div className="absolute inset-0 pointer-events-none z-[60] border-[16px] border-black/40 ring-1 ring-cyan-500/30" />
+              {activeTrailerKey && isPlaying ? (
+                <div className="absolute inset-0 z-0 scale-105 pointer-events-none">
+                  <iframe 
+                    src={`https://www.youtube.com/embed/${activeTrailerKey}?autoplay=1&mute=${isMuted ? 1 : 0}&controls=0&modestbranding=1&loop=1&playlist=${activeTrailerKey}&rel=0`}
+                    className="w-full h-full object-cover"
+                    allow="autoplay; encrypted-media"
+                    title={activeVideo.title}
+                  />
+                  <div className="absolute inset-0 bg-cyan-900/10 mix-blend-color" />
+                </div>
+              ) : (
+                <Image 
+                  src={activeVideo.thumbnail}
+                  alt={activeVideo.title}
+                  fill
+                  className="object-cover opacity-60 grayscale scale-110"
+                  referrerPolicy="no-referrer"
+                />
+              )}
               
-              {/* Dynamic Gradient Overlays */}
-              <div className="absolute inset-0 bg-gradient-to-t from-[#0b0f1a] via-transparent to-black/40" />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#0b0f1a]/80 via-transparent to-transparent" />
-
-              <div className="absolute inset-0 flex flex-col justify-between p-6 lg:p-12">
+              {/* Alien Monitor HUD Elements */}
+              <Scanline />
+              
+              <div className="absolute inset-0 z-[10] flex flex-col justify-between p-8 pointer-events-none">
+                {/* Top Corner HUD */}
                 <div className="flex justify-between items-start">
-                   <motion.div 
-                    initial={{ x: -20, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    className="max-w-xl space-y-2 lg:space-y-4"
-                   >
-                      <div className="flex items-center gap-3">
-                         <span className="px-2 py-1 bg-red-500 text-[8px] font-black uppercase tracking-widest rounded animate-pulse text-white">LIVE</span>
-                         <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-[0.2em]">{activeVideo.category}</span>
-                      </div>
-                      <h2 className="text-2xl lg:text-5xl font-black uppercase tracking-tight leading-none italic drop-shadow-2xl">{activeVideo.title}</h2>
-                      <p className="text-white/60 text-xs lg:text-sm font-medium line-clamp-2 max-w-md hidden sm:block">{activeVideo.description}</p>
-                   </motion.div>
+                  <div className="bg-black/80 backdrop-blur-md border-l-2 border-cyan-500 p-4 rounded-r-xl space-y-1 max-w-lg">
+                    <div className="flex items-center gap-2 text-[8px] font-mono text-cyan-400">
+                      <motion.div 
+                        animate={{ opacity: [1, 0, 1] }}
+                        transition={{ duration: 0.5, repeat: Infinity }}
+                        className="w-1.5 h-1.5 rounded-full bg-cyan-500"
+                      />
+                      NEURAL_UPLINK_STABLE [0x{activeVideo.id.toString(16).toUpperCase()}]
+                    </div>
+                    <div className="text-xl lg:text-3xl font-black uppercase italic tracking-widest text-white leading-none truncate">{activeVideo.title}</div>
+                    <div className="text-[10px] font-mono text-cyan-500/40 uppercase tracking-[0.3em]">SEC_COORD: 45.92 / -122.34</div>
+                  </div>
 
-                   <div className="flex gap-4">
-                      <button onClick={() => toast.success('Link Secured')} className="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all backdrop-blur-md">
-                         <Share2 className="w-5 h-5" />
-                      </button>
-                      <button className="w-10 h-10 lg:w-12 lg:h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 transition-all backdrop-blur-md focus:outline-none">
-                         <Settings className="w-5 h-5" />
-                      </button>
-                   </div>
+                  <div className="flex flex-col items-end gap-3">
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <motion.div 
+                          key={i}
+                          animate={{ opacity: [0.2, 1, 0.2] }}
+                          transition={{ duration: 1, delay: i * 0.1, repeat: Infinity }}
+                          className="w-1 h-4 bg-cyan-500"
+                        />
+                      ))}
+                    </div>
+                    <div className="text-[10px] font-mono text-cyan-400/60 uppercase tracking-[0.4em]">DEEP_SPACE_NODE_9</div>
+                  </div>
                 </div>
 
-                <div className="space-y-4 lg:space-y-8">
-                   {/* Centered Subtitles */}
-                   <div className="flex justify-center h-12">
-                      <AnimatePresence>
-                         {subtitle && (
-                            <motion.div
-                              initial={{ opacity: 0, scale: 0.9 }}
-                              animate={{ opacity: 1, scale: 1 }}
-                              exit={{ opacity: 0, scale: 1.1 }}
-                              className="bg-black/90 backdrop-blur-2xl px-6 py-2 rounded-full border border-cyan-500/20 shadow-[0_0_20px_rgba(6,182,212,0.2)]"
-                            >
-                               <p className="text-sm lg:text-base font-black text-white tracking-tight italic">{subtitle}</p>
-                            </motion.div>
-                         )}
-                      </AnimatePresence>
+                <div className="flex justify-between items-end pb-32">
+                   <div className="bg-black/60 backdrop-blur-xl border border-cyan-500/30 p-6 rounded-2xl max-w-lg shadow-[0_0_40px_rgba(0,0,0,0.8)] relative overflow-hidden group">
+                      <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500" />
+                      <div className="flex items-center gap-4 mb-3">
+                        <div className="flex items-center gap-1.5 text-cyan-400">
+                           <TrendingUp className="w-3.5 h-3.5" />
+                           <span className="text-sm font-black tracking-tighter">{activeVideo.rating} RATING</span>
+                        </div>
+                        <div className="w-[1px] h-3 bg-cyan-500/20" />
+                        <div className="flex items-center gap-1.5 text-white/40">
+                           <Calendar className="w-3.5 h-3.5" />
+                           <span className="text-[10px] uppercase font-mono tracking-widest">{activeVideo.release}</span>
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-white/60 font-mono leading-relaxed transition-all group-hover:text-cyan-100 uppercase tracking-tight line-clamp-3">
+                        {activeVideo.overview}
+                      </p>
                    </div>
 
-                   {/* Holographic Controls Bar */}
-                   <div className="flex flex-col lg:flex-row items-center gap-4 lg:gap-8 bg-black/80 backdrop-blur-3xl border border-white/10 p-4 lg:p-6 rounded-[24px] lg:rounded-[32px]">
-                      <button 
-                        onClick={() => setIsPlaying(!isPlaying)}
-                        className="w-14 h-14 lg:w-20 lg:h-20 rounded-2xl bg-cyan-500 text-black flex items-center justify-center shadow-[0_0_40px_rgba(6,182,212,0.5)] hover:scale-105 transition-all shrink-0"
+                   <div className="flex flex-col items-center gap-4">
+                      <motion.div 
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                        className="relative w-32 h-32 flex items-center justify-center font-mono text-cyan-400/60 text-[10px] font-black"
                       >
-                         {isPlaying ? <Pause className="w-8 h-8 fill-black" /> : <Play className="w-8 h-8 fill-black translate-x-0.5" />}
-                      </button>
+                         <div className="absolute inset-0 border-2 border-cyan-500/20 rounded-full border-t-cyan-500" />
+                         <div className="absolute inset-4 border border-cyan-500/10 rounded-full border-b-cyan-400/40" />
+                         SCANNING...
+                      </motion.div>
+                   </div>
+                </div>
+              </div>
 
+
+
+
+                   {/* Alien Monitor Controls Bar */}
+                   <div className="flex flex-col lg:flex-row items-center gap-4 lg:gap-8 bg-black/80 backdrop-blur-3xl border border-cyan-500/30 p-4 lg:p-6 rounded-[24px] shadow-[0_0_50px_rgba(0,0,0,1)] hover:border-cyan-400 transition-colors pointer-events-auto">
+                      <motion.button 
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => setIsPlaying(!isPlaying)}
+                        className="w-16 h-16 lg:w-20 lg:h-20 rounded-2xl bg-cyan-500 text-black flex items-center justify-center shadow-[0_0_40px_rgba(6,182,212,0.6)] group/p shrink-0"
+                      >
+                         {isPlaying ? <Pause className="w-8 h-8 fill-black" /> : <Play className="w-8 h-8 fill-black translate-x-1" />}
+                      </motion.button>
+                      
                       <div className="flex-1 w-full space-y-4">
-                         <div className="flex justify-between items-center text-[10px] font-mono text-cyan-400 uppercase tracking-widest">
-                            <span>NEURAL_SYNC: {(progress * 0.42).toFixed(2)} GB</span>
-                            <span className="hidden sm:block text-white/40">NODE_STATUS: OPTIMIZED_Surveillance_SYNC</span>
+                         <div className="flex justify-between items-center text-[10px] font-mono text-cyan-400">
+                            <span className="flex items-center gap-2 italic font-black uppercase">
+                              <Activity className="w-3 h-3" /> BUFFER_SYNC: {progress.toFixed(1)}%
+                            </span>
+                            <span className="opacity-40 hidden sm:block">SYSTEM: J.A.R.V.I.S_V4.0</span>
                          </div>
-                         <div className="h-1.5 bg-white/5 rounded-full overflow-hidden relative">
+                         <div className="h-2 bg-white/5 rounded-full relative overflow-hidden">
                             <motion.div 
-                              className="absolute inset-y-0 left-0 bg-cyan-500 shadow-[0_0_15px_rgba(6,182,212,1)]" 
-                              animate={{ width: `${progress}%` }}
-                              transition={{ ease: "linear" }}
-                            />
+                               className="absolute inset-y-0 left-0 bg-transparent"
+                               style={{ width: `${progress}%` }}
+                            >
+                              <div className="w-full h-full bg-cyan-500 shadow-[0_0_20px_rgba(6,182,212,1)]" />
+                            </motion.div>
                          </div>
                       </div>
 
-                      <div className="flex items-center gap-6 shrink-0 w-full lg:w-auto justify-between lg:justify-start">
-                         <div className="flex items-center gap-4 text-white/60">
-                            <button onClick={() => setIsMuted(!isMuted)} className="hover:text-white transition-colors">
+                      <div className="flex items-center gap-4 lg:gap-8 shrink-0 w-full lg:w-auto justify-between lg:justify-start">
+                         <div className="flex items-center gap-4 text-cyan-400/60">
+                            <button onClick={() => setIsMuted(!isMuted)} className="hover:text-cyan-400 transition-colors">
                                {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
                             </button>
                             <div className="w-20 h-1 bg-white/10 rounded-full relative overflow-hidden hidden sm:block">
-                               <div className="absolute inset-y-0 left-0 bg-white w-[80%]" />
+                               <div className="absolute inset-y-0 left-0 bg-cyan-500 w-[80%]" />
                             </div>
                          </div>
                          <div className="flex gap-4">
-                            <button className="p-3 bg-white/5 rounded-xl text-white/60 hover:text-cyan-400 border border-white/5">
-                               <Maximize2 className="w-5 h-5" />
-                            </button>
-                            <button className="hidden sm:flex items-center gap-3 px-6 py-3 bg-cyan-500/10 border border-cyan-500/30 rounded-xl hover:bg-cyan-500 hover:text-black transition-all">
-                               <Bot className="w-5 h-5" />
-                               <span className="text-[10px] font-black uppercase tracking-widest">Connect AI</span>
+                            <button 
+                              onClick={() => toast.success('Targeting Data Exported')}
+                              className="flex items-center gap-3 px-6 py-3 bg-cyan-500/10 border border-cyan-500/30 rounded-xl hover:bg-cyan-500 hover:text-black transition-all group/b"
+                            >
+                               <ShieldCheck className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                               <span className="text-[10px] font-black uppercase tracking-widest leading-none">Export Stats</span>
                             </button>
                          </div>
                       </div>
@@ -340,53 +459,52 @@ export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose:
               {videos.map((video) => (
                 <motion.div
                   key={video.id}
-                  whileHover={{ y: -10, scale: 1.02 }}
+                  whileHover={{ y: -10 }}
                   onClick={() => {
                     setActiveVideo(video);
-                    setIsPlaying(true);
                     scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
                   }}
                   className="group relative cursor-pointer"
                 >
-                  {/* Premium OTT-Style Card */}
-                  <div className="relative aspect-video rounded-2xl overflow-hidden shadow-[0_12px_40px_rgba(0,0,0,0.6)] border border-white/5 transition-all duration-500 group-hover:shadow-[0_0_40px_rgba(6,182,212,0.25)] group-hover:border-cyan-500/40 bg-black/40">
+                  <div className="relative aspect-video rounded-2xl overflow-hidden shadow-[0_12px_40px_rgba(0,0,0,0.6)] border border-cyan-500/20 transition-all duration-500 group-hover:shadow-[0_0_40px_rgba(6,182,212,0.4)] group-hover:border-cyan-400 bg-black/40">
                     <Image 
                       src={video.thumbnail} 
                       alt={video.title} 
                       fill 
-                      className="object-cover transition-transform duration-700 group-hover:scale-110" 
+                      className="object-cover transition-transform duration-700 group-hover:scale-110 opacity-70 group-hover:opacity-100" 
                       referrerPolicy="no-referrer"
                     />
                     
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent group-hover:via-cyan-500/5 transition-colors" />
                     
-                    {/* Hover Play Glow */}
-                    <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300">
-                      <div className="w-14 h-14 rounded-full bg-cyan-500 flex items-center justify-center shadow-[0_0_20px_rgba(6,182,212,0.8)] scale-75 group-hover:scale-100 transition-transform">
-                         <Play className="w-6 h-6 text-black fill-black" />
+                    {/* Neural Scan Line (Futuristic Effect) */}
+                    <div className="absolute top-2 left-2 z-20 flex gap-2">
+                      <div className="px-2 py-0.5 bg-black/60 rounded text-[8px] font-mono text-cyan-400 border border-cyan-500/30">
+                        HD_RECON
                       </div>
                     </div>
 
-                    <div className="absolute bottom-3 right-3 px-2 py-1 bg-black/80 backdrop-blur-md rounded-lg text-[10px] font-black font-mono border border-white/10">
-                       {video.duration}
+                    <div className="absolute bottom-3 right-3 px-2 py-1 bg-black/80 backdrop-blur-md rounded-lg text-[10px] font-black font-mono border border-white/10 text-cyan-400">
+                       {video.rating} ★
                     </div>
                   </div>
 
-                  {/* Card Metadata */}
-                  <div className="mt-5 space-y-3 px-1">
-                    <div className="flex justify-between items-start gap-4">
-                      <h4 className="text-base font-black uppercase tracking-tight text-white/90 line-clamp-1 group-hover:text-cyan-400 transition-colors italic">
-                        {video.title}
-                      </h4>
-                      <Zap className="w-4 h-4 text-cyan-500/40 shrink-0" />
-                    </div>
-                    <div className="flex items-center justify-between text-[10px] font-mono">
-                      <span className="text-cyan-500 bg-cyan-500/10 px-2 py-0.5 rounded uppercase tracking-widest">{video.category}</span>
-                      <span className="text-white/30 uppercase">{video.views} NODES</span>
+                  <div className="mt-5 space-y-2">
+                    <h4 className="text-sm font-black uppercase tracking-wide text-white/90 line-clamp-1 italic group-hover:text-cyan-400 transition-colors">
+                      {video.title}
+                    </h4>
+                    <div className="flex items-center justify-between text-[8px] font-mono text-white/40 uppercase tracking-widest">
+                      <span>{video.category}</span>
+                      <span>{video.views} NODES</span>
                     </div>
                   </div>
                 </motion.div>
               ))}
+              
+              {loading && Array.from({ length: 4 }).map((_, i) => (
+                <div key={`loader-${i}`} className="aspect-video rounded-2xl bg-white/5 animate-pulse" />
+              ))}
+            </div>
 
               {/* DYNAMIC SPONSORED GRID ITEM */}
               <motion.div 
