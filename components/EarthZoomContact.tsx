@@ -567,6 +567,86 @@ export function EarthZoomContact() {
         asteroidGroup.add(asteroid);
     }
 
+    // REALISTIC EARTH-PROXIMITY ASTEROIDS (Themed requested feature)
+    const earthAsteroidGroup = new THREE.Group();
+    scene.add(earthAsteroidGroup);
+    const earthAsteroids: { 
+      mesh: THREE.Mesh, 
+      trail: THREE.Points, 
+      speed: number, 
+      orbitRadius: number, 
+      angle: number,
+      verticalPhase: number,
+      rotSpeed: THREE.Vector3,
+      scale: number
+    }[] = [];
+
+    const createEarthAsteroid = () => {
+      const scale = 0.3 + Math.random() * 1.2;
+      // Irregular rock shape using Dodecahedron with vertex noise
+      const rockGeo = new THREE.DodecahedronGeometry(1, 1);
+      const posAttr = rockGeo.attributes.position;
+      for (let i = 0; i < posAttr.count; i++) {
+        const x = posAttr.getX(i);
+        const y = posAttr.getY(i);
+        const z = posAttr.getZ(i);
+        const noise = 1 + (Math.random() - 0.5) * 0.6;
+        posAttr.setXYZ(i, x * noise, y * noise, z * noise);
+      }
+      
+      const rockMat = new THREE.MeshPhongMaterial({ 
+        color: 0x444444,
+        emissive: 0x111111,
+        shininess: 5,
+        flatShading: true
+      });
+      const mesh = new THREE.Mesh(rockGeo, rockMat);
+      mesh.scale.set(scale, scale, scale);
+      
+      // Fire/Glow Trail - More particles for realism
+      const trailCount = 60;
+      const trailGeo = new THREE.BufferGeometry();
+      const trailPosArray = new Float32Array(trailCount * 3);
+      trailGeo.setAttribute('position', new THREE.BufferAttribute(trailPosArray, 3));
+      
+      const trailMat = new THREE.PointsMaterial({
+        size: 0.8,
+        transparent: true,
+        opacity: 0.8,
+        blending: THREE.AdditiveBlending,
+        vertexColors: true,
+      });
+      
+      // Initialize trail colors (hot to cold)
+      const colors = new Float32Array(trailCount * 3);
+      for(let i=0; i<trailCount; i++) {
+        const ratio = i / trailCount;
+        colors[i*3] = 1.0; // R
+        colors[i*3+1] = 0.6 * (1 - ratio); // G
+        colors[i*3+2] = 0.2 * (1 - ratio); // B
+      }
+      trailGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+      
+      const trail = new THREE.Points(trailGeo, trailMat);
+      earthAsteroidGroup.add(mesh);
+      earthAsteroidGroup.add(trail);
+
+      return {
+        mesh,
+        trail,
+        speed: 0.003 + Math.random() * 0.012,
+        orbitRadius: 108 + (Math.random() - 0.5) * 35,
+        angle: Math.random() * Math.PI * 2,
+        verticalPhase: Math.random() * Math.PI * 2,
+        rotSpeed: new THREE.Vector3(Math.random()*0.04, Math.random()*0.04, Math.random()*0.04),
+        scale
+      };
+    };
+
+    for(let i=0; i<15; i++) {
+      earthAsteroids.push(createEarthAsteroid());
+    }
+
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
     scene.add(ambientLight);
     const sunLight = new THREE.DirectionalLight(0xffffff, 1.2);
@@ -604,6 +684,63 @@ export function EarthZoomContact() {
 
         // Rotate Asteroid Belt
         asteroidGroup.rotation.y += 0.0003 * speedScale.current;
+
+        // Update Realistic Earth Asteroids
+        earthAsteroids.forEach((ast) => {
+          ast.angle += ast.speed * speedScale.current;
+          ast.verticalPhase += 0.01 * speedScale.current;
+          
+          const x = Math.cos(ast.angle) * ast.orbitRadius;
+          const z = Math.sin(ast.angle) * ast.orbitRadius;
+          const y = Math.sin(ast.verticalPhase) * 20;
+          
+          ast.mesh.position.set(x, y, z);
+          ast.mesh.rotation.x += ast.rotSpeed.x * speedScale.current;
+          ast.mesh.rotation.y += ast.rotSpeed.y * speedScale.current;
+          ast.mesh.rotation.z += ast.rotSpeed.z * speedScale.current;
+
+          // Trail Physics (Shift points back)
+          const positions = ast.trail.geometry.attributes.position.array as Float32Array;
+          const trailCount = 60;
+          for (let i = trailCount - 1; i > 0; i--) {
+            positions[i * 3] = positions[(i - 1) * 3];
+            positions[i * 3 + 1] = positions[(i - 1) * 3 + 1];
+            positions[i * 3 + 2] = positions[(i - 1) * 3 + 2];
+          }
+          positions[0] = x;
+          positions[1] = y;
+          positions[2] = z;
+          ast.trail.geometry.attributes.position.needsUpdate = true;
+
+          // Realistic Effect: Intense glow and size pulse when near Earth
+          const distToEarth = ast.mesh.position.distanceTo(earthGroup.position);
+          const isNearEarth = distToEarth < 25;
+          const isEnteringAtmos = distToEarth < 18;
+          
+          const mat = ast.trail.material as THREE.PointsMaterial;
+          const meshMat = ast.mesh.material as THREE.MeshPhongMaterial;
+
+          if (isEnteringAtmos) {
+            // Intense re-entry fire
+            mat.size = 4.0;
+            mat.opacity = 1.0;
+            meshMat.emissive.setHex(0xffcc00);
+            meshMat.emissiveIntensity = 4.0;
+            ast.mesh.scale.setScalar(ast.scale * (1 + Math.sin(currentTime * 0.05) * 0.2));
+          } else if (isNearEarth) {
+            mat.size = 2.0;
+            mat.opacity = 0.8;
+            meshMat.emissive.setHex(0xff5500);
+            meshMat.emissiveIntensity = 2.0;
+            ast.mesh.scale.setScalar(ast.scale);
+          } else {
+            mat.size = 0.5;
+            mat.opacity = 0.3;
+            meshMat.emissive.setHex(0x111111);
+            meshMat.emissiveIntensity = 0.5;
+            ast.mesh.scale.setScalar(ast.scale);
+          }
+        });
       }
 
       // GALAXY ANIMATION (Active during voyage)

@@ -425,8 +425,6 @@ export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose:
                          </div>
                       </div>
                    </div>
-                </div>
-              </div>
             </motion.section>
           ) : (
             <div className="aspect-video w-full rounded-[32px] bg-white/5 animate-pulse flex items-center justify-center">
@@ -522,7 +520,6 @@ export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose:
                   </button>
                 </div>
               </motion.div>
-            </div>
           </section>
         </div>
       </div>

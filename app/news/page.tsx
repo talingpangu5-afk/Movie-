@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { 
   Newspaper, 
   Globe, 
@@ -196,9 +197,10 @@ export default function NewsPage() {
                 >
                   <div className="relative h-52 overflow-hidden">
                     {article.image_url ? (
-                      <img
+                      <Image
                         src={article.image_url}
                         alt={article.title}
+                        fill
                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         referrerPolicy="no-referrer"
                         loading="lazy"

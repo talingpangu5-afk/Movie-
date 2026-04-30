@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, use } from 'react';
 import { motion } from 'motion/react';
+import Image from 'next/image';
 import { 
   ArrowLeft, 
   Calendar, 
@@ -181,9 +182,10 @@ export default function ArticlePage({ params }: { params: Promise<{ id: string }
               animate={{ opacity: 1, scale: 1 }}
               className="relative aspect-video rounded-3xl overflow-hidden border border-white/10 shadow-2xl"
             >
-              <img 
+              <Image 
                 src={article.image_url} 
                 alt={article.title}
+                fill
                 className="w-full h-full object-cover"
                 referrerPolicy="no-referrer"
               />

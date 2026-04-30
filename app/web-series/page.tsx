@@ -89,10 +89,11 @@ function MovieCard({ movie, i, isAdmin, isMovieUnlocked, setActiveVideo, setSele
 
         {/* Poster */}
         {imgSrc && (
-          <img
+          <Image
             src={imgSrc}
             alt={movie.title}
             loading="lazy"
+            fill
             className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 group-hover:scale-110 z-0 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
             referrerPolicy="no-referrer"
             onLoad={() => setIsLoading(false)}

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
 import { ShieldAlert, Play, Lock, Eye, Trash2, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -114,10 +115,12 @@ export default function AdultSection() {
                 className="group relative"
               >
                 <div className="relative aspect-[2/3] rounded-2xl overflow-hidden glass-card border border-white/5 group-hover:border-primary/50 transition-all duration-500 hover:scale-105 hover:z-10">
-                  <img 
+                  <Image 
                     src={item.image} 
                     alt={item.title}
+                    fill
                     className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity grayscale hover:grayscale-0"
+                    referrerPolicy="no-referrer"
                   />
                   
                   {/* Overlay */}
