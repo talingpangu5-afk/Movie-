@@ -223,47 +223,47 @@ export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose:
         <div className="absolute top-0 left-0 right-0 h-[800px] bg-gradient-to-b from-cyan-500/20 via-cyan-500/5 to-transparent opacity-30" />
         <div className="absolute inset-0 bg-[#060912]" />
         
-        {/* Futuristic Grid (Unique World) */}
-        <div className="absolute inset-0 opacity-20" style={{ 
+        {/* Futuristic 3D Grid */}
+        <div className="absolute inset-0 opacity-10" style={{ 
           backgroundImage: `linear-gradient(to right, #0ea5e9 1px, transparent 1px), linear-gradient(to bottom, #0ea5e9 1px, transparent 1px)`,
           backgroundSize: '100px 100px',
           perspective: '1000px',
-          transform: 'rotateX(60deg) translateY(-200px) scale(3)',
+          transform: 'rotateX(60deg) translateY(-200px) scale(2.5)',
           transformOrigin: 'top'
         }} />
 
         <div className="absolute inset-0 opacity-[0.05] mix-blend-overlay pointer-events-none bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
 
-        {/* Animated Planets/Spheres in Background */}
-        {[...Array(5)].map((_, i) => (
+        {/* Floating Background Planets */}
+        {[...Array(6)].map((_, i) => (
           <motion.div
-            key={`planet-${i}`}
+            key={`planet-bg-${i}`}
             animate={{ 
               y: [20, -20, 20],
-              x: [i * 200, i * 200 + 50, i * 200],
-              scale: [1, 1.1, 1],
-              opacity: [0.1, 0.2, 0.1]
+              x: [i * 300, i * 300 + 40, i * 300],
+              opacity: [0.1, 0.2, 0.1],
+              scale: [1, 1.1, 1]
             }}
-            transition={{ duration: 10 + i * 5, repeat: Infinity, ease: "linear" }}
-            className="absolute rounded-full blur-[60px]"
+            transition={{ duration: 15 + i * 5, repeat: Infinity, ease: "linear" }}
+            className="absolute rounded-full blur-[80px]"
             style={{
-              width: `${150 + i * 100}px`,
-              height: `${150 + i * 100}px`,
+              width: `${200 + i * 150}px`,
+              height: `${200 + i * 150}px`,
               background: i % 2 === 0 ? 'radial-gradient(circle, #0ea5e9, transparent)' : 'radial-gradient(circle, #6366f1, transparent)',
-              left: `${i * 20}%`,
+              left: `${i * 15}%`,
               top: `${Math.random() * 80}%`,
             }}
           />
         ))}
 
-        {/* Animated Particles (Avatar/Soul Effects) */}
+        {/* Animated Particles (Avatar Souls) */}
         {particles.map((p) => (
           <motion.div
             key={p.id}
             initial={{ x: p.x, y: p.y, opacity: p.opacity }}
-            animate={{ y: [null, p.yTo], opacity: [0, 1, 0] }}
+            animate={{ y: [null, p.yTo], opacity: [0, 1, 0], scale: [1, 2, 1] }}
             transition={{ duration: p.duration, repeat: Infinity, ease: "linear" }}
-            className="absolute w-1 h-1 bg-cyan-400 rounded-full blur-[1px]"
+            className="absolute w-1 h-1 bg-cyan-300 rounded-full blur-[2px] shadow-[0_0_10px_rgba(34,211,238,0.8)]"
           />
         ))}
       </div>
@@ -318,12 +318,6 @@ export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose:
               animate={{ y: 0, opacity: 1 }}
               className="relative w-full aspect-video rounded-[32px] overflow-hidden border-2 border-cyan-500/50 shadow-[0_0_80px_rgba(6,182,212,0.3)] bg-black group/hero"
             >
-              {/* Hexagonal Corner Accents */}
-              <div className="absolute top-0 left-0 w-24 h-24 border-t-4 border-l-4 border-cyan-500/60 z-[70] rounded-tl-[32px] pointer-events-none" />
-              <div className="absolute top-0 right-0 w-24 h-24 border-t-4 border-r-4 border-cyan-500/60 z-[70] rounded-tr-[32px] pointer-events-none" />
-              <div className="absolute bottom-0 left-0 w-24 h-24 border-b-4 border-l-4 border-cyan-500/60 z-[70] rounded-bl-[32px] pointer-events-none" />
-              <div className="absolute bottom-0 right-0 w-24 h-24 border-b-4 border-r-4 border-cyan-500/60 z-[70] rounded-br-[32px] pointer-events-none" />
-
               <div className="absolute inset-0 pointer-events-none z-[60] border-[16px] border-black/40 ring-1 ring-cyan-500/30" />
               {activeTrailerKey && isPlaying ? (
                 <div className="absolute inset-0 z-0 scale-105 pointer-events-none">
@@ -351,17 +345,17 @@ export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose:
               <div className="absolute inset-0 z-[10] flex flex-col justify-between p-8 pointer-events-none">
                 {/* Top Corner HUD */}
                 <div className="flex justify-between items-start">
-                  <div className="bg-black/80 backdrop-blur-md border-l-2 border-cyan-500 p-4 rounded-r-xl space-y-1 max-w-lg shadow-[0_0_40px_rgba(6,182,212,0.2)]">
+                  <div className="bg-black/80 backdrop-blur-md border-l-2 border-cyan-500 p-4 rounded-r-xl space-y-1 max-w-lg">
                     <div className="flex items-center gap-2 text-[8px] font-mono text-cyan-400">
                       <motion.div 
                         animate={{ opacity: [1, 0, 1] }}
                         transition={{ duration: 0.5, repeat: Infinity }}
-                        className="w-1.5 h-1.5 rounded-full bg-cyan-500 shadow-[0_0_8px_#06b6d4]"
+                        className="w-1.5 h-1.5 rounded-full bg-cyan-500"
                       />
-                      NEURAL_UPLINK_STABLE [0x{activeVideo.id.toString().slice(-4).toUpperCase()}]
+                      NEURAL_UPLINK_STABLE [0x{activeVideo.id.toString(16).toUpperCase()}]
                     </div>
-                    <div className="text-xl lg:text-3xl font-black uppercase italic tracking-widest text-white leading-none truncate drop-shadow-[0_0_10px_#fff]">{activeVideo.title}</div>
-                    <div className="text-[10px] font-mono text-cyan-500/40 uppercase tracking-[0.3em]">SEC_COORD: {Math.random().toFixed(2)} / {Math.random().toFixed(2)}</div>
+                    <div className="text-xl lg:text-3xl font-black uppercase italic tracking-widest text-white leading-none truncate">{activeVideo.title}</div>
+                    <div className="text-[10px] font-mono text-cyan-500/40 uppercase tracking-[0.3em]">SEC_COORD: 45.92 / -122.34</div>
                   </div>
 
                   <div className="flex flex-col items-end gap-3">
@@ -369,19 +363,19 @@ export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose:
                       {[1, 2, 3, 4, 5].map((i) => (
                         <motion.div 
                           key={i}
-                          animate={{ height: [4, 16, 4], opacity: [0.2, 1, 0.2] }}
-                          transition={{ duration: 0.5, delay: i * 0.1, repeat: Infinity }}
-                          className="w-1 h-4 bg-cyan-500 shadow-[0_0_10px_#06b6d4]"
+                          animate={{ opacity: [0.2, 1, 0.2] }}
+                          transition={{ duration: 1, delay: i * 0.1, repeat: Infinity }}
+                          className="w-1 h-4 bg-cyan-500"
                         />
                       ))}
                     </div>
-                    <div className="text-[10px] font-mono text-cyan-400/60 uppercase tracking-[0.4em] bg-black/40 px-2 py-0.5 rounded">DEEP_SPACE_NODE_9</div>
+                    <div className="text-[10px] font-mono text-cyan-400/60 uppercase tracking-[0.4em]">DEEP_SPACE_NODE_9</div>
                   </div>
                 </div>
 
                 <div className="flex justify-between items-end pb-32">
-                   <div className="bg-black/80 backdrop-blur-3xl border border-cyan-500/30 p-6 rounded-2xl max-w-lg shadow-[0_40px_80px_rgba(0,0,0,0.9)] relative overflow-hidden group">
-                      <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500 shadow-[0_0_15px_#06b6d4]" />
+                   <div className="bg-black/60 backdrop-blur-xl border border-cyan-500/30 p-6 rounded-2xl max-w-lg shadow-[0_0_40px_rgba(0,0,0,0.8)] relative overflow-hidden group">
+                      <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500" />
                       <div className="flex items-center gap-4 mb-3">
                         <div className="flex items-center gap-1.5 text-cyan-400">
                            <TrendingUp className="w-3.5 h-3.5" />
@@ -393,48 +387,20 @@ export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose:
                            <span className="text-[10px] uppercase font-mono tracking-widest">{activeVideo.release}</span>
                         </div>
                       </div>
-                      <p className="text-[11px] text-white/80 font-mono leading-relaxed transition-all group-hover:text-cyan-200 uppercase tracking-tight line-clamp-3">
+                      <p className="text-[10px] text-white/60 font-mono leading-relaxed transition-all group-hover:text-cyan-100 uppercase tracking-tight line-clamp-3">
                         {activeVideo.overview}
                       </p>
-                      
-                      {/* Subtitle Display */}
-                      <AnimatePresence>
-                        {subtitle && (
-                          <motion.div 
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0 }}
-                            className="mt-4 pt-4 border-t border-white/5 text-cyan-400 font-mono text-[9px] uppercase tracking-widest bg-cyan-500/5 px-2 py-1 rounded"
-                          >
-                             {subtitle}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
                    </div>
 
                    <div className="flex flex-col items-center gap-4">
-                      {/* Circular Gauge */}
                       <motion.div 
                         animate={{ rotate: 360 }}
-                        transition={{ duration: 12, repeat: Infinity, ease: "linear" }}
-                        className="relative w-40 h-40 flex items-center justify-center font-mono text-cyan-400/60 text-[10px] font-black"
+                        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                        className="relative w-32 h-32 flex items-center justify-center font-mono text-cyan-400/60 text-[10px] font-black"
                       >
-                         <svg className="absolute inset-0 w-full h-full -rotate-90">
-                           <circle cx="80" cy="80" r="70" className="stroke-cyan-500/10 fill-none" strokeWidth="2" />
-                           <motion.circle 
-                             cx="80" cy="80" r="70" 
-                             className="stroke-cyan-500 fill-none" 
-                             strokeWidth="4" 
-                             strokeDasharray="440"
-                             animate={{ strokeDashoffset: [440, 0, 440] }}
-                             transition={{ duration: 5, repeat: Infinity }}
-                           />
-                         </svg>
-                         <div className="absolute inset-4 border border-cyan-500/10 rounded-full border-b-cyan-400/40 animate-spin-slow" />
-                         <div className="text-center">
-                            <div className="text-cyan-400">DATA_RECON</div>
-                            <div className="text-[8px] opacity-40">NODE_7</div>
-                         </div>
+                         <div className="absolute inset-0 border-2 border-cyan-500/20 rounded-full border-t-cyan-500" />
+                         <div className="absolute inset-4 border border-cyan-500/10 rounded-full border-b-cyan-400/40" />
+                         SCANNING...
                       </motion.div>
                    </div>
                 </div>
@@ -519,13 +485,13 @@ export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose:
             </div>
 
             {/* RESPONSIVE GRID LAYOUT (Planet Unique Grid) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-12 gap-y-20">
-              {videos.map((video) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-x-16 gap-y-24 py-10">
+              {videos.map((video, idx) => (
                 <motion.div
                   key={video.id}
                   initial={{ opacity: 0, scale: 0.8 }}
                   whileInView={{ opacity: 1, scale: 1 }}
-                  whileHover={{ y: -15, scale: 1.02 }}
+                  whileHover={{ y: -15, scale: 1.05 }}
                   onClick={() => {
                     setActiveVideo(video);
                     scrollContainerRef.current?.scrollTo({ top: 0, behavior: 'smooth' });
@@ -533,66 +499,70 @@ export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose:
                   className="group relative cursor-pointer"
                 >
                   {/* Planet Item Shape */}
-                  <div className="relative aspect-square rounded-full p-2 bg-gradient-to-br from-cyan-500/20 via-transparent to-indigo-500/20 shadow-[0_0_50px_rgba(0,0,0,0.8)] transition-all duration-500 group-hover:shadow-[0_0_80px_rgba(34,211,238,0.3)]">
+                  <div className="relative aspect-square rounded-full p-3 bg-gradient-to-br from-cyan-500/20 via-transparent to-indigo-500/30 shadow-[0_0_60px_rgba(0,0,0,0.9)] transition-all duration-700 group-hover:shadow-[0_0_100px_rgba(34,211,238,0.4)]">
                     
-                    {/* Ring Effect */}
-                    <div className="absolute inset-[-10px] border border-cyan-500/10 rounded-full animate-spin-slow group-hover:border-cyan-500/40" />
-                    <div className="absolute inset-[-20px] border border-dashed border-indigo-500/5 rounded-full animate-reverse-spin-slow group-hover:border-indigo-500/20" />
+                    {/* Ring System (Saturn-like) */}
+                    <div className="absolute inset-[-15%] border border-cyan-500/30 rounded-[100%] rotateX-60 animate-spin-slow group-hover:border-cyan-400 group-hover:bg-cyan-500/5 transition-all" />
+                    <div className="absolute inset-[-25%] border border-dashed border-indigo-500/20 rounded-[100%] rotateX-45 animate-reverse-spin-slow group-hover:border-indigo-500/40" />
 
-                    <div className="relative w-full h-full rounded-full overflow-hidden border-2 border-cyan-500/30 bg-black group-hover:border-cyan-400 overflow-hidden">
+                    {/* Central Sphere */}
+                    <div className="relative w-full h-full rounded-full overflow-hidden border-2 border-cyan-500/40 bg-black group-hover:border-white transition-colors">
                       <Image 
                         src={video.thumbnail} 
                         alt={video.title} 
                         fill 
-                        className="object-cover transition-transform duration-1000 group-hover:scale-125 opacity-60 group-hover:opacity-100 grayscale-[0.5] group-hover:grayscale-0" 
+                        className="object-cover transition-transform duration-[2000ms] group-hover:scale-150 group-hover:rotate-12 opacity-60 group-hover:opacity-100" 
                         referrerPolicy="no-referrer"
                       />
                       
                       {/* Sphere Shading Overlay */}
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,transparent_0%,rgba(0,0,0,0.8)_80%)] pointer-events-none" />
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,transparent_0%,rgba(0,0,0,0.8)_95%)] pointer-events-none" />
                       
                       {/* Avatar/Viewer Sparkles (Avatar Effects) */}
                       <div className="absolute inset-0 z-20 pointer-events-none">
-                         {[...Array(3)].map((_, i) => (
+                         {[...Array(5)].map((_, i) => (
                            <motion.div 
                               key={i}
                               animate={{ 
-                                x: [Math.random() * 100, Math.random() * 100], 
-                                y: [Math.random() * 100, Math.random() * 100],
-                                opacity: [0, 1, 0]
+                                x: [Math.random() * 200 - 100, Math.random() * 200 - 100], 
+                                y: [Math.random() * 200 - 100, Math.random() * 200 - 100],
+                                opacity: [0, 1, 0],
+                                scale: [0, 1.5, 0]
                               }}
-                              transition={{ duration: 2 + Math.random() * 2, repeat: Infinity }}
-                              className="absolute w-1 h-1 bg-cyan-300 rounded-full blur-[1px]"
+                              transition={{ duration: 3 + Math.random() * 3, repeat: Infinity }}
+                              className="absolute w-1.5 h-1.5 bg-cyan-200 rounded-full blur-[2px] shadow-[0_0_8px_#fff]"
                               style={{ left: '50%', top: '50%' }}
                            />
                          ))}
                       </div>
                     </div>
 
-                    <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 z-30">
-                       <div className="px-3 py-1 bg-black/90 backdrop-blur-md rounded-full text-[10px] font-black font-mono border border-cyan-500/50 text-cyan-400 shadow-[0_0_15px_rgba(34,211,238,0.5)]">
-                          {video.rating} ★
+                    {/* Rating HUD Tag */}
+                    <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 z-30">
+                       <div className="px-4 py-1.5 bg-black/90 backdrop-blur-md rounded-full text-[10px] font-black font-mono border border-cyan-500/50 text-cyan-400 shadow-[0_0_20px_rgba(34,211,238,0.4)] whitespace-nowrap">
+                          SYS_NODE_SC: {video.rating} ★
                        </div>
                     </div>
                   </div>
 
-                  <div className="mt-8 text-center space-y-2">
+                  {/* Metadata labels */}
+                  <div className="mt-12 text-center space-y-2">
                     <div className="flex items-center justify-center gap-2 mb-1">
-                       <div className="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-pulse shadow-[0_0_10px_#0ea5e9]" />
-                       <span className="text-[8px] font-mono text-cyan-500 uppercase tracking-[0.3em] font-black">Node_{video.id.slice(-4)}</span>
+                       <motion.div 
+                         animate={{ scale: [1, 1.5, 1], opacity: [0.5, 1, 0.5] }}
+                         transition={{ duration: 2, repeat: Infinity }}
+                         className="w-2 h-2 rounded-full bg-cyan-500 shadow-[0_0_12px_#0ea5e9]" 
+                       />
+                       <span className="text-[9px] font-mono text-cyan-500 uppercase tracking-[0.4em] font-black italic">Planet_0x{idx.toString(16).toUpperCase()}</span>
                     </div>
-                    <h4 className="text-sm font-black uppercase tracking-widest text-white/90 line-clamp-1 italic group-hover:text-cyan-400 transition-colors">
+                    <h4 className="text-sm font-black uppercase tracking-[0.2em] text-white/90 line-clamp-1 italic group-hover:text-cyan-400 transition-colors drop-shadow-lg">
                       {video.title}
                     </h4>
-                    <div className="text-[7px] font-mono text-white/30 uppercase tracking-[0.4em]">
-                       DIST: {Math.floor(Math.random() * 1000)}LY // POP: {video.views}
+                    <div className="text-[8px] font-mono text-white/40 uppercase tracking-[0.5em] group-hover:text-cyan-600 transition-colors">
+                       ORBIT_V: {video.views} | DIST: {Math.floor(Math.random() * 5000)}AU
                     </div>
                   </div>
                 </motion.div>
-              ))}
-              
-              {loading && Array.from({ length: 4 }).map((_, i) => (
-                <div key={`loader-${i}`} className="aspect-video rounded-2xl bg-white/5 animate-pulse" />
               ))}
             </div>
 

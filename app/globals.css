@@ -29,6 +29,7 @@
   --input: 0 0% 15%;
   --ring: 0 72% 51%;
   --radius: 0.5rem;
+  --primary-rgb: 229, 9, 20;
 }
 
 @layer base {
@@ -244,4 +245,31 @@
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(229, 9, 20, 0.5); /* Primary color */
+}
+
+/* Utilities */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes reverse-spin-slow {
+  from { transform: rotate(360deg); }
+  to { transform: rotate(0deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 12s linear infinite;
+}
+
+.animate-reverse-spin-slow {
+  animation: reverse-spin-slow 15s linear infinite;
 }
