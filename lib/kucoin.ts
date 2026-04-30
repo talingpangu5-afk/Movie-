@@ -132,6 +132,13 @@ export class KuCoinClient {
   }
 
   /**
+   * Fetch Market Ticker for a specific symbol
+   */
+  async getTicker(symbol: string = 'BTC-USDT') {
+    return this.get(`/api/v1/market/orderbook/level1?symbol=${symbol}`);
+  }
+
+  /**
    * Fetch All Market Tickers
    */
   async getMarketAllTickers() {
