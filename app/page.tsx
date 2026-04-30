@@ -14,7 +14,6 @@ import { HologramTrailers } from '@/components/HologramTrailers';
 import { EarthZoomContact } from '@/components/EarthZoomContact';
 import { JarvisBackground } from '@/components/JarvisBackground';
 import { SciFiInteractiveLayer } from '@/components/SciFiInteractiveLayer';
-import { AlienEcosystem } from '../components/AlienEcosystem';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 300; // Refresh every 5 minutes
@@ -68,10 +67,9 @@ export default async function HomePage() {
     const heroMovies: MovieDetails[] = await tmdb.getMultipleMovieDetails(trendingMovies.map((m: Movie) => m.id));
 
     return (
-      <div className="flex flex-col pt-20 relative min-h-screen">
+      <div className="flex flex-col pt-20 relative">
         <JarvisBackground />
         <SciFiInteractiveLayer />
-        <AlienEcosystem />
         <AutoRefresh />
         <AdManager />
         <EarthZoomContact />
