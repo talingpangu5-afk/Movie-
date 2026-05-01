@@ -145,11 +145,21 @@ export function EarthZoomContact() {
     let renderer: THREE.WebGLRenderer;
     try {
       if (!canvasRef.current) return;
+      
+      // Simple WebGL Check
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (!gl) {
+        console.warn('WebGL not supported by browser');
+        return;
+      }
+
       renderer = new THREE.WebGLRenderer({
         canvas: canvasRef.current,
         antialias: true,
         alpha: true,
         precision: 'mediump',
+        failIfMajorPerformanceCaveat: false,
       });
     } catch (e) {
       console.error('Failed to initialize WebGLRenderer:', e);

@@ -2,6 +2,7 @@
 
 import { motion } from 'motion/react'
 import { AdBanner } from '@/components/AdBanner'
+import { PremiumAd } from '@/components/PremiumAd'
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { PaymentModal } from '@/components/PaymentModal'
@@ -357,14 +358,7 @@ export default function MoviesPage() {
 
           {/* Ad Banner */}
           <div className="w-full mt-4 flex flex-col items-center">
-             <div className="flex items-center gap-4 w-full mb-4">
-              <div className="h-[1px] flex-grow bg-white/5"></div>
-              <span className="text-[10px] uppercase tracking-[0.4em] text-white/20 font-bold">Recommended for you</span>
-              <div className="h-[1px] flex-grow bg-white/5"></div>
-            </div>
-            <div className="w-full flex justify-center">
-              <AdBanner />
-            </div>
+            <PremiumAd className="shadow-primary/10" />
           </div>
 
           {/* Premium Video Grid Section */}
@@ -411,7 +405,7 @@ export default function MoviesPage() {
           </div>
 
           <div className="flex justify-center pt-12 border-t border-white/5">
-            <AdBanner />
+            <PremiumAd />
           </div>
           
           {/* Navigation/Actions Section */}
