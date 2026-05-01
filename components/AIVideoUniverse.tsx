@@ -8,13 +8,11 @@ import {
   Activity, Cpu, Radio, Search, ChevronRight, 
   ChevronLeft, Monitor, Zap, ShieldCheck, 
   Volume2, VolumeX, MessageSquare, Bot,
-  Eye, Calendar, Star, TrendingUp, Minimize2
+  Eye, Calendar, Star, TrendingUp
 } from 'lucide-react';
 import Image from 'next/image';
 import { toast } from 'sonner';
 import { tmdb } from '@/lib/tmdb';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
 
 // Alien Monitor Scanline Effect
 const Scanline = () => (
@@ -67,16 +65,6 @@ export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose:
   const [subtitle, setSubtitle] = useState('');
   const [particles, setParticles] = useState<any[]>([]);
   const [waveformIndices, setWaveformIndices] = useState<any[]>([]);
-  const [isFullView, setIsFullView] = useState(false);
-  const [isNavLoading, setIsNavLoading] = useState(true);
-
-  // Intentional delay to clear neural alpha loading
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setIsNavLoading(false);
-    }, 2500);
-    return () => clearTimeout(timer);
-  }, []);
 
   // Fetch movies from TMDB
   const fetchMovies = useCallback(async (pageNum: number) => {
@@ -223,54 +211,6 @@ export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose:
 
   if (!isOpen) return null;
 
-  if (isNavLoading) {
-    return (
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        className="fixed inset-0 z-[2000] bg-[#0b0f1a] flex flex-col items-center justify-center font-sans overflow-hidden"
-      >
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,rgba(6,182,212,0.15)_0%,transparent_70%)]" />
-        <div className="relative z-10 flex flex-col items-center gap-12">
-          <motion.div 
-            animate={{ 
-              rotate: 360,
-              scale: [1, 1.1, 1],
-              opacity: [0.5, 1, 0.5]
-            }}
-            transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-            className="relative w-32 h-32"
-          >
-            <div className="absolute inset-0 border-t-2 border-cyan-500 rounded-full" />
-            <div className="absolute inset-4 border-b-2 border-primary rounded-full opacity-40" />
-            <div className="absolute inset-8 border-l-2 border-cyan-300 rounded-full opacity-20" />
-          </motion.div>
-
-          <div className="space-y-4 text-center">
-            <motion.h2 
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="text-4xl font-black italic tracking-tighter text-white uppercase"
-            >
-              Neural Stream <span className="text-cyan-500">Alpha</span>
-            </motion.h2>
-            <div className="flex flex-col items-center gap-2">
-              <motion.div 
-                animate={{ width: ["0%", "100%", "0%"] }}
-                transition={{ duration: 2, repeat: Infinity }}
-                className="h-px bg-cyan-500/50 w-48"
-              />
-              <p className="text-[10px] font-mono text-cyan-500/60 uppercase tracking-[0.5em] animate-pulse">
-                establishing_quantum_node_sync...
-              </p>
-            </div>
-          </div>
-        </div>
-      </motion.div>
-    );
-  }
-
   return (
     <motion.div 
       initial={{ opacity: 0 }}
@@ -376,36 +316,11 @@ export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose:
             <motion.section 
               initial={{ y: 40, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              className={cn(
-                "relative group mx-auto transition-all duration-700",
-                isFullView ? "max-w-[100vw] w-screen fixed inset-0 z-[100] bg-black flex flex-col justify-center" : "max-w-full aspect-video rounded-[32px] border-2 border-cyan-500/50 shadow-[0_0_80px_rgba(6,182,212,0.3)] bg-black"
-              )}
+              className="relative w-full aspect-video rounded-[32px] overflow-hidden border-2 border-cyan-500/50 shadow-[0_0_80px_rgba(6,182,212,0.3)] bg-black group/hero"
             >
-              {isFullView && (
-                <div className="absolute top-8 left-8 z-[110] flex items-center gap-4">
-                  <div className="px-4 py-2 bg-cyan-500/20 backdrop-blur-xl border border-cyan-500/40 rounded-full text-[10px] font-black text-cyan-400 uppercase tracking-widest animate-pulse">
-                    ALPHA_THEATER_MODE
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => setIsFullView(false)}
-                    className="bg-white/5 border-white/10 hover:bg-white/20 text-white rounded-full px-8 h-10 font-black uppercase tracking-widest"
-                  >
-                    <Minimize2 className="w-5 h-5 mr-3" /> EXIT_PROJECTION
-                  </Button>
-                </div>
-              )}
-
-              {!isFullView && (
-                <div className="absolute inset-0 pointer-events-none z-[60] border-[16px] border-black/40 ring-1 ring-cyan-500/30" />
-              )}
-              
+              <div className="absolute inset-0 pointer-events-none z-[60] border-[16px] border-black/40 ring-1 ring-cyan-500/30" />
               {activeTrailerKey && isPlaying ? (
-                <div className={cn(
-                  "absolute inset-0 z-0 pointer-events-none",
-                  isFullView ? "scale-100" : "scale-105"
-                )}>
+                <div className="absolute inset-0 z-0 scale-105 pointer-events-none">
                   <iframe 
                     src={`https://www.youtube.com/embed/${activeTrailerKey}?autoplay=1&mute=${isMuted ? 1 : 0}&controls=0&modestbranding=1&loop=1&playlist=${activeTrailerKey}&rel=0`}
                     className="w-full h-full object-cover"
@@ -427,131 +342,121 @@ export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose:
               {/* Alien Monitor HUD Elements */}
               <Scanline />
               
-              {!isFullView && (
-                <div className="absolute inset-0 z-[10] flex flex-col justify-between p-8 pointer-events-none">
-                  {/* Top Corner HUD */}
-                  <div className="flex justify-between items-start">
-                    <div className="bg-black/80 backdrop-blur-md border-l-2 border-cyan-500 p-4 rounded-r-xl space-y-1 max-w-lg">
-                      <div className="flex items-center gap-2 text-[8px] font-mono text-cyan-400">
-                        <motion.div 
-                          animate={{ opacity: [1, 0, 1] }}
-                          transition={{ duration: 0.5, repeat: Infinity }}
-                          className="w-1.5 h-1.5 rounded-full bg-cyan-500"
-                        />
-                        NEURAL_UPLINK_STABLE [0x{activeVideo.id.toString(16).toUpperCase()}]
-                      </div>
-                      <div className="text-xl lg:text-3xl font-black uppercase italic tracking-widest text-white leading-none truncate">{activeVideo.title}</div>
-                      <div className="text-[10px] font-mono text-cyan-500/40 uppercase tracking-[0.3em]">SEC_COORD: 45.92 / -122.34</div>
-                    </div>
-
-                    <div className="flex flex-col items-end gap-3">
-                      <div className="flex gap-1">
-                        {[1, 2, 3, 4, 5].map((i) => (
-                          <motion.div 
-                            key={i}
-                            animate={{ opacity: [0.2, 1, 0.2] }}
-                            transition={{ duration: 1, delay: i * 0.1, repeat: Infinity }}
-                            className="w-1 h-4 bg-cyan-500"
-                          />
-                        ))}
-                      </div>
-                      <div className="text-[10px] font-mono text-cyan-400/60 uppercase tracking-[0.4em]">DEEP_SPACE_NODE_9</div>
-                    </div>
-                  </div>
-
-                  <div className="flex justify-between items-end pb-32">
-                    <div className="bg-black/60 backdrop-blur-xl border border-cyan-500/30 p-6 rounded-2xl max-w-lg shadow-[0_0_40px_rgba(0,0,0,0.8)] relative overflow-hidden group">
-                        <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500" />
-                        <div className="flex items-center gap-4 mb-3">
-                          <div className="flex items-center gap-1.5 text-cyan-400">
-                            <TrendingUp className="w-3.5 h-3.5" />
-                            <span className="text-sm font-black tracking-tighter">{activeVideo.rating} RATING</span>
-                          </div>
-                          <div className="w-[1px] h-3 bg-cyan-500/20" />
-                          <div className="flex items-center gap-1.5 text-white/40">
-                            <Calendar className="w-3.5 h-3.5" />
-                            <span className="text-[10px] uppercase font-mono tracking-widest">{activeVideo.release}</span>
-                          </div>
-                        </div>
-                        <p className="text-[10px] text-white/60 font-mono leading-relaxed transition-all group-hover:text-cyan-100 uppercase tracking-tight line-clamp-3">
-                          {activeVideo.overview}
-                        </p>
-                    </div>
-
-                    <div className="flex flex-col items-center gap-4">
-                        <motion.div 
-                          animate={{ rotate: 360 }}
-                          transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                          className="relative w-32 h-32 flex items-center justify-center font-mono text-cyan-400/60 text-[10px] font-black"
-                        >
-                          <div className="absolute inset-0 border-2 border-cyan-500/20 rounded-full border-t-cyan-500" />
-                          <div className="absolute inset-4 border border-cyan-500/10 rounded-full border-b-cyan-400/40" />
-                          SCANNING...
-                        </motion.div>
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Alien Monitor Controls Bar */}
-              <div className={cn(
-                "flex flex-col lg:flex-row items-center gap-4 lg:gap-8 bg-black/80 backdrop-blur-3xl border border-cyan-500/30 p-4 lg:p-6 shadow-[0_0_50px_rgba(0,0,0,1)] hover:border-cyan-400 transition-colors pointer-events-auto",
-                isFullView ? "fixed bottom-8 left-8 right-8 z-[120] rounded-[32px] max-w-5xl mx-auto" : "relative rounded-[24px]"
-              )}>
-                <motion.button 
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.9 }}
-                  onClick={() => setIsPlaying(!isPlaying)}
-                  className="w-16 h-16 lg:w-20 lg:h-20 rounded-2xl bg-cyan-500 text-black flex items-center justify-center shadow-[0_0_40px_rgba(6,182,212,0.6)] group/p shrink-0"
-                >
-                    {isPlaying ? <Pause className="w-8 h-8 fill-black" /> : <Play className="w-8 h-8 fill-black translate-x-1" />}
-                </motion.button>
-                
-                <div className="flex-1 w-full space-y-4">
-                    <div className="flex justify-between items-center text-[10px] font-mono text-cyan-400">
-                      <span className="flex items-center gap-2 italic font-black uppercase">
-                        <Activity className="w-3 h-3" /> BUFFER_SYNC: {progress.toFixed(1)}%
-                      </span>
-                      <span className="opacity-40 hidden sm:block">SYSTEM: J.A.R.V.I.S_V4.0</span>
-                    </div>
-                    <div className="h-2 bg-white/5 rounded-full relative overflow-hidden">
+              <div className="absolute inset-0 z-[10] flex flex-col justify-between p-8 pointer-events-none">
+                {/* Top Corner HUD */}
+                <div className="flex justify-between items-start">
+                  <div className="bg-black/80 backdrop-blur-md border-l-2 border-cyan-500 p-4 rounded-r-xl space-y-1 max-w-lg">
+                    <div className="flex items-center gap-2 text-[8px] font-mono text-cyan-400">
                       <motion.div 
-                          className="absolute inset-y-0 left-0 bg-transparent"
-                          style={{ width: `${progress}%` }}
-                      >
-                        <div className="w-full h-full bg-cyan-500 shadow-[0_0_20px_rgba(6,182,212,1)]" />
-                      </motion.div>
+                        animate={{ opacity: [1, 0, 1] }}
+                        transition={{ duration: 0.5, repeat: Infinity }}
+                        className="w-1.5 h-1.5 rounded-full bg-cyan-500"
+                      />
+                      NEURAL_UPLINK_STABLE [0x{activeVideo.id.toString(16).toUpperCase()}]
                     </div>
+                    <div className="text-xl lg:text-3xl font-black uppercase italic tracking-widest text-white leading-none truncate">{activeVideo.title}</div>
+                    <div className="text-[10px] font-mono text-cyan-500/40 uppercase tracking-[0.3em]">SEC_COORD: 45.92 / -122.34</div>
+                  </div>
+
+                  <div className="flex flex-col items-end gap-3">
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((i) => (
+                        <motion.div 
+                          key={i}
+                          animate={{ opacity: [0.2, 1, 0.2] }}
+                          transition={{ duration: 1, delay: i * 0.1, repeat: Infinity }}
+                          className="w-1 h-4 bg-cyan-500"
+                        />
+                      ))}
+                    </div>
+                    <div className="text-[10px] font-mono text-cyan-400/60 uppercase tracking-[0.4em]">DEEP_SPACE_NODE_9</div>
+                  </div>
                 </div>
 
-                <div className="flex items-center gap-4 lg:gap-8 shrink-0 w-full lg:w-auto justify-between lg:justify-start">
-                  <div className="flex items-center gap-4 text-cyan-400/60">
-                    <button onClick={() => setIsMuted(!isMuted)} className="hover:text-cyan-400 transition-colors">
-                        {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
-                    </button>
-                    <div className="w-20 h-1 bg-white/10 rounded-full relative overflow-hidden hidden sm:block">
-                        <div className="absolute inset-y-0 left-0 bg-cyan-500 w-[80%]" />
-                    </div>
-                  </div>
-                  <div className="flex gap-4">
-                    {!isFullView && (
-                      <button 
-                        onClick={() => setIsFullView(true)}
-                        className="w-12 h-12 flex items-center justify-center bg-cyan-500/10 border border-cyan-500/30 rounded-xl hover:bg-cyan-500 hover:text-black transition-all group"
+                <div className="flex justify-between items-end pb-32">
+                   <div className="bg-black/60 backdrop-blur-xl border border-cyan-500/30 p-6 rounded-2xl max-w-lg shadow-[0_0_40px_rgba(0,0,0,0.8)] relative overflow-hidden group">
+                      <div className="absolute top-0 left-0 w-1 h-full bg-cyan-500" />
+                      <div className="flex items-center gap-4 mb-3">
+                        <div className="flex items-center gap-1.5 text-cyan-400">
+                           <TrendingUp className="w-3.5 h-3.5" />
+                           <span className="text-sm font-black tracking-tighter">{activeVideo.rating} RATING</span>
+                        </div>
+                        <div className="w-[1px] h-3 bg-cyan-500/20" />
+                        <div className="flex items-center gap-1.5 text-white/40">
+                           <Calendar className="w-3.5 h-3.5" />
+                           <span className="text-[10px] uppercase font-mono tracking-widest">{activeVideo.release}</span>
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-white/60 font-mono leading-relaxed transition-all group-hover:text-cyan-100 uppercase tracking-tight line-clamp-3">
+                        {activeVideo.overview}
+                      </p>
+                   </div>
+
+                   <div className="flex flex-col items-center gap-4">
+                      <motion.div 
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                        className="relative w-32 h-32 flex items-center justify-center font-mono text-cyan-400/60 text-[10px] font-black"
                       >
-                         <Maximize2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                      </button>
-                    )}
-                    <button 
-                      onClick={() => toast.success('Targeting Data Exported')}
-                      className="flex items-center gap-3 px-6 py-3 bg-cyan-500/10 border border-cyan-500/30 rounded-xl hover:bg-cyan-500 hover:text-black transition-all group/b"
-                    >
-                        <ShieldCheck className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                        <span className="text-[10px] font-black uppercase tracking-widest leading-none">Export Stats</span>
-                    </button>
-                  </div>
+                         <div className="absolute inset-0 border-2 border-cyan-500/20 rounded-full border-t-cyan-500" />
+                         <div className="absolute inset-4 border border-cyan-500/10 rounded-full border-b-cyan-400/40" />
+                         SCANNING...
+                      </motion.div>
+                   </div>
                 </div>
               </div>
+
+
+
+
+                   {/* Alien Monitor Controls Bar */}
+                   <div className="flex flex-col lg:flex-row items-center gap-4 lg:gap-8 bg-black/80 backdrop-blur-3xl border border-cyan-500/30 p-4 lg:p-6 rounded-[24px] shadow-[0_0_50px_rgba(0,0,0,1)] hover:border-cyan-400 transition-colors pointer-events-auto">
+                      <motion.button 
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => setIsPlaying(!isPlaying)}
+                        className="w-16 h-16 lg:w-20 lg:h-20 rounded-2xl bg-cyan-500 text-black flex items-center justify-center shadow-[0_0_40px_rgba(6,182,212,0.6)] group/p shrink-0"
+                      >
+                         {isPlaying ? <Pause className="w-8 h-8 fill-black" /> : <Play className="w-8 h-8 fill-black translate-x-1" />}
+                      </motion.button>
+                      
+                      <div className="flex-1 w-full space-y-4">
+                         <div className="flex justify-between items-center text-[10px] font-mono text-cyan-400">
+                            <span className="flex items-center gap-2 italic font-black uppercase">
+                              <Activity className="w-3 h-3" /> BUFFER_SYNC: {progress.toFixed(1)}%
+                            </span>
+                            <span className="opacity-40 hidden sm:block">SYSTEM: J.A.R.V.I.S_V4.0</span>
+                         </div>
+                         <div className="h-2 bg-white/5 rounded-full relative overflow-hidden">
+                            <motion.div 
+                               className="absolute inset-y-0 left-0 bg-transparent"
+                               style={{ width: `${progress}%` }}
+                            >
+                              <div className="w-full h-full bg-cyan-500 shadow-[0_0_20px_rgba(6,182,212,1)]" />
+                            </motion.div>
+                         </div>
+                      </div>
+
+                      <div className="flex items-center gap-4 lg:gap-8 shrink-0 w-full lg:w-auto justify-between lg:justify-start">
+                         <div className="flex items-center gap-4 text-cyan-400/60">
+                            <button onClick={() => setIsMuted(!isMuted)} className="hover:text-cyan-400 transition-colors">
+                               {isMuted ? <VolumeX className="w-6 h-6" /> : <Volume2 className="w-6 h-6" />}
+                            </button>
+                            <div className="w-20 h-1 bg-white/10 rounded-full relative overflow-hidden hidden sm:block">
+                               <div className="absolute inset-y-0 left-0 bg-cyan-500 w-[80%]" />
+                            </div>
+                         </div>
+                         <div className="flex gap-4">
+                            <button 
+                              onClick={() => toast.success('Targeting Data Exported')}
+                              className="flex items-center gap-3 px-6 py-3 bg-cyan-500/10 border border-cyan-500/30 rounded-xl hover:bg-cyan-500 hover:text-black transition-all group/b"
+                            >
+                               <ShieldCheck className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                               <span className="text-[10px] font-black uppercase tracking-widest leading-none">Export Stats</span>
+                            </button>
+                         </div>
+                      </div>
+                   </div>
             </motion.section>
           ) : (
             <div className="aspect-video w-full rounded-[32px] bg-white/5 animate-pulse flex items-center justify-center">

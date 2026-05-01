@@ -52,11 +52,7 @@ export function VideoSupportSystem() {
   const startCamera = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ 
-        video: {
-          width: { ideal: 1920, min: 1280 },
-          height: { ideal: 1080, min: 720 },
-          frameRate: { ideal: 30, min: 24 }
-        }, 
+        video: true, 
         audio: true 
       });
       streamRef.current = stream;
