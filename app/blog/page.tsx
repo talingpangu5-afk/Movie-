@@ -27,7 +27,6 @@ import {
   ExternalLink,
   ChevronDown
 } from 'lucide-react';
-import { PremiumAd } from '@/components/PremiumAd';
 import Image from 'next/image';
 
 export default function BlogPage() {
@@ -421,8 +420,6 @@ export default function BlogPage() {
                 Claim My Bonus
               </Link>
             </div>
-
-            <PremiumAd compact className="shadow-lg shadow-primary/5" />
 
             <div className="p-8 bg-white/5 border border-white/10 rounded-3xl">
               <h4 className="text-sm font-black text-gray-500 mb-4 uppercase tracking-widest">In this article</h4>

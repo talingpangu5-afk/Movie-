@@ -2,7 +2,6 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Play, Info, Star } from 'lucide-react';
 import { AdBanner } from '@/components/AdBanner';
-import { PremiumAd } from '@/components/PremiumAd';
 import { tmdb, Movie, MovieDetails } from '@/lib/tmdb';
 import { MovieCard } from '@/components/MovieCard';
 import { Button } from '@/components/ui/button';
@@ -80,7 +79,7 @@ export default async function HomePage() {
 
         {/* Ad Placement */}
         <div className="container mx-auto px-4 py-8">
-          <PremiumAd className="mt-8 mb-4 shadow-primary/20" />
+          <AdBanner className="mt-8 mb-4" />
         </div>
 
         {/* Movie Rows */}
@@ -101,9 +100,9 @@ export default async function HomePage() {
 
           <MovieRow title="Top Rated" fetcher={tmdb.getTopRated} />
           
-          {/* Premium Ad Between Sections */}
-          <div className="container mx-auto px-4 py-12">
-            <PremiumAd />
+          {/* Ad Between Sections */}
+          <div className="container mx-auto px-4 py-6">
+            <AdBanner />
           </div>
 
           <CinematicBanner />

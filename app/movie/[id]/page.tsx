@@ -7,7 +7,6 @@ import { Separator } from '@/components/ui/separator';
 import { TrailerModal } from '@/components/TrailerModal';
 import { WatchlistButton } from '@/components/WatchlistButton';
 import { AdBanner } from '@/components/AdBanner';
-import { PremiumAd } from '@/components/PremiumAd';
 
 export const dynamic = 'force-dynamic';
 
@@ -94,10 +93,6 @@ export default async function MovieDetailsPage({ params }: { params: Promise<{ i
               <p className="text-lg leading-relaxed text-muted-foreground max-w-4xl">
                 {movie.overview}
               </p>
-            </div>
-
-            <div className="py-8">
-              <PremiumAd />
             </div>
 
             <div className="flex flex-wrap gap-4 pt-4">

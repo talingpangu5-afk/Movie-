@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { Film, Youtube, Facebook, BookOpen } from 'lucide-react';
 import { FooterTrailers } from './FooterTrailers';
-import { PremiumAd } from './PremiumAd';
 
 export function Footer() {
   return (
@@ -79,10 +78,6 @@ export function Footer() {
           </div>
         </div>
         
-        <div className="py-8 border-t border-white/5 mt-12">
-          <PremiumAd className="max-w-4xl mx-auto" />
-        </div>
-
         <div className="border-t border-white/5 mt-12 pt-8 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-muted-foreground uppercase tracking-widest font-mono">
           <p>© {new Date().getFullYear()} Taling Pangu. SYSTEM_V.1.04</p>
           <div className="flex items-center gap-6">

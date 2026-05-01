@@ -34,43 +34,30 @@ export async function GET(req: NextRequest) {
 
     const kucoin = new KuCoinClient();
     
-    // 3. Fetch Data from KuCoin
-    try {
-      const [tickerRes, accountsRes] = await Promise.all([
-        kucoin.getTicker('BTC-USDT').catch(err => {
-          console.warn('KuCoin Ticker Fetch Error:', err.message);
-          return { data: { price: cache.data?.price || '85000' } };
-        }),
-        kucoin.getAccountBalance().catch(err => {
-          console.warn('KuCoin Balance Fetch Error:', err.message);
-          return { data: [] };
-        })
-      ]);
+    const [ticker, accounts] = await Promise.all([
+      kucoin.getTicker('BTC-USDT').catch(err => {
+        console.warn('KuCoin Ticker Error:', err.message);
+        return { data: { price: cache.data?.price || '85000' } }; // Use cache or high placeholder
+      }),
+      kucoin.getAccountBalance().catch(() => ({ data: [] })) 
+    ]);
 
-      const formattedData = {
-        price: tickerRes?.data?.price || '0',
-        accounts: accountsRes?.data || [],
-        timestamp: now
-      };
+    const formattedData = {
+      price: ticker.data?.price || '0',
+      accounts: accounts.data || [],
+      timestamp: now
+    };
 
-      // 4. Update Cache (only if valid price)
-      if (formattedData.price !== '0') {
-        cache.data = formattedData;
-        cache.timestamp = now;
-      }
-
-      return NextResponse.json({
-        success: true,
-        data: formattedData
-      });
-    } catch (apiError: any) {
-      console.error('KuCoin Integration Error:', apiError.message);
-      return NextResponse.json({ 
-        success: false, 
-        error: 'Exchange link failure',
-        data: cache.data // Fallback to stale cache if possible
-      }, { status: 502 });
+    // Update Cache
+    if (formattedData.price !== '0') {
+      cache.data = formattedData;
+      cache.timestamp = now;
     }
+
+    return NextResponse.json({
+      success: true,
+      data: formattedData
+    });
 
   } catch (error: any) {
     console.error('Mining API Error:', error.message);

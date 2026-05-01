@@ -32,7 +32,7 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
       <body className={inter.className} suppressHydrationWarning>
         {/* Ad Network Scripts */}
         <Script 
-          src="https://pl29130365.profitablecpmratenetwork.com/97229860b04e823be4afd7fd18f7c502/invoke.js" 
+          src="https://pl29130382.profitablecpmratenetwork.com/0e/a6/ec/0ea6ecd798b47b004c6c8d3cf469ddc0.js" 
           strategy="afterInteractive"
         />
         

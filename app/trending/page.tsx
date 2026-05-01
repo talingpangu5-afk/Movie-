@@ -2,7 +2,6 @@ import { tmdb, Movie } from '@/lib/tmdb';
 import { MovieCard } from '@/components/MovieCard';
 import { TrendingUp } from 'lucide-react';
 import { AdBanner } from '@/components/AdBanner';
-import { PremiumAd } from '@/components/PremiumAd';
 
 export const dynamic = 'force-dynamic';
 
@@ -27,7 +26,7 @@ export default async function TrendingPage() {
         </div>
 
         <div className="flex justify-center pt-12 border-t border-white/5">
-          <PremiumAd />
+          <AdBanner />
         </div>
       </div>
     </div>
