@@ -6,6 +6,7 @@ import { Play, Plus, Volume2, VolumeX, Info, Sparkles, Loader2, AlertCircle, Che
 import { Button } from '@/components/ui/button';
 import Image from 'next/image';
 import { tmdb, Movie } from '@/lib/tmdb';
+import { useNeuralQuality } from '@/hooks/useNeuralQuality';
 
 const FIXED_PARTICLES = [
   { id: 1, x: "15%", y: "10%", duration: 12 },
@@ -28,6 +29,7 @@ interface TrailerCardProps {
 }
 
 function TrailerCard({ movie, isActive, onPlay, onEnded }: TrailerCardProps) {
+  const { config } = useNeuralQuality();
   const [isHovered, setIsHovered] = useState(false);
   const [trailerKey, setTrailerKey] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -137,7 +139,7 @@ function TrailerCard({ movie, isActive, onPlay, onEnded }: TrailerCardProps) {
         {/* Poster Image */}
         <div className={`absolute inset-0 z-10 transition-transform duration-700 ${isActive ? 'opacity-0 scale-110' : 'opacity-100 scale-100'}`}>
           <Image
-            src={tmdb.getImageUrl(movie.poster_path, 'w780')}
+            src={tmdb.getImageUrl(movie.poster_path, config.tmdbPosterSize)}
             alt={movie.title}
             fill
             className="object-cover"
@@ -197,7 +199,8 @@ function TrailerCard({ movie, isActive, onPlay, onEnded }: TrailerCardProps) {
               <div className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
               <span>Recording: 00:0{Math.floor(Math.random()*9)}:45</span>
             </div>
-            <div>Bitrate: 15.4 Mbps</div>
+            <div>Bitrate: {config.ytQuality === 'hd1080' ? '54.2' : config.ytQuality === 'hd720' ? '15.4' : '4.2'} Mbps</div>
+            <div className="text-primary/80 mt-1">Quality: {config.label}</div>
           </div>
 
           {/* Mute Toggle Overlay */}

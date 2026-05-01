@@ -10,6 +10,7 @@ import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { motion, AnimatePresence } from 'motion/react';
 import { EntertainmentDropdown } from '@/components/EntertainmentDropdown';
 import { AIVoiceBranding } from './AIVoiceBranding';
+import { NeuralQualitySelector } from './NeuralQualitySelector';
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -88,6 +89,9 @@ export function Navbar() {
         </div>
 
         <div className="flex items-center gap-4">
+          <div className="hidden sm:block">
+            <NeuralQualitySelector />
+          </div>
           <form 
             onSubmit={handleSearch} 
             className={`relative flex items-center transition-all duration-500 ease-in-out ${
@@ -125,6 +129,11 @@ export function Navbar() {
                 
                 <div className="flex flex-col gap-6">
                   {/* Priority Menu */}
+                  <div className="pb-4 border-b border-white/5 flex items-center justify-between gap-4">
+                    <span className="text-xs text-white/40 uppercase tracking-widest font-black">Neural Stream</span>
+                    <NeuralQualitySelector />
+                  </div>
+
                   <div className="pb-4 border-b border-white/5">
                     <EntertainmentDropdown />
                   </div>
