@@ -173,7 +173,7 @@ export default function MoviesPage() {
         genre: "Premium",
         rating: m.vote_average?.toFixed(1) || "0.0",
         year: new Date(m.release_date || m.first_air_date || "").getFullYear() || "2024",
-        url: "https://ok.ru/videoembed/4617548401253", // Using a stable premium player placeholder
+        url: `https://vidsrc.xyz/embed/movie/${m.id}`, // High-quality 1080p source
         description: m.overview,
         poster_path: m.poster_path,
         backdrop_path: m.backdrop_path

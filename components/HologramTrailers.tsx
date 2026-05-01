@@ -152,7 +152,7 @@ function TrailerCard({ movie, isActive, onPlay, onEnded }: TrailerCardProps) {
           {isActive && trailerKey && (
             <iframe
               ref={iframeRef}
-              src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=${isMuted ? 1 : 0}&controls=1&rel=0&enablejsapi=1&origin=${window.location.origin}`}
+              src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=${isMuted ? 1 : 0}&controls=1&rel=0&enablejsapi=1&origin=${window.location.origin}&vq=hd1080`}
               className="w-full h-full border-0 brightness-110 contrast-125"
               allow="autoplay; encrypted-media"
               allowFullScreen

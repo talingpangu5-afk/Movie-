@@ -163,7 +163,7 @@ export default function WebSeriesPage() {
         genre: "Web Series",
         rating: s.vote_average?.toFixed(1) || "0.0",
         year: new Date(s.first_air_date || "").getFullYear() || "2024",
-        url: "#", 
+        url: `https://vidsrc.xyz/embed/tv/${s.id}`, // High-quality 1080p source 
         description: s.overview,
         poster_path: s.poster_path,
         backdrop_path: s.backdrop_path
