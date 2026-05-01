@@ -27,6 +27,7 @@ import {
   ExternalLink,
   ChevronDown
 } from 'lucide-react';
+import { PremiumAd } from '@/components/PremiumAd';
 import Image from 'next/image';
 
 export default function BlogPage() {
@@ -98,7 +99,7 @@ export default function BlogPage() {
             <div className="inline-flex items-center gap-4 mb-8 px-6 py-3 bg-white/5 rounded-full border border-white/10 backdrop-blur-xl shadow-2xl">
               <div className="relative w-12 h-12">
                 <Image 
-                  src="https://assets.coingecko.com/coins/images/1047/large/kucoin_logo.png" 
+                  src="https://cryptologos.cc/logos/kucoin-kcs-logo.png?v=040" 
                   alt="KuCoin Official Logo" 
                   width={48} 
                   height={48} 
@@ -165,7 +166,7 @@ export default function BlogPage() {
       <main className="container mx-auto px-6 pb-32 max-w-5xl">
         <div className="relative aspect-[16/7] w-full rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl mb-24">
           <Image 
-            src="https://images.unsplash.com/photo-1642104704074-907c0698bcd9?q=80&w=2000&auto=format&fit=crop" 
+            src="https://images.unsplash.com/photo-1621501675713-3927d6d3958c?q=80&w=2000&auto=format&fit=crop" 
             alt="KuCoin Trading Terminal Mockup"
             fill
             className="w-full h-full object-cover brightness-[0.4] contrast-150"
@@ -175,7 +176,7 @@ export default function BlogPage() {
           <div className="absolute inset-0 flex items-center justify-center">
              <div className="w-32 h-32 opacity-20 invert">
                 <Image 
-                  src="https://assets.coingecko.com/coins/images/1047/large/kucoin_logo.png" 
+                  src="https://cryptologos.cc/logos/kucoin-kcs-logo.png?v=040" 
                   alt="KuCoin Watermark" 
                   width={128} 
                   height={128}
@@ -420,6 +421,8 @@ export default function BlogPage() {
                 Claim My Bonus
               </Link>
             </div>
+
+            <PremiumAd compact className="shadow-lg shadow-primary/5" />
 
             <div className="p-8 bg-white/5 border border-white/10 rounded-3xl">
               <h4 className="text-sm font-black text-gray-500 mb-4 uppercase tracking-widest">In this article</h4>
