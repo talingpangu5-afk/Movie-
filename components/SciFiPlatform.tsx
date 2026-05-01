@@ -18,10 +18,14 @@ import {
   Volume2,
   Settings,
   Maximize,
-  AlertCircle
+  AlertCircle,
+  Minimize2,
+  Maximize2
 } from 'lucide-react';
 import { tmdb, Movie, MovieDetails } from '@/lib/tmdb';
 import { AdBanner } from '@/components/AdBanner';
+import { cn } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
 interface SciFiPlatformProps {
   onClose: () => void;
@@ -32,6 +36,7 @@ export function SciFiPlatform({ onClose }: SciFiPlatformProps) {
   const [selectedMovie, setSelectedMovie] = useState<MovieDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [glitch, setGlitch] = useState(false);
+  const [isFullView, setIsFullView] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -141,81 +146,109 @@ export function SciFiPlatform({ onClose }: SciFiPlatformProps) {
         <div className="max-w-[1600px] mx-auto p-12 space-y-20 pb-40">
           
           {/* FULL FUTURISTIC HOLOGRAPHIC PLAYER SECTION */}
-          <section className="relative group max-w-6xl mx-auto">
-             {/* Holographic Projection Base */}
-             <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-3/4 h-1 bg-cyan-500/20 blur-xl opacity-50" />
-             <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 w-[90%] h-40 bg-[radial-gradient(ellipse_at_top,rgba(6,182,212,0.1),transparent_70%)] pointer-events-none" />
+          <section className={cn(
+            "relative group mx-auto transition-all duration-700",
+            isFullView ? "max-w-[100vw] w-screen fixed inset-0 z-[1000] bg-black flex flex-col justify-center p-0" : "max-w-6xl"
+          )}>
+             {isFullView && (
+               <div className="absolute top-8 left-8 z-[1100] flex items-center gap-4">
+                 <div className="px-6 py-2 bg-cyan-500/20 backdrop-blur-2xl border border-cyan-500/40 rounded-full text-xs font-black text-cyan-400 uppercase tracking-[0.3em] animate-pulse">
+                   HOLOGRAPHIC_THEATER_MODE_ALPHA
+                 </div>
+                 <Button 
+                   variant="outline" 
+                   size="sm" 
+                   onClick={() => setIsFullView(false)}
+                   className="bg-white/5 border-white/10 hover:bg-white/20 text-white rounded-full px-8 h-10 font-bold uppercase tracking-widest"
+                 >
+                   <Minimize2 className="w-5 h-5 mr-3" /> EXIT_PROJECTION
+                 </Button>
+               </div>
+             )}
 
-             {/* Outer HUD Frame */}
-             <div className="absolute -inset-8 border border-cyan-500/10 pointer-events-none rounded-[40px] opacity-40">
-                <div className="absolute top-1/2 -left-1 w-1 h-32 bg-cyan-500/20 -translate-y-1/2" />
-                <div className="absolute top-1/2 -right-1 w-1 h-32 bg-cyan-500/20 -translate-y-1/2" />
-             </div>
+             {!isFullView && (
+               <>
+                 {/* Holographic Projection Base */}
+                 <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 w-3/4 h-1 bg-cyan-500/20 blur-xl opacity-50" />
+                 <div className="absolute -bottom-20 left-1/2 -translate-x-1/2 w-[90%] h-40 bg-[radial-gradient(ellipse_at_top,rgba(6,182,212,0.1),transparent_70%)] pointer-events-none" />
 
-             {/* Corner Brackets with dynamic glow */}
-             <motion.div 
-               animate={{ opacity: [0.3, 0.6, 0.3] }}
-               transition={{ duration: 2, repeat: Infinity }}
-               className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-cyan-500 rounded-tl-3xl z-30" 
-             />
-             <motion.div 
-               animate={{ opacity: [0.3, 0.6, 0.3] }}
-               transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
-               className="absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-cyan-500 rounded-tr-3xl z-30" 
-             />
-             <motion.div 
-               animate={{ opacity: [0.3, 0.6, 0.3] }}
-               transition={{ duration: 2, repeat: Infinity, delay: 1 }}
-               className="absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-cyan-500 rounded-bl-3xl z-30" 
-             />
-             <motion.div 
-               animate={{ opacity: [0.3, 0.6, 0.3] }}
-               transition={{ duration: 2, repeat: Infinity, delay: 1.5 }}
-               className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-cyan-500 rounded-br-3xl z-30" 
-             />
+                 {/* Outer HUD Frame */}
+                 <div className="absolute -inset-8 border border-cyan-500/10 pointer-events-none rounded-[40px] opacity-40">
+                    <div className="absolute top-1/2 -left-1 w-1 h-32 bg-cyan-500/20 -translate-y-1/2" />
+                    <div className="absolute top-1/2 -right-1 w-1 h-32 bg-cyan-500/20 -translate-y-1/2" />
+                 </div>
+
+                 {/* Corner Brackets with dynamic glow */}
+                 <motion.div 
+                   animate={{ opacity: [0.3, 0.6, 0.3] }}
+                   transition={{ duration: 2, repeat: Infinity }}
+                   className="absolute top-0 left-0 w-16 h-16 border-t-2 border-l-2 border-cyan-500 rounded-tl-3xl z-30" 
+                 />
+                 <motion.div 
+                   animate={{ opacity: [0.3, 0.6, 0.3] }}
+                   transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
+                   className="absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-cyan-500 rounded-tr-3xl z-30" 
+                 />
+                 <motion.div 
+                   animate={{ opacity: [0.3, 0.6, 0.3] }}
+                   transition={{ duration: 2, repeat: Infinity, delay: 1 }}
+                   className="absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-cyan-500 rounded-bl-3xl z-30" 
+                 />
+                 <motion.div 
+                   animate={{ opacity: [0.3, 0.6, 0.3] }}
+                   transition={{ duration: 2, repeat: Infinity, delay: 1.5 }}
+                   className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-cyan-500 rounded-br-3xl z-30" 
+                 />
+               </>
+             )}
 
              {/* Holographic Panel */}
-             <div className="relative aspect-video rounded-3xl overflow-hidden bg-black/80 border border-white/10 shadow-[0_0_100px_rgba(6,182,212,0.1)] transition-all duration-700">
+             <div className={cn(
+               "relative overflow-hidden bg-black/80 transition-all duration-700",
+               isFullView ? "h-screen w-screen rounded-none" : "aspect-video rounded-3xl border border-white/10 shadow-[0_0_100px_rgba(6,182,212,0.1)]"
+             )}>
                 
                 {/* Floating HUD Information Overlays */}
-                <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
-                   {/* Top Bar Data */}
-                   <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-10 px-6 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/5 text-[9px] font-mono text-cyan-400">
-                      <span className="flex items-center gap-2"><Activity className="w-3 h-3 text-green-400" /> FEED: NORMAL</span>
-                      <span className="opacity-30">|</span>
-                      <span className="flex items-center gap-2"><Monitor className="w-3 h-3 text-blue-400" /> RES: 4K_UHD</span>
-                      <span className="opacity-30">|</span>
-                      <span className="animate-pulse">AUTO_UPDATING...</span>
-                   </div>
+                {!isFullView && (
+                  <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
+                     {/* Top Bar Data */}
+                     <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-10 px-6 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/5 text-[9px] font-mono text-cyan-400">
+                        <span className="flex items-center gap-2"><Activity className="w-3 h-3 text-green-400" /> FEED: NORMAL</span>
+                        <span className="opacity-30">|</span>
+                        <span className="flex items-center gap-2"><Monitor className="w-3 h-3 text-blue-400" /> RES: 4K_UHD</span>
+                        <span className="opacity-30">|</span>
+                        <span className="animate-pulse">AUTO_UPDATING...</span>
+                     </div>
 
-                   {/* Left Side HUD Stats */}
-                   <div className="absolute left-6 top-1/2 -translate-y-1/2 flex flex-col gap-6">
-                      {[1, 2, 3].map(i => (
-                        <div key={i} className="flex flex-col gap-1">
-                          <div className="w-12 h-[2px] bg-cyan-500/40" />
-                          <div className="w-8 h-[2px] bg-cyan-500/20" />
-                          <span className="text-[7px] font-mono text-cyan-500/50">SENSOR_{i}</span>
-                        </div>
-                      ))}
-                   </div>
+                     {/* Left Side HUD Stats */}
+                     <div className="absolute left-6 top-1/2 -translate-y-1/2 flex flex-col gap-6">
+                        {[1, 2, 3].map(i => (
+                          <div key={i} className="flex flex-col gap-1">
+                            <div className="w-12 h-[2px] bg-cyan-500/40" />
+                            <div className="w-8 h-[2px] bg-cyan-500/20" />
+                            <span className="text-[7px] font-mono text-cyan-500/50">SENSOR_{i}</span>
+                          </div>
+                        ))}
+                     </div>
 
-                   {/* Scanning Grid Layer (Subtle) */}
-                   <div className="absolute inset-0 bg-transparent opacity-5" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
-                   
-                   {/* Horizontal Scanning Line */}
-                   <motion.div 
-                     animate={{ top: ['-10%', '110%'] }}
-                     transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
-                     className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent z-40"
-                   />
-                </div>
+                     {/* Scanning Grid Layer (Subtle) */}
+                     <div className="absolute inset-0 bg-transparent opacity-5" style={{ backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)', backgroundSize: '20px 20px' }} />
+                     
+                     {/* Horizontal Scanning Line */}
+                     <motion.div 
+                       animate={{ top: ['-10%', '110%'] }}
+                       transition={{ duration: 4, repeat: Infinity, ease: 'linear' }}
+                       className="absolute inset-x-0 h-[2px] bg-gradient-to-r from-transparent via-cyan-400/30 to-transparent z-40"
+                     />
+                  </div>
+                )}
 
                 {selectedMovie ? (
                   <>
                     <div className="w-full h-full relative group">
                       {trailer ? (
                         <iframe
-                          src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1&mute=0&controls=1&rel=0&modestbranding=1&iv_load_policy=3&vq=hd1080`}
+                          src={`https://www.youtube.com/embed/${trailer.key}?autoplay=1&mute=0&controls=1&rel=0&modestbranding=1&iv_load_policy=3`}
                           className="w-full h-full border-none relative z-10"
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                           allowFullScreen
@@ -308,7 +341,13 @@ export function SciFiPlatform({ onClose }: SciFiPlatformProps) {
                    </button>
                 </div>
                 <div className="flex gap-4">
-                   {[Share2, Settings, Volume2, Maximize].map((Icon, i) => (
+                    <button 
+                      onClick={() => setIsFullView(true)}
+                      className="p-4 bg-white/5 border border-white/10 rounded-2xl hover:border-cyan-500/60 hover:text-cyan-400 transition-all hover:bg-cyan-500/5 group"
+                    >
+                       <Maximize2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                    </button>
+                   {[Share2, Settings, Volume2].map((Icon, i) => (
                      <button key={i} className="p-4 bg-white/5 border border-white/10 rounded-2xl hover:border-cyan-500/60 hover:text-cyan-400 transition-all hover:bg-cyan-500/5 group">
                        <Icon className="w-5 h-5 group-hover:scale-110 transition-transform" />
                      </button>

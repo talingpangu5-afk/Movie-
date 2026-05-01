@@ -5,11 +5,12 @@ import { AdBanner } from '@/components/AdBanner'
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { PaymentModal } from '@/components/PaymentModal'
-import { Lock, Unlock, ShieldCheck, Play } from 'lucide-react'
+import { Lock, Unlock, ShieldCheck, Play, Maximize2, Minimize2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { tmdb } from '@/lib/tmdb'
+import { cn } from '@/lib/utils'
 
 export const dynamic = 'force-dynamic';
 
@@ -141,6 +142,7 @@ export default function WebSeriesPage() {
   const [page, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
+  const [isFullView, setIsFullView] = useState(false);
 
   const fetchSeries = async (pageToFetch: number) => {
     try {
@@ -163,7 +165,7 @@ export default function WebSeriesPage() {
         genre: "Web Series",
         rating: s.vote_average?.toFixed(1) || "0.0",
         year: new Date(s.first_air_date || "").getFullYear() || "2024",
-        url: `https://vidsrc.xyz/embed/tv/${s.id}`, // High-quality 1080p source 
+        url: "#", 
         description: s.overview,
         poster_path: s.poster_path,
         backdrop_path: s.backdrop_path
@@ -260,18 +262,43 @@ export default function WebSeriesPage() {
           </div>
 
           {/* Player */}
-          <div className="relative group max-w-5xl mx-auto">
-            <div className="absolute -inset-4 bg-primary/20 blur-[100px] opacity-0 group-hover:opacity-40 transition-opacity duration-1000"></div>
-            
-            <div className="absolute -top-2 -left-2 w-10 h-10 border-t-2 border-l-2 border-primary rounded-tl-lg z-10"></div>
-            <div className="absolute -top-2 -right-2 w-10 h-10 border-t-2 border-r-2 border-primary rounded-tr-lg z-10"></div>
-            <div className="absolute -bottom-2 -left-2 w-10 h-10 border-b-2 border-l-2 border-primary rounded-bl-lg z-10"></div>
-            <div className="absolute -bottom-2 -right-2 w-10 h-10 border-b-2 border-r-2 border-primary rounded-br-lg z-10"></div>
+          <div className={cn(
+            "relative group mx-auto transition-all duration-700",
+            isFullView ? "max-w-[100vw] w-screen fixed inset-0 z-[100] bg-black flex flex-col justify-center" : "max-w-5xl"
+          )}>
+            {isFullView && (
+              <div className="absolute top-6 left-6 z-[110] flex items-center gap-4">
+                <div className="px-4 py-2 bg-primary/20 backdrop-blur-xl border border-primary/40 rounded-full text-[10px] font-black text-primary uppercase tracking-widest animate-pulse">
+                  NEURAL_SERIES_FULL_VIEW
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setIsFullView(false)}
+                  className="bg-white/5 border-white/10 hover:bg-white/20 text-white rounded-full px-6"
+                >
+                  <Minimize2 className="w-4 h-4 mr-2" /> EXIT
+                </Button>
+              </div>
+            )}
+
+            {!isFullView && (
+              <>
+                <div className="absolute -inset-4 bg-primary/20 blur-[100px] opacity-0 group-hover:opacity-40 transition-opacity duration-1000"></div>
+                <div className="absolute -top-2 -left-2 w-10 h-10 border-t-2 border-l-2 border-primary rounded-tl-lg z-10"></div>
+                <div className="absolute -top-2 -right-2 w-10 h-10 border-t-2 border-r-2 border-primary rounded-tr-lg z-10"></div>
+                <div className="absolute -bottom-2 -left-2 w-10 h-10 border-b-2 border-l-2 border-primary rounded-bl-lg z-10"></div>
+                <div className="absolute -bottom-2 -right-2 w-10 h-10 border-b-2 border-r-2 border-primary rounded-br-lg z-10"></div>
+              </>
+            )}
 
             <motion.div 
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
-              className="relative aspect-video bg-[#050505] rounded-lg overflow-hidden border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.8)]"
+              className={cn(
+                "relative bg-[#050505] overflow-hidden transition-all duration-700",
+                isFullView ? "h-screen w-screen rounded-0" : "aspect-video rounded-lg border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.8)]"
+              )}
             >
               <div className="w-full h-full relative">
                 {activeVideo && isMovieUnlocked(activeVideo.title) ? (
@@ -288,7 +315,7 @@ export default function WebSeriesPage() {
                       <Lock className="w-12 h-12 text-primary" />
                     </div>
                     <div className="text-center">
-                      <h3 className="text-xl font-black uppercase tracking-tighter">Content Locked</h3>
+                      <h3 className="text-xl font-black uppercase tracking-tighter text-white">Content Locked</h3>
                       <p className="text-white/40 text-sm">Please verify payment to restore primary transmission</p>
                     </div>
                     <Button 
@@ -306,6 +333,19 @@ export default function WebSeriesPage() {
                 )}
               </div>
             </motion.div>
+
+            {!isFullView && (
+              <div className="flex justify-end mt-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsFullView(true)}
+                  className="bg-white/5 border-white/10 hover:bg-white/20 text-white rounded-xl px-6 h-10 font-bold uppercase tracking-widest text-[10px]"
+                >
+                  <Maximize2 className="w-4 h-4 mr-2 text-primary" /> Enter Theater
+                </Button>
+              </div>
+            )}
           </div>
 
           {/* Ad Banner */}
