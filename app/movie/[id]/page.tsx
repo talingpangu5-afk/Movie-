@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { Star, Clock, Calendar, Play, Users, Film } from 'lucide-react';
+import { Star, Clock, Calendar, Play, Users, Film, Sparkles } from 'lucide-react';
 import { tmdb, MovieDetails } from '@/lib/tmdb';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -26,13 +26,20 @@ export default async function MovieDetailsPage({ params }: { params: Promise<{ i
       {/* Backdrop Hero */}
       <div className="relative h-[60vh] w-full">
         <Image
-          src={tmdb.getImageUrl(movie.backdrop_path)}
+          src={tmdb.getImageUrl(movie.backdrop_path, 'w1280')}
           alt={movie.title}
           fill
+          priority
           className="object-cover"
           referrerPolicy="no-referrer"
         />
         <div className="absolute inset-0 hero-gradient" />
+        <div className="absolute bottom-10 left-10 z-20 flex items-center gap-2">
+            <div className="flex items-center gap-1 px-3 py-1 rounded-full border border-primary/50 bg-black/40 backdrop-blur-md text-xs font-bold text-primary uppercase tracking-widest">
+                <Sparkles className="w-3 h-3" />
+                Neural Clarity 4K
+            </div>
+        </div>
       </div>
 
       <div className="container mx-auto px-4 -mt-64 relative z-10">

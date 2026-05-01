@@ -53,7 +53,7 @@ async function fetchTMDB(endpoint: string, params: Record<string, string> = {}) 
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      cache: 'no-store', // Disable caching for real-time data
+      next: { revalidate: 3600 }, // Cache for 1 hour for better performance
     });
   
     if (!response.ok) {

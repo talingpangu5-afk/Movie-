@@ -41,9 +41,9 @@ export function MovieCard({ movie }: MovieCardProps) {
               alt={movie.title || movie.name || 'Movie Poster'}
               fill
               loading="lazy"
-              className={`object-cover transition-all duration-500 group-hover:scale-110 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+              className={`object-cover transition-all duration-500 group-hover:scale-105 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
               referrerPolicy="no-referrer"
-              sizes="(max-width: 768px) 50vw, 200px"
+              sizes="(max-width: 768px) 50vw, 300px"
               onLoad={() => setIsLoading(false)}
               onError={() => {
                 setImgSrc(fallbackImg);

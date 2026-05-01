@@ -137,7 +137,7 @@ function TrailerCard({ movie, isActive, onPlay, onEnded }: TrailerCardProps) {
         {/* Poster Image */}
         <div className={`absolute inset-0 z-10 transition-transform duration-700 ${isActive ? 'opacity-0 scale-110' : 'opacity-100 scale-100'}`}>
           <Image
-            src={tmdb.getImageUrl(movie.poster_path, 'w500')}
+            src={tmdb.getImageUrl(movie.poster_path, 'w780')}
             alt={movie.title}
             fill
             className="object-cover"
@@ -153,7 +153,7 @@ function TrailerCard({ movie, isActive, onPlay, onEnded }: TrailerCardProps) {
             <iframe
               ref={iframeRef}
               src={`https://www.youtube.com/embed/${trailerKey}?autoplay=1&mute=${isMuted ? 1 : 0}&controls=1&rel=0&enablejsapi=1&origin=${window.location.origin}`}
-              className="w-full h-full border-0 brightness-110 contrast-125"
+              className="w-full h-full border-0 brightness-105 contrast-110"
               allow="autoplay; encrypted-media"
               allowFullScreen
             />
