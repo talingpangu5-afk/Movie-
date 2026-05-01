@@ -1,61 +1,18 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { motion, AnimatePresence } from 'motion/react';
-import { ShieldAlert, Play, Lock, Eye, Trash2, LogOut, Search, Filter, TrendingUp, Sparkles, Flame, Clock, Heart, Volume2, ShieldCheck, ChevronRight, Globe } from 'lucide-react';
+import { ShieldAlert, Play, Lock, Eye, Trash2, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
-import { VideoModal } from '@/components/VideoModal';
 
 export default function AdultSection() {
   const [isVerified, setIsVerified] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState('All');
-  const [selectedVideo, setSelectedVideo] = useState<any>(null);
   const router = useRouter();
-
-  // 50+ Real-looking items generator
-  const categories = ['All', 'Hot', 'Trending', 'New', 'Viral', 'Premium', 'Action', 'Mystery'];
-  
-  const generateContent = useCallback(() => {
-    const items = [];
-    const titles = [
-      "Midnight Desire", "Neon Nights", "Silent Whispers", "Velvet Room", "Deep Focus", "The Last Dance",
-      "Sapphire Heart", "Shadow Play", "City Lights", "Wild Spirit", "Dark Romance", "Golden Hour",
-      "Secret Garden", "Electric Sky", "Crimson Tide", "Misty Morning", "Silver Lining", "Black Velvet",
-      "Diamond Dust", "Pure Energy", "Urban Jungle", "Ocean Dream", "Cosmic Love", "Inner Circle",
-      "Hidden Path", "Beyond Bounds", "High Tension", "Loose Ends", "Sweet Revenge", "Final Phase",
-      "Cold Fire", "Lost Control", "Perfect Storm", "Blue Moon", "Night Owl", "Early Bird",
-      "Prime Time", "Global Pulse", "Local Legend", "Master Key", "Open Door", "Broken Seal",
-      "First Draft", "Last Word", "Infinite Loop", "Steady State", "Rapid Response", "Slow Burn",
-      "High Fidelity", "Zero Gravity", "Full Spectrum", "Peak Level", "Core Access", "Data Stream"
-    ];
-
-    for (let i = 0; i < titles.length; i++) {
-      items.push({
-        id: i + 1,
-        title: titles[i],
-        image: `https://picsum.photos/seed/adult-${i}/400/600`,
-        rating: Math.random() > 0.7 ? "4K" : "HD",
-        views: (Math.random() * 5 + 0.5).toFixed(1) + "M",
-        duration: Math.floor(Math.random() * 60 + 20) + ":" + Math.floor(Math.random() * 60).toString().padStart(2, '0'),
-        category: categories[Math.floor(Math.random() * (categories.length - 1)) + 1],
-        url: "https://www.youtube.com/embed/dQw4w9WgXcQ" // Standard embed for demo, but user wants uffmaal. In real case, we'd use their URLs or a resolver.
-      });
-    }
-    return items;
-  }, [categories]);
-
-  const [content, setContent] = useState<any[]>([]);
-
-  useEffect(() => {
-    setContent(generateContent());
-  }, [generateContent]);
 
   useEffect(() => {
     const checkVerification = () => {
@@ -84,12 +41,6 @@ export default function AdultSection() {
     checkVerification();
   }, [router]);
 
-  const filteredContent = content.filter(item => {
-    const matchesSearch = item.title.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = activeCategory === 'All' || item.category === activeCategory;
-    return matchesSearch && matchesCategory;
-  });
-
   const handleExit = () => {
     localStorage.removeItem('adult_token');
     localStorage.removeItem('adult_session_start');
@@ -101,264 +52,123 @@ export default function AdultSection() {
   if (isLoading) {
     return (
       <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="relative w-20 h-20">
-          <div className="absolute inset-0 border-4 border-primary/20 rounded-full"></div>
-          <div className="absolute inset-0 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-        </div>
+        <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   if (!isVerified) return null;
 
+  const adultContent = [
+    { id: 1, title: "Midnight Desire", image: "https://picsum.photos/seed/adult1/400/600", rating: "X", views: "1.2M" },
+    { id: 2, title: "Neon Nights", image: "https://picsum.photos/seed/adult2/400/600", rating: "X", views: "850K" },
+    { id: 3, title: "Silent Whispers", image: "https://picsum.photos/seed/adult3/400/600", rating: "X", views: "2.1M" },
+    { id: 4, title: "Velvet Room", image: "https://picsum.photos/seed/adult4/400/600", rating: "X", views: "500K" },
+    { id: 5, title: "Deep Focus", image: "https://picsum.photos/seed/adult5/400/600", rating: "X", views: "920K" },
+    { id: 6, title: "The Last Dance", image: "https://picsum.photos/seed/adult6/400/600", rating: "X", views: "1.5M" },
+  ];
+
   return (
-    <div className="min-h-screen bg-[#050505] text-white">
-      {/* Featured Header */}
-      <section className="relative h-[80vh] w-full overflow-hidden">
-        <video 
-          autoPlay 
-          muted 
-          loop 
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover scale-105"
-        >
-          <source src="https://assets.mixkit.co/videos/preview/mixkit-city-traffic-at-night-3453-large.mp4" type="video/mp4" />
-        </video>
-        <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-black/60" />
-        
-        <div className="absolute inset-0 flex items-center px-4 md:px-12 pointer-events-none">
-          <motion.div 
-            initial={{ opacity: 0, x: -50 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="max-w-3xl space-y-8 pointer-events-auto"
-          >
-            <div className="flex items-center gap-4">
-              <Badge className="bg-primary text-white font-black px-4 py-1.5 rounded-full text-sm animate-pulse tracking-widest uppercase">Direct Stream</Badge>
-              <div className="flex items-center gap-2 text-white/60 font-mono text-xs uppercase tracking-[0.3em]">
-                <ShieldCheck className="w-4 h-4 text-green-500" />
-                Verified Access
-              </div>
+    <div className="min-h-screen bg-[#050505] pt-24 pb-20 px-4 md:px-8">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="max-w-7xl mx-auto space-y-12"
+      >
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-primary/20 pb-8">
+          <div className="space-y-4">
+            <div className="flex items-center gap-3">
+              <Badge variant="destructive" className="bg-primary/20 text-primary border-primary/50 text-xs font-black animate-pulse">
+                RESTRICTED 18+
+              </Badge>
+              <span className="text-white/40 text-xs font-mono tracking-widest uppercase">Secured Session Active</span>
             </div>
-            
-            <h1 className="text-6xl md:text-9xl font-black italic tracking-tighter uppercase leading-none">
-              Dark <span className="text-primary block drop-shadow-[0_0_30px_rgba(229,9,20,0.5)]">Archive</span>
+            <h1 className="text-5xl md:text-7xl font-black tracking-tighter uppercase italic text-white flex items-center gap-4">
+              Premium <span className="text-primary drop-shadow-[0_0_15px_rgba(229,9,20,0.5)]">Noir</span>
             </h1>
-            
-            <p className="text-xl text-white/60 font-medium max-w-xl leading-relaxed">
-              Experience the world&apos;s most sought-after restricted cinematic collection. Encrypted, private, and strictly premium.
+            <p className="text-white/60 max-w-2xl text-lg font-medium">
+              Access granted to private cinematic archives. All content is strictly for adults. 
+              Unauthorized recording or redistribution is prohibited.
             </p>
-            
-            <div className="flex flex-wrap items-center gap-4">
-              <Button 
-                onClick={() => setSelectedVideo(content[0])}
-                className="h-16 px-10 bg-primary text-white hover:bg-primary/80 rounded-full font-black uppercase tracking-widest text-lg group shadow-[0_10px_40px_rgba(229,9,20,0.3)] transition-all"
-              >
-                <Play className="w-6 h-6 mr-2 fill-white" />
-                Start Watching
-              </Button>
-              <Button 
-                variant="outline"
-                className="h-16 px-10 border-white/20 bg-white/5 hover:bg-white/10 rounded-full font-black uppercase tracking-widest text-lg"
-              >
-                <Heart className="w-6 h-6 mr-2" />
-                Save to Vault
-              </Button>
-            </div>
-          </motion.div>
-        </div>
-
-        {/* Floating Gradient */}
-        <div className="absolute -bottom-1 left-0 w-full h-32 bg-gradient-to-t from-[#050505] to-transparent" />
-      </section>
-
-      {/* Sidebar Navigation */}
-      <aside className="fixed left-0 top-0 h-full w-20 md:w-64 bg-black/40 backdrop-blur-3xl border-r border-white/5 z-[60] pt-24 hidden md:flex flex-col gap-8 px-6">
-        <div className="space-y-1">
-          <p className="text-[10px] font-black text-white/20 uppercase tracking-widest px-4 mb-4">Discovery</p>
-          {[
-            { id: 'All', icon: Sparkles, label: 'All Archives' },
-            { id: 'Hot', icon: Flame, label: 'Burning Hot', color: 'text-orange-500' },
-            { id: 'Trending', icon: TrendingUp, label: 'Live Trends', color: 'text-blue-500' },
-            { id: 'New', icon: Clock, label: 'Fresh Spills', color: 'text-green-500' },
-            { id: 'Viral', icon: Volume2, label: 'Viral Feed', color: 'text-purple-500' },
-            { id: 'Premium', icon: ShieldCheck, label: 'Vault Access', color: 'text-yellow-500' },
-          ].map((item) => (
-            <button
-              key={item.id}
-              onClick={() => setActiveCategory(item.id)}
-              className={`w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all group ${
-                activeCategory === item.id ? 'bg-primary/20 text-white border border-primary/20' : 'text-white/40 hover:bg-white/5'
-              }`}
-            >
-              <item.icon className={`w-5 h-5 ${activeCategory === item.id ? 'text-primary' : item.color}`} />
-              <span className="text-sm font-bold uppercase tracking-tight hidden lg:block">{item.label}</span>
-            </button>
-          ))}
-        </div>
-
-        <div className="space-y-1 mt-auto pb-12">
-          <p className="text-[10px] font-black text-white/20 uppercase tracking-widest px-4 mb-4">Portals</p>
-          <button
-            onClick={() => setActiveCategory('Mystery')}
-            className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-white/40 hover:bg-primary/10 hover:text-primary transition-all group border border-dashed border-white/10"
-          >
-            <Globe className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-            <span className="text-sm font-black uppercase tracking-tight hidden lg:block">Uffmaal Hub</span>
-          </button>
-          <button
-            onClick={handleExit}
-            className="w-full flex items-center gap-4 px-4 py-3 rounded-xl text-red-500/40 hover:bg-red-500/10 hover:text-red-500 transition-all group"
-          >
-            <LogOut className="w-5 h-5" />
-            <span className="text-sm font-black uppercase tracking-tight hidden lg:block">Emergency Exit</span>
-          </button>
-        </div>
-      </aside>
-
-      {/* Main Content Area */}
-      <main className="md:ml-20 lg:ml-64 max-w-[1800px] mx-auto px-4 md:px-8 -mt-20 relative z-10 space-y-12">
-        
-        {/* Navigation / Filter Bar */}
-        <div className="sticky top-20 z-50 p-1 rounded-full bg-black/60 backdrop-blur-3xl border border-white/10 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar px-4 py-2">
-            {categories.map((cat) => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
-                  activeCategory === cat 
-                    ? 'bg-primary text-white shadow-[0_0_15px_rgba(229,9,20,0.4)]' 
-                    : 'text-white/40 hover:bg-white/5'
-                }`}
-              >
-                {cat === 'All' ? <Sparkles className="w-3 h-3 inline mr-1" /> : null}
-                {cat === 'Hot' ? <Flame className="w-3 h-3 inline mr-1" /> : null}
-                {cat}
-              </button>
-            ))}
           </div>
           
-          <div className="flex items-center gap-4 flex-1 max-w-md px-4">
-            <div className="relative w-full">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-              <Input 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search encrypted database..." 
-                className="w-full bg-white/5 border-white/10 h-10 rounded-full pl-12 text-[10px] font-black uppercase tracking-widest focus:border-primary/50"
-              />
-            </div>
-            <Button variant="ghost" size="icon" className="rounded-full bg-white/5 hover:bg-white/10" onClick={handleExit}>
-               <LogOut className="w-4 h-4 text-white/40" />
-            </Button>
-          </div>
+          <Button 
+            onClick={handleExit}
+            variant="outline"
+            className="border-primary/50 text-primary hover:bg-primary hover:text-white group h-14 px-8 rounded-full font-black uppercase tracking-widest transition-all"
+          >
+            <LogOut className="w-5 h-5 mr-2 group-hover:translate-x-1 transition-transform" />
+            Exit Stealth Mode
+          </Button>
         </div>
 
         {/* Content Grid */}
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <TrendingUp className="w-5 h-5 text-primary" />
-              <h2 className="text-2xl font-black uppercase tracking-tighter">Most Requested <span className="text-white/20 italic ml-2">({filteredContent.length})</span></h2>
-            </div>
-            <div className="flex items-center gap-2 group cursor-pointer">
-              <span className="text-[10px] font-black uppercase tracking-widest text-white/40 group-hover:text-primary transition-colors">See all archives</span>
-              <ChevronRight className="w-4 h-4 text-white/20 group-hover:text-primary transition-all" />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6">
-            <AnimatePresence mode="popLayout">
-              {filteredContent.map((item, i) => (
-                <motion.div
-                  key={item.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                  animate={{ opacity: 1, scale: 1, y: 0 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ delay: i * 0.02 }}
-                  className="group relative cursor-pointer"
-                  onClick={() => setSelectedVideo(item)}
-                >
-                  <div className="relative aspect-[9/13] rounded-2xl overflow-hidden bg-white/5 border border-white/5 group-hover:border-primary/50 transition-all duration-500 hover:scale-[1.02] hover:shadow-[0_20px_50px_rgba(0,0,0,0.8)]">
-                    <Image 
-                      src={item.image} 
-                      alt={item.title}
-                      fill
-                      className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-70 group-hover:opacity-100"
-                      referrerPolicy="no-referrer"
-                    />
-                    
-                    {/* Live Badge */}
-                    <div className="absolute top-3 left-3 bg-red-600 px-2 py-0.5 rounded text-[8px] font-black italic tracking-widest text-white shadow-lg animate-pulse">
-                      LIVE
-                    </div>
-
-                    {/* Stats Overlays */}
-                    <div className="absolute top-3 right-3 flex flex-col gap-1 items-end">
-                      <div className="bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[8px] font-bold text-primary border border-white/10 uppercase">
-                        {item.rating}
-                      </div>
-                      <div className="bg-black/60 backdrop-blur-md px-2 py-0.5 rounded text-[8px] font-mono text-white/80 border border-white/10">
-                        {item.duration}
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+          <AnimatePresence mode="popLayout">
+            {adultContent.map((item, i) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="group relative"
+              >
+                <div className="relative aspect-[2/3] rounded-2xl overflow-hidden glass-card border border-white/5 group-hover:border-primary/50 transition-all duration-500 hover:scale-105 hover:z-10">
+                  <Image 
+                    src={item.image} 
+                    alt={item.title}
+                    fill
+                    className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity grayscale hover:grayscale-0"
+                    referrerPolicy="no-referrer"
+                  />
+                  
+                  {/* Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-4">
+                    <h3 className="text-white font-bold text-lg leading-tight mb-2 uppercase tracking-tighter">{item.title}</h3>
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] text-white/60 font-mono italic">{item.views} views</span>
+                      <div className="bg-primary p-2 rounded-full cursor-pointer hover:scale-110 transition-transform shadow-[0_0_15px_rgba(229,9,20,0.5)]">
+                        <Play className="w-3 h-3 text-white fill-white" />
                       </div>
                     </div>
-
-                    {/* Content Overlay */}
-                    <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black via-black/40 to-transparent translate-y-2 group-hover:translate-y-0 transition-transform">
-                      <h3 className="text-white font-bold text-sm tracking-tight mb-1 uppercase truncate">{item.title}</h3>
-                      <div className="flex items-center justify-between">
-                         <span className="text-[9px] font-mono text-white/40 uppercase tracking-widest">{item.views} Viewers</span>
-                         <div className="bg-primary p-2 rounded-full scale-0 group-hover:scale-100 transition-transform shadow-[0_0_15px_rgba(229,9,20,0.5)]">
-                           <Play className="w-3 h-3 text-white fill-white" />
-                         </div>
-                      </div>
-                    </div>
-
-                    {/* Hover Glow */}
-                    <div className="absolute inset-0 opacity-0 group-hover:opacity-20 bg-primary blur-3xl transition-opacity pointer-events-none" />
                   </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+
+                  {/* Rating Badge */}
+                  <div className="absolute top-3 right-3 bg-black/60 backdrop-blur-md border border-white/10 px-2 py-0.5 rounded-md text-[10px] font-black text-primary">
+                    {item.rating}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+
+        {/* Warning Banner */}
+        <div className="mt-20 p-8 rounded-3xl bg-primary/5 border border-primary/20 backdrop-blur-xl flex flex-col md:flex-row items-center gap-8">
+          <div className="p-6 bg-primary/20 rounded-2xl border border-primary/30">
+            <ShieldAlert className="w-12 h-12 text-primary" />
+          </div>
+          <div className="space-y-2 flex-grow text-center md:text-left">
+            <h4 className="text-xl font-bold text-white uppercase tracking-tighter">Legal Disclaimer</h4>
+            <p className="text-white/40 text-sm max-w-3xl leading-relaxed font-medium">
+              By entering this section, you acknowledge that you are at least 18 years of age. 
+              We use device fingerprints and encrypted session storage to verify and maintain your access.
+              Your location and IP data are strictly used for regional licensing compliance.
+            </p>
+          </div>
+          <div className="flex flex-col items-center gap-2">
+            <div className="w-12 h-12 rounded-full border-2 border-primary/30 border-t-primary animate-spin"></div>
+            <span className="text-[10px] font-mono text-primary animate-pulse">ENCRYPTION ACTIVE</span>
           </div>
         </div>
+      </motion.div>
 
-        {/* Secure Footer Info */}
-        <div className="pt-20 pb-12 border-t border-white/5 flex flex-col items-center gap-8 text-center">
-           <div className="w-20 h-20 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center">
-              <ShieldAlert className="w-8 h-8 text-primary animate-pulse" />
-           </div>
-           <div className="space-y-4">
-              <h4 className="text-3xl font-black uppercase tracking-tighter">Enterprise Encryption Active</h4>
-              <p className="text-white/40 max-w-2xl text-sm italic font-medium leading-relaxed uppercase tracking-widest">
-                 Your session is protected via military-grade RSA handshake. We do not store browsing history. 
-                 All data is ephemeral and wiped upon exit.
-              </p>
-           </div>
-           <div className="flex flex-wrap items-center justify-center gap-6">
-              <div className="flex items-center gap-2 px-6 py-2 bg-white/5 rounded-full border border-white/10">
-                 <Lock className="w-3 h-3 text-primary" />
-                 <span className="text-[9px] font-black text-white/60 tracking-widest uppercase">AES-256 BIT</span>
-              </div>
-              <div className="flex items-center gap-2 px-6 py-2 bg-white/5 rounded-full border border-white/10">
-                 <ShieldCheck className="w-3 h-3 text-green-500" />
-                 <span className="text-[9px] font-black text-white/60 tracking-widest uppercase">SSL SECURED</span>
-              </div>
-           </div>
-        </div>
-      </main>
-
-      {/* Video Modal Interface */}
-      <VideoModal 
-        isOpen={!!selectedVideo} 
-        onClose={() => setSelectedVideo(null)} 
-        videoUrl={selectedVideo?.url || ''} 
-        title={selectedVideo?.title || ''} 
-      />
-
-      {/* Interactive Background */}
-      <div className="fixed inset-0 pointer-events-none -z-10 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent opacity-50" />
+      {/* Decorative Background Elements */}
+      <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+        <div className="absolute top-1/4 -left-20 w-[500px] h-[500px] bg-primary/5 blur-[150px] rounded-full"></div>
+        <div className="absolute bottom-0 -right-20 w-[600px] h-[600px] bg-primary/5 blur-[120px] rounded-full"></div>
+      </div>
     </div>
   );
 }
