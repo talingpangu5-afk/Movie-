@@ -38,64 +38,37 @@ export interface MovieDetails extends Movie {
 }
 
 async function fetchTMDB(endpoint: string, params: Record<string, string> = {}) {
-  const isClient = typeof window !== 'undefined';
-  
-  if (isClient) {
-    try {
-      const queryParams = new URLSearchParams(params);
-      queryParams.set('endpoint', endpoint);
-      const response = await fetch(`/api/tmdb?${queryParams.toString()}`);
-      
-      if (!response.ok) {
-        console.warn(`TMDB Proxy Error for ${endpoint}: ${response.status}`);
-        return { results: [] };
-      }
-      
-      return await response.json();
-    } catch (error: any) {
-      console.error('TMDB Client Proxy Error:', error.message);
-      return { results: [] };
-    }
-  }
-
   try {
     const url = new URL(`${TMDB_API_BASE_URL}${endpoint}`);
-    // Prioritize API key from environment if available
-    const apiKey = process.env.NEXT_PUBLIC_TMDB_API_KEY || API_KEY;
-    url.searchParams.append('api_key', apiKey);
+    url.searchParams.append('api_key', API_KEY);
     
     Object.entries(params).forEach(([key, value]) => {
       url.searchParams.append(key, value);
     });
   
+    const token = BEARER_TOKEN;
+    
     const response = await fetch(url.toString(), {
-      method: 'GET',
       headers: {
-        'Accept': 'application/json',
+        Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      cache: 'no-store',
-      // Added a signals timeout for 10 seconds
-      signal: AbortSignal.timeout(10000),
+      cache: 'no-store', // Disable caching for real-time data
     });
   
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error(`TMDB API Error: ${response.status} ${response.statusText}`, {
-        endpoint,
-        errorData
-      });
+      if (response.status === 401) {
+        console.error('TMDB API error: Unauthorized. Check your API keys.');
+        return { results: [] };
+      }
+      // Log error but return empty results to prevent crash
+      console.warn(`TMDB API warning: ${response.status} ${response.statusText} at ${endpoint}`);
       return { results: [] };
     }
   
     return await response.json();
-  } catch (error: any) {
-    console.error('TMDB Fetch Exception:', {
-      message: error.message,
-      name: error.name,
-      endpoint,
-      cause: error.cause
-    });
+  } catch (error) {
+    console.error('TMDB Fetch Error:', error);
     // Return empty results instead of throwing to prevent component crashes
     return { results: [] };
   }
