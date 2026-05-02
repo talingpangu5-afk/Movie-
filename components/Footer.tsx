@@ -73,8 +73,7 @@ export function Footer() {
               </div>
             </div>
 
-            {/* Neural Trailers Ingested Feed */}
-            <FooterTrailers />
+            {/* Neural Trailers Ingested Feed removed */}
           </div>
         </div>
         

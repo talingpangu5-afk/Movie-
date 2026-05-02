@@ -7,7 +7,6 @@ import { Footer } from '@/components/Footer';
 import { Toaster } from '@/components/ui/sonner';
 import { TouchSidebar } from '@/components/TouchSidebar';
 import { AdultTrigger } from '@/components/AdultTrigger';
-import { AIVideoProvider } from '@/components/AIVideoProvider';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -29,15 +28,6 @@ export const metadata: Metadata = {
 export default function RootLayout({children}: {children: React.ReactNode}) {
   return (
     <html lang="en" className="dark">
-      <head>
-        <link rel="preconnect" href="https://www.youtube.com" />
-        <link rel="preconnect" href="https://www.youtube-nocookie.com" />
-        <link rel="preconnect" href="https://ok.ru" />
-        <link rel="preconnect" href="https://assets.mixkit.co" />
-        <link rel="dns-prefetch" href="https://www.youtube.com" />
-        <link rel="dns-prefetch" href="https://www.youtube-nocookie.com" />
-        <link rel="dns-prefetch" href="https://ok.ru" />
-      </head>
       <body className={inter.className} suppressHydrationWarning>
         {/* Ad Network Scripts */}
         <Script 
@@ -52,7 +42,6 @@ export default function RootLayout({children}: {children: React.ReactNode}) {
         <Footer />
         <TouchSidebar />
         <AdultTrigger />
-        <AIVideoProvider />
         <Toaster position="top-center" />
       </body>
     </html>
