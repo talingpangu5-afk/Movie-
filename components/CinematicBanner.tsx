@@ -96,9 +96,9 @@ export function CinematicBanner() {
           className="glass-card p-8 md:p-12 rounded-3xl max-w-4xl w-full border border-white/10 shadow-2xl"
         >
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: "spring", stiffness: 100, damping: 20 }}
+            initial={{ scale: 0.9 }}
+            animate={{ scale: 1 }}
+            transition={{ duration: 0.5 }}
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-bold mb-6"
           >
             <Sparkles className="w-4 h-4" />
