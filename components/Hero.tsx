@@ -67,6 +67,7 @@ export function Hero({ movies }: HeroProps) {
 
       playerRef.current = new window.YT.Player(`hero-video`, {
         videoId: trailer.key,
+        host: 'https://www.youtube-nocookie.com',
         playerVars: {
           autoplay: 1,
           mute: 1,
@@ -76,6 +77,7 @@ export function Hero({ movies }: HeroProps) {
           modestbranding: 1,
           iv_load_policy: 3,
           showinfo: 0,
+          vq: 'hd720', // Prefer 720p for fast initial load
         },
         events: {
           onReady: (event: any) => {

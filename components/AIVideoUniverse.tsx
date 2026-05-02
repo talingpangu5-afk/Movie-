@@ -322,10 +322,11 @@ export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose:
               {activeTrailerKey && isPlaying ? (
                 <div className="absolute inset-0 z-0 scale-105 pointer-events-none">
                   <iframe 
-                    src={`https://www.youtube.com/embed/${activeTrailerKey}?autoplay=1&mute=${isMuted ? 1 : 0}&controls=0&modestbranding=1&loop=1&playlist=${activeTrailerKey}&rel=0`}
+                    src={`https://www.youtube-nocookie.com/embed/${activeTrailerKey}?autoplay=1&mute=${isMuted ? 1 : 0}&controls=0&modestbranding=1&loop=1&playlist=${activeTrailerKey}&rel=0&vq=hd720`}
                     className="w-full h-full object-cover"
                     allow="autoplay; encrypted-media"
                     title={activeVideo.title}
+                    loading="eager"
                   />
                   <div className="absolute inset-0 bg-cyan-900/10 mix-blend-color" />
                 </div>

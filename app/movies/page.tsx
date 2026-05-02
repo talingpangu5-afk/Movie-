@@ -301,6 +301,7 @@ export default function MoviesPage() {
                     className="w-full h-full border-0"
                     allowFullScreen
                     title={activeVideo.title}
+                    loading="eager"
                   />
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center space-y-4 bg-black/40 backdrop-blur-xl">
