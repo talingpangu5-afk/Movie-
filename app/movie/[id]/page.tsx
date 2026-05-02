@@ -141,7 +141,7 @@ export default async function MovieDetailsPage({ params }: { params: Promise<{ i
                 <h3 className="text-2xl font-bold">Official Trailer</h3>
                 <div className="relative aspect-video rounded-2xl overflow-hidden shadow-2xl border border-muted/20">
                   <iframe
-                    src={`https://www.youtube-nocookie.com/embed/${trailer.key}?vq=hd720`}
+                    src={`https://www.youtube-nocookie.com/embed/${trailer.key}?vq=hd2160`}
                     title={`${movie.title} Trailer`}
                     className="absolute inset-0 w-full h-full"
                     allowFullScreen

@@ -215,7 +215,7 @@ export function SciFiPlatform({ onClose }: SciFiPlatformProps) {
                     <div className="w-full h-full relative group">
                       {trailer ? (
                         <iframe
-                          src={`https://www.youtube-nocookie.com/embed/${trailer.key}?autoplay=1&mute=0&controls=1&rel=0&modestbranding=1&iv_load_policy=3&vq=hd720`}
+                          src={`https://www.youtube-nocookie.com/embed/${trailer.key}?autoplay=1&mute=0&controls=1&rel=0&modestbranding=1&iv_load_policy=3&vq=hd2160`}
                           className="w-full h-full border-none relative z-10"
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                           allowFullScreen

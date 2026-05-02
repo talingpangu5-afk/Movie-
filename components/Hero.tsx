@@ -77,7 +77,7 @@ export function Hero({ movies }: HeroProps) {
           modestbranding: 1,
           iv_load_policy: 3,
           showinfo: 0,
-          vq: 'hd720', // Prefer 720p for fast initial load
+          vq: 'hd2160', // Upgrade to 4K for premium visual experience
         },
         events: {
           onReady: (event: any) => {

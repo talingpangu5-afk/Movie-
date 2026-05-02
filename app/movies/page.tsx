@@ -264,11 +264,11 @@ export default function MoviesPage() {
                 transition={{ delay: 0.3 }}
                 className="flex items-center justify-center gap-4 text-xs font-bold tracking-widest text-primary/80 uppercase"
               >
-                <span>Full HD</span>
+                <span>4K Ultra HD</span>
                 <span className="w-1 h-1 rounded-full bg-white/20"></span>
-                <span>Premium Quality</span>
+                <span>Fresh Quality</span>
                 <span className="w-1 h-1 rounded-full bg-white/20"></span>
-                <span>1080p</span>
+                <span>2160p HDR</span>
               </motion.div>
             </div>
 
@@ -300,14 +300,20 @@ export default function MoviesPage() {
               <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-10 bg-[length:100%_2px,3px_100%]"></div>
               
               <div className="w-full h-full relative">
+                <div className="absolute inset-x-0 bottom-4 flex items-center justify-center pointer-events-none z-30">
+                  <div className="px-3 py-1 bg-primary/20 backdrop-blur-md rounded-full border border-primary/30 flex items-center gap-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
+                    <span className="text-[10px] font-black tracking-widest text-primary uppercase italic">4K UHD Adaptive Network Active</span>
+                  </div>
+                </div>
                 {activeVideo && (isMovieUnlocked(activeVideo.title) || activeVideo.title.includes("Unfaithful")) ? (
                   <div className="w-full h-full relative">
                     {iframeLoading && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4 bg-black/40 backdrop-blur-xl z-20">
                         <Loader2 className="w-12 h-12 text-primary animate-spin" />
                         <div className="text-center">
-                          <p className="text-primary font-bold tracking-widest uppercase text-xs">Uplink Synchronizing...</p>
-                          <p className="text-white/20 text-[9px] mt-1 font-mono">Bypassing Latency Nodes</p>
+                          <p className="text-primary font-bold tracking-widest uppercase text-xs text-glow">tuning 4K visual sequence...</p>
+                          <p className="text-white/20 text-[9px] mt-1 font-mono">bypassing latency nodes</p>
                         </div>
                       </div>
                     )}
