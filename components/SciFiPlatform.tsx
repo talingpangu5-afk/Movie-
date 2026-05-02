@@ -181,11 +181,11 @@ export function SciFiPlatform({ onClose }: SciFiPlatformProps) {
                 <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
                    {/* Top Bar Data */}
                    <div className="absolute top-4 left-1/2 -translate-x-1/2 flex items-center gap-10 px-6 py-2 bg-black/40 backdrop-blur-md rounded-full border border-white/5 text-[9px] font-mono text-cyan-400">
-                      <span className="flex items-center gap-2"><Activity className="w-3 h-3 text-green-400" /> FEED: NORMAL</span>
+                      <span className="flex items-center gap-2"><Activity className="w-3 h-3 text-green-400" /> FEED: OPTIMIZED_60FPS</span>
                       <span className="opacity-30">|</span>
-                      <span className="flex items-center gap-2"><Monitor className="w-3 h-3 text-blue-400" /> RES: 4K_UHD</span>
+                      <span className="flex items-center gap-2"><Monitor className="w-3 h-3 text-blue-400" /> RES: 2160p_HDR_MAX</span>
                       <span className="opacity-30">|</span>
-                      <span className="animate-pulse">AUTO_UPDATING...</span>
+                      <span className="animate-pulse">ADAPTIVE_LINK_ACTIVE...</span>
                    </div>
 
                    {/* Left Side HUD Stats */}
@@ -214,13 +214,16 @@ export function SciFiPlatform({ onClose }: SciFiPlatformProps) {
                   <>
                     <div className="w-full h-full relative group">
                       {trailer ? (
-                        <iframe
-                          src={`https://www.youtube-nocookie.com/embed/${trailer.key}?autoplay=1&mute=0&controls=1&rel=0&modestbranding=1&iv_load_policy=3&vq=hd2160`}
-                          className="w-full h-full border-none relative z-10"
-                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                          allowFullScreen
-                          loading="eager"
-                        />
+                         <motion.iframe
+                           initial={{ scale: 1.05, opacity: 0 }}
+                           animate={{ scale: 1, opacity: 1 }}
+                           transition={{ duration: 1.2, ease: "easeOut" }}
+                           src={`https://www.youtube-nocookie.com/embed/${trailer.key}?autoplay=1&mute=0&controls=1&rel=0&modestbranding=1&iv_load_policy=3&vq=hd2160`}
+                           className="w-full h-full border-none relative z-10"
+                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                           allowFullScreen
+                           loading="eager"
+                         />
                       ) : (
                         <div className="w-full h-full relative">
                           <Image 
@@ -256,7 +259,7 @@ export function SciFiPlatform({ onClose }: SciFiPlatformProps) {
                         <div className="flex gap-6 text-xs font-mono text-cyan-500 mb-5">
                           <span className="flex items-center gap-2"><Play className="w-3 h-3 fill-current" /> {selectedMovie.release_date?.split('-')[0]}</span>
                           <span className="flex items-center gap-2"><Activity className="w-3 h-3" /> {selectedMovie.runtime} MIN</span>
-                          <span className="flex items-center gap-2"><Shield className="w-3 h-3 text-green-400" /> DECRYPTED_1080P</span>
+                          <span className="flex items-center gap-2 text-glow"><Shield className="w-3 h-3 text-cyan-400" /> 4K_MAX_FLUIDITY</span>
                         </div>
                         <p className="text-sm text-white/70 line-clamp-3 leading-relaxed font-medium italic opacity-90 border-t border-white/5 pt-4">
                           &quot;{selectedMovie.tagline || selectedMovie.overview}&quot;
@@ -269,10 +272,10 @@ export function SciFiPlatform({ onClose }: SciFiPlatformProps) {
                   </>
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center gap-6 bg-black">
-                     <div className="w-20 h-20 border-4 border-cyan-500/20 border-t-cyan-500 rounded-full animate-spin" />
+                     <div className="w-20 h-20 border-4 border-cyan-500/10 border-t-cyan-500 rounded-full animate-spin shadow-[0_0_20px_rgba(34,211,238,0.2)]" />
                      <div className="text-center font-mono space-y-2">
-                        <p className="text-cyan-500 text-sm animate-pulse tracking-[0.3em]">INITIALIZING_UPLINK...</p>
-                        <p className="text-white/20 text-[8px]">WAITING FOR SYSTEM RESPONSE</p>
+                        <p className="text-cyan-500 text-sm animate-pulse tracking-[0.3em] text-glow">NEURAL_STABILIZATION_ACTIVE...</p>
+                        <p className="text-white/20 text-[8px]">BUFFERING 4K CINEMATIC SEQUENCE</p>
                      </div>
                   </div>
                 )}

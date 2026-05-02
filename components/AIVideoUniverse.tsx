@@ -48,7 +48,7 @@ const generateVideos = (count: number, offset: number) =>
     duration: `${Math.floor(Math.random() * 5)}:${Math.floor(Math.random() * 50).toString().padStart(2, '0')}`,
     category: ['SYNTHETIC', 'QUANTUM_CORE', 'NEURO_NET', 'VOID_ASTRO'][Math.floor(Math.random() * 4)],
     views: `${(Math.random() * 500).toFixed(1)}K`,
-    description: "Deep neural generation of synthetic reality layers. Optimized for 8K surveillance nodes using real-time packet reconstruction."
+    description: "Ultra-smooth cinematic flow with zero frames dropped. Optimized for 4K 60FPS neural rendering using real-time frame interpolation."
   }));
 
 export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
@@ -135,12 +135,12 @@ export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose:
     if (!isPlaying) return;
     
     const subs = [
-      "Analyzing packet fragments...",
-      "Neural sync established at 98.4%",
-      "Decrypting visual metadata layer 4",
-      "Bio-synthetic signatures detected",
-      "Rebuilding frame buffer 0x82A",
-      "Quantum superposition resolved",
+      "Analyzing 4K packet fragments...",
+      "Neural sync established: 60FPS STABLE",
+      "Interpolating visual sequence layers",
+      "Adaptive network optimization active",
+      "Rebuilding frame buffer 0x82A @ 4K",
+      "Professional cinematic flow resolved",
     ];
     
     const interval = setInterval(() => {
@@ -322,7 +322,7 @@ export function AIVideoUniverse({ isOpen, onClose }: { isOpen: boolean; onClose:
               {activeTrailerKey && isPlaying ? (
                 <div className="absolute inset-0 z-0 scale-105 pointer-events-none">
                   <iframe 
-                    src={`https://www.youtube-nocookie.com/embed/${activeTrailerKey}?autoplay=1&mute=${isMuted ? 1 : 0}&controls=0&modestbranding=1&loop=1&playlist=${activeTrailerKey}&rel=0&vq=hd720`}
+                    src={`https://www.youtube-nocookie.com/embed/${activeTrailerKey}?autoplay=1&mute=${isMuted ? 1 : 0}&controls=0&modestbranding=1&loop=1&playlist=${activeTrailerKey}&rel=0&vq=hd2160`}
                     className="w-full h-full object-cover"
                     allow="autoplay; encrypted-media"
                     title={activeVideo.title}

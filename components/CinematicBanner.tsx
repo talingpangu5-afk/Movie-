@@ -96,13 +96,13 @@ export function CinematicBanner() {
           className="glass-card p-8 md:p-12 rounded-3xl max-w-4xl w-full border border-white/10 shadow-2xl"
         >
           <motion.div
-            initial={{ scale: 0.9 }}
-            animate={{ scale: 1 }}
-            transition={{ duration: 0.5 }}
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: "spring", stiffness: 100, damping: 20 }}
             className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-bold mb-6"
           >
             <Sparkles className="w-4 h-4" />
-            <span>EXCLUSIVE PREVIEW</span>
+            <span>4K ULTRA HD EXPERIENCE</span>
           </motion.div>
 
           <motion.h2 
@@ -120,11 +120,11 @@ export function CinematicBanner() {
               Coming Soon
             </span>
             <br />
-            <span className="text-white">Live Stream Movies</span>
+            <span className="text-white">Seamless 60FPS Streaming</span>
           </motion.h2>
 
-          <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-10">
-            Experience the next generation of cinema. Join our exclusive live streaming events and be the first to watch the biggest blockbusters from the comfort of your home.
+          <p className="text-gray-400 text-lg md:text-xl max-w-2xl mx-auto mb-10 leading-relaxed">
+            Experience ultra-smooth cinematic flow with zero lag. Our advanced frame interpolation and 4K neural rendering deliver perfectly fluid motion for every scene.
           </p>
 
           <div className="flex flex-wrap justify-center gap-4">

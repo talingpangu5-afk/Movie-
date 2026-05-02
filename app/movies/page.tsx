@@ -295,26 +295,58 @@ export default function MoviesPage() {
             <motion.div 
               initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
+              transition={{ type: "spring", stiffness: 100, damping: 20 }}
               className="relative aspect-video bg-[#050505] rounded-lg overflow-hidden border border-white/10 shadow-[0_0_80px_rgba(0,0,0,0.8)]"
             >
               <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.25)_50%),linear-gradient(90deg,rgba(255,0,0,0.06),rgba(0,255,0,0.02),rgba(0,0,255,0.06))] z-10 bg-[length:100%_2px,3px_100%]"></div>
               
+              {/* Cinematic Grain Overlay */}
+              <div className="absolute inset-0 pointer-events-none opacity-[0.03] z-[15] bg-[url('https://grainy-gradients.vercel.app/noise.svg')] bg-repeat"></div>
+              
               <div className="w-full h-full relative">
                 <div className="absolute inset-x-0 bottom-4 flex items-center justify-center pointer-events-none z-30">
-                  <div className="px-3 py-1 bg-primary/20 backdrop-blur-md rounded-full border border-primary/30 flex items-center gap-2">
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="px-3 py-1 bg-primary/20 backdrop-blur-md rounded-full border border-primary/30 flex items-center gap-2"
+                  >
                     <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></span>
                     <span className="text-[10px] font-black tracking-widest text-primary uppercase italic">4K UHD Adaptive Network Active</span>
-                  </div>
+                    <div className="flex gap-0.5 ml-2">
+                       {[...Array(4)].map((_, i) => (
+                         <motion.div 
+                           key={i}
+                           animate={{ height: [2, 8, 2] }}
+                           transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
+                           className="w-0.5 bg-primary/40 rounded-full"
+                         />
+                       ))}
+                    </div>
+                  </motion.div>
                 </div>
                 {activeVideo && (isMovieUnlocked(activeVideo.title) || activeVideo.title.includes("Unfaithful")) ? (
                   <div className="w-full h-full relative">
                     {iframeLoading && (
                       <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4 bg-black/40 backdrop-blur-xl z-20">
-                        <Loader2 className="w-12 h-12 text-primary animate-spin" />
-                        <div className="text-center">
-                          <p className="text-primary font-bold tracking-widest uppercase text-xs text-glow">tuning 4K visual sequence...</p>
-                          <p className="text-white/20 text-[9px] mt-1 font-mono">bypassing latency nodes</p>
+                        <div className="relative">
+                          <Loader2 className="w-12 h-12 text-primary animate-spin" />
+                          <motion.div 
+                            animate={{ rotate: 360 }}
+                            transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                            className="absolute -inset-4 border border-dashed border-primary/20 rounded-full"
+                          />
                         </div>
+                        <div className="text-center">
+                          <p className="text-primary font-bold tracking-widest uppercase text-xs text-glow">Optimizing 4K Neural sequence...</p>
+                          <p className="text-white/20 text-[9px] mt-1 font-mono">stabilizing frame motion buffer</p>
+                        </div>
+                        
+                        {/* Scanning Line */}
+                        <motion.div 
+                          animate={{ top: ['0%', '100%', '0%'] }}
+                          transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                          className="absolute left-0 right-0 h-[1px] bg-primary/30 shadow-[0_0_15px_rgba(255,255,255,0.5)] z-30"
+                        />
                       </div>
                     )}
                     <iframe 
