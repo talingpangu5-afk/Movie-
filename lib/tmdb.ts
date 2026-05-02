@@ -1,7 +1,7 @@
 const TMDB_API_BASE_URL = 'https://api.themoviedb.org/3';
-// Hardcoded for build stability in this environment
-const API_KEY = '754e50aeb0587d8fba132d342fe5bd13';
-const BEARER_TOKEN = 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI3NTRlNTBhZWIwNTg3ZDhmYmExMzJkMzQyZmU1YmQxMyIsIm5iZiI6MTc3NTgzNTc2Ni41MjgsInN1YiI6IjY5ZDkxYTc2YTEwNDk3MDdhNjM1NzYxZiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.BJYDW9ifIGfZM7-vzVV5qbzLW2COdRkfjqQcVVbjjSk';
+// Use environment variables for API keys
+const API_KEY = process.env.NEXT_PUBLIC_TMDB_API_KEY || '754e50aeb0587d8fba132d342fe5bd13';
+const BEARER_TOKEN = process.env.NEXT_PUBLIC_TMDB_BEARER_TOKEN || 'eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI3NTRlNTBhZWIwNTg3ZDhmYmExMzJkMzQyZmU1YmQxMyIsIm5iZiI6MTc3NTgzNTc2Ni41MjgsInN1YiI6IjY5ZDkxYTc2YTEwNDk3MDdhNjM1NzYxZiIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.BJYDW9ifIGfZM7-vzVV5qbzLW2COdRkfjqQcVVbjjSk';
 
 export interface Movie {
   id: number;
@@ -53,7 +53,8 @@ async function fetchTMDB(endpoint: string, params: Record<string, string> = {}) 
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
       },
-      cache: 'no-store', // Disable caching for real-time data
+      // Enable caching to speed up repeated requests
+      next: { revalidate: 3600 }, // Cache for 1 hour
     });
   
     if (!response.ok) {

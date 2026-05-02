@@ -5,7 +5,7 @@ import { AdBanner } from '@/components/AdBanner'
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { PaymentModal } from '@/components/PaymentModal'
-import { Lock, Unlock, ShieldCheck, Play } from 'lucide-react'
+import { Lock, Unlock, ShieldCheck, Play, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -146,6 +146,8 @@ export default function MoviesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [hasMore, setHasMore] = useState(true);
 
+  const [iframeLoading, setIframeLoading] = useState(true);
+
   const fetchMovies = async (pageToFetch: number) => {
     try {
       setIsLoading(true);
@@ -195,6 +197,10 @@ export default function MoviesPage() {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    setIframeLoading(true);
+  }, [activeVideo]);
 
   useEffect(() => {
     const adminStatus = localStorage.getItem('isAdmin');
@@ -295,14 +301,26 @@ export default function MoviesPage() {
               
               <div className="w-full h-full relative">
                 {activeVideo && (isMovieUnlocked(activeVideo.title) || activeVideo.title.includes("Unfaithful")) ? (
-                  <iframe 
-                    key={activeVideo.url}
-                    src={activeVideo.url}
-                    className="w-full h-full border-0"
-                    allowFullScreen
-                    title={activeVideo.title}
-                    loading="eager"
-                  />
+                  <div className="w-full h-full relative">
+                    {iframeLoading && (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center space-y-4 bg-black/40 backdrop-blur-xl z-20">
+                        <Loader2 className="w-12 h-12 text-primary animate-spin" />
+                        <div className="text-center">
+                          <p className="text-primary font-bold tracking-widest uppercase text-xs">Uplink Synchronizing...</p>
+                          <p className="text-white/20 text-[9px] mt-1 font-mono">Bypassing Latency Nodes</p>
+                        </div>
+                      </div>
+                    )}
+                    <iframe 
+                      key={activeVideo.url}
+                      src={activeVideo.url}
+                      className="w-full h-full border-0"
+                      allowFullScreen
+                      title={activeVideo.title}
+                      loading="eager"
+                      onLoad={() => setIframeLoading(false)}
+                    />
+                  </div>
                 ) : (
                   <div className="w-full h-full flex flex-col items-center justify-center space-y-4 bg-black/40 backdrop-blur-xl">
                     <div className="p-6 bg-primary/20 rounded-full border border-primary/30 animate-pulse">
