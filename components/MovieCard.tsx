@@ -5,7 +5,6 @@ import Image from 'next/image';
 import { Star, Play } from 'lucide-react';
 import { motion } from 'motion/react';
 import { Movie, tmdb } from '@/lib/tmdb';
-import { useNeuralQuality } from '@/hooks/useNeuralQuality';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useState } from 'react';
@@ -16,14 +15,11 @@ interface MovieCardProps {
 }
 
 export function MovieCard({ movie }: MovieCardProps) {
-  const { config } = useNeuralQuality();
   const rating = movie.vote_average?.toFixed(1) || 'N/A';
   const releaseYear = new Date(movie.release_date || movie.first_air_date || '').getFullYear() || 'N/A';
   const [isLoading, setIsLoading] = useState(true);
-  const [isError, setIsError] = useState(false);
+  const [imgSrc, setImgSrc] = useState(tmdb.getImageUrl(movie.poster_path, 'w500'));
   const fallbackImg = '/placeholder-movie.jpg';
-
-  const imgSrc = isError ? fallbackImg : tmdb.getImageUrl(movie.poster_path, config.tmdbPosterSize);
 
   return (
     <motion.div
@@ -45,12 +41,12 @@ export function MovieCard({ movie }: MovieCardProps) {
               alt={movie.title || movie.name || 'Movie Poster'}
               fill
               loading="lazy"
-              className={`object-cover transition-all duration-500 group-hover:scale-105 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
+              className={`object-cover transition-all duration-500 group-hover:scale-110 ${isLoading ? 'opacity-0' : 'opacity-100'}`}
               referrerPolicy="no-referrer"
-              sizes="(max-width: 768px) 50vw, 300px"
+              sizes="(max-width: 768px) 50vw, 200px"
               onLoad={() => setIsLoading(false)}
               onError={() => {
-                setIsError(true);
+                setImgSrc(fallbackImg);
                 setIsLoading(false);
               }}
             />

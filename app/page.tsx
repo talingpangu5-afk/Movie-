@@ -57,7 +57,7 @@ export default async function HomePage() {
     if (trendingMovies.length === 0) {
       return (
         <div className="flex flex-col items-center justify-center min-h-screen text-center p-4">
-          <h1 className="text-2xl font-bold mb-4">Welcome to Neural Stream Alpha</h1>
+          <h1 className="text-2xl font-bold mb-4">Welcome to Taling Pangu</h1>
           <p className="text-muted-foreground">Unable to load trending movies at the moment. Please check your API configuration.</p>
         </div>
       );

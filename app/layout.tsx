@@ -17,10 +17,10 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://neuralstream.alpha'),
-  title: 'Neural Stream Alpha | Crystal Clear Cinematic Experience',
-  description: 'A high-performance neural video streaming platform with TMDB integration and crystal-clear visual clarity.',
-  keywords: 'streaming, movies, 4k, neural stream, cinema, trailers, tmdb',
+  metadataBase: new URL('https://talingpangu.com'),
+  title: 'Taling Pangu | Discover Your Next Favorite Movie',
+  description: 'Explore trending, popular, and top-rated movies. Watch trailers, check ratings, and find your next cinematic experience.',
+  keywords: 'movies, cinema, trailers, tmdb, taling pangu, trending movies',
   verification: {
     google: 'WsPfjnR3zKFJ_WBOqopa39wfV-VtnJzercgWVf5eQPY',
   },

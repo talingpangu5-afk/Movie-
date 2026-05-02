@@ -7,7 +7,6 @@ import { Play, Pause, Info, Star, Volume2, VolumeX, ChevronRight } from 'lucide-
 import { motion, AnimatePresence } from 'motion/react';
 import { Button } from '@/components/ui/button';
 import { MovieDetails, tmdb } from '@/lib/tmdb';
-import { useNeuralQuality } from '@/hooks/useNeuralQuality';
 import { TrailerModal } from './TrailerModal';
 import { JellyfishLights } from './JellyfishLights';
 import { HackerTyping } from './HackerTyping';
@@ -31,7 +30,6 @@ export function Hero({ movies }: HeroProps) {
   const [isVideoReady, setIsVideoReady] = useState(false);
   const playerRef = useRef<any>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const { config } = useNeuralQuality();
   
   const currentMovie = movies[currentIndex];
   const trailer = currentMovie?.videos?.results?.find(
@@ -173,7 +171,7 @@ export function Hero({ movies }: HeroProps) {
           className="absolute inset-0 z-0"
         >
           <Image
-            src={tmdb.getImageUrl(currentMovie.backdrop_path, config.tmdbBackdropSize)}
+            src={tmdb.getImageUrl(currentMovie.backdrop_path)}
             alt={currentMovie.title}
             fill
             priority
@@ -186,7 +184,7 @@ export function Hero({ movies }: HeroProps) {
       {/* Video Background */}
       {trailer && (
         <div className={`absolute inset-0 transition-opacity duration-1000 ${isVideoReady ? 'opacity-100' : 'opacity-0'}`}>
-          <div className="absolute inset-0 scale-105 pointer-events-none">
+          <div className="absolute inset-0 scale-150 pointer-events-none">
             <div id="hero-video" className="w-full h-full" />
           </div>
         </div>
@@ -194,7 +192,7 @@ export function Hero({ movies }: HeroProps) {
 
       {/* Overlays */}
       <div className="absolute inset-0 hero-gradient z-10" />
-      <div className="absolute inset-0 bg-black/10 z-10" />
+      <div className="absolute inset-0 bg-black/30 z-10" />
 
       {/* Content */}
       <div className="absolute inset-0 flex flex-col justify-end pb-24 z-20">
@@ -208,14 +206,9 @@ export function Hero({ movies }: HeroProps) {
               transition={{ duration: 0.8 }}
               className="space-y-6"
             >
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-2 text-primary font-bold">
-                  <Star className="w-5 h-5 fill-primary" />
-                  <span>Trending Playlist • {currentIndex + 1}/{movies.length}</span>
-                </div>
-                <div className="flex items-center gap-1 px-2 py-0.5 rounded border border-primary/50 bg-primary/10 text-[10px] font-bold text-primary uppercase tracking-widest animate-pulse">
-                  NEURAL {config.label}
-                </div>
+              <div className="flex items-center gap-2 text-primary font-bold">
+                <Star className="w-5 h-5 fill-primary" />
+                <span>Trending Playlist • {currentIndex + 1}/{movies.length}</span>
               </div>
               
               <h1 className="text-5xl md:text-8xl font-black tracking-tighter max-w-4xl text-shadow">

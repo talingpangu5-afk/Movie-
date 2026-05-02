@@ -177,7 +177,7 @@ export function AIVoiceBranding() {
           <div className="flex flex-col">
             <h1 className="text-xl md:text-2xl font-black tracking-tighter text-white transition-all duration-300 group-hover:neon-blue flex items-center gap-2">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-primary to-white animate-text-shimmer bg-[length:200%_auto]">
-                NEURAL STREAM ALPHA
+                TALING PANGU
               </span>
               <AnimatePresence>
                 {isExpanded && (
