@@ -1,5 +1,5 @@
 {
-  "name": "AetherMiner Elite",
-  "description": "Futuristic mining and trading platform with KuCoin integration and APR analytics.",
+  "name": "Taling Pangu",
+  "description": "Premium cinematic platform for discovering trending movies, web series, and exclusive trailers with ultra-smooth 4K playback.",
   "requestFramePermissions": ["camera", "microphone"]
 }
